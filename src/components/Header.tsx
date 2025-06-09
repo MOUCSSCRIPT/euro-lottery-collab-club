@@ -1,9 +1,12 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Dices, Users, Trophy } from 'lucide-react';
+import { Dices, Users, Menu } from 'lucide-react';
+import { useMobile } from '@/hooks/useMobile';
 
 export const Header = () => {
+  const { isMobile } = useMobile();
+
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -20,17 +23,23 @@ export const Header = () => {
             </div>
           </div>
           
-          <nav className="hidden md:flex items-center space-x-6">
-            <a href="#groups" className="text-foreground hover:text-blue-600 transition-colors">
-              Mes Groupes
-            </a>
-            <a href="#stats" className="text-foreground hover:text-blue-600 transition-colors">
-              Statistiques
-            </a>
-            <Button className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white">
-              Se connecter
+          {isMobile ? (
+            <Button variant="ghost" size="icon">
+              <Menu className="h-6 w-6" />
             </Button>
-          </nav>
+          ) : (
+            <nav className="flex items-center space-x-6">
+              <a href="#groups" className="text-foreground hover:text-blue-600 transition-colors">
+                Mes Groupes
+              </a>
+              <a href="#stats" className="text-foreground hover:text-blue-600 transition-colors">
+                Statistiques
+              </a>
+              <Button className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white">
+                Se connecter
+              </Button>
+            </nav>
+          )}
         </div>
       </div>
     </header>
