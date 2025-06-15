@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Dices, Trophy, Gamepad2 } from 'lucide-react';
 import { GroupModal } from './GroupModal';
 import { useGroups } from '@/hooks/useGroups';
@@ -22,6 +23,52 @@ const gameTypeIcons: Record<GameType, React.ReactNode> = {
   'lotto': <Dices className="h-4 w-4" />,
   'lotto_foot_15': <Gamepad2 className="h-4 w-4" />
 };
+
+const GroupSkeleton = () => (
+  <Card className="p-6 border-l-4 border-l-blue-500">
+    <div className="flex items-start justify-between mb-4">
+      <div className="flex-1">
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <div className="flex items-center gap-2 mb-2">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-12" />
+        </div>
+        <Skeleton className="h-4 w-1/2" />
+      </div>
+      <div className="text-right">
+        <Skeleton className="h-8 w-12 mb-1" />
+        <Skeleton className="h-3 w-16" />
+      </div>
+    </div>
+
+    <div className="space-y-3 mb-4">
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-4 w-16" />
+        <Skeleton className="h-4 w-12" />
+      </div>
+      
+      <Skeleton className="h-2 w-full" />
+
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-4 w-8" />
+      </div>
+
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-16" />
+      </div>
+    </div>
+
+    <div className="pt-4 border-t border-gray-100">
+      <div className="flex justify-between items-center mb-2">
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="h-3 w-20" />
+      </div>
+      <Skeleton className="h-9 w-full" />
+    </div>
+  </Card>
+);
 
 export const GroupsSection = () => {
   const [showModal, setShowModal] = useState(false);
@@ -57,9 +104,24 @@ export const GroupsSection = () => {
     return (
       <section id="groups" className="py-16 px-4 bg-white/50">
         <div className="container mx-auto">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Chargement de vos groupes...</p>
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-3xl font-bold mb-2">Mes Groupes</h3>
+              <p className="text-muted-foreground">Gérez vos participations collaboratives</p>
+            </div>
+            <Button 
+              onClick={() => setShowModal(true)}
+              className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Nouveau groupe
+            </Button>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <GroupSkeleton key={index} />
+            ))}
           </div>
         </div>
       </section>
