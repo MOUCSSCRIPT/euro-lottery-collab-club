@@ -9,7 +9,89 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      group_members: {
+        Row: {
+          contribution: number
+          group_id: string
+          id: string
+          joined_at: string
+          percentage: number
+          user_id: string
+        }
+        Insert: {
+          contribution: number
+          group_id: string
+          id?: string
+          joined_at?: string
+          percentage: number
+          user_id: string
+        }
+        Update: {
+          contribution?: number
+          group_id?: string
+          id?: string
+          joined_at?: string
+          percentage?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          game_type: Database["public"]["Enums"]["game_type"]
+          grids_count: number
+          id: string
+          max_members: number
+          mode: Database["public"]["Enums"]["group_mode"]
+          name: string
+          next_draw_date: string | null
+          status: string
+          total_budget: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          game_type?: Database["public"]["Enums"]["game_type"]
+          grids_count?: number
+          id?: string
+          max_members?: number
+          mode?: Database["public"]["Enums"]["group_mode"]
+          name: string
+          next_draw_date?: string | null
+          status?: string
+          total_budget?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          game_type?: Database["public"]["Enums"]["game_type"]
+          grids_count?: number
+          id?: string
+          max_members?: number
+          mode?: Database["public"]["Enums"]["group_mode"]
+          name?: string
+          next_draw_date?: string | null
+          status?: string
+          total_budget?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +100,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      game_type: "euromillions" | "lotto" | "lotto_foot_15"
+      group_mode: "demo" | "real"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +216,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      game_type: ["euromillions", "lotto", "lotto_foot_15"],
+      group_mode: ["demo", "real"],
+    },
   },
 } as const
