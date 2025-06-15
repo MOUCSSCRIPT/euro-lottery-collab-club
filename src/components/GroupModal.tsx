@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Users, Dices, GameController2, Trophy } from 'lucide-react';
+import { Users, Dices, Gamepad2, Trophy } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -29,7 +28,7 @@ const gameTypeLabels: Record<GameType, string> = {
 const gameTypeIcons: Record<GameType, React.ReactNode> = {
   'euromillions': <Trophy className="h-4 w-4" />,
   'lotto': <Dices className="h-4 w-4" />,
-  'lotto_foot_15': <GameController2 className="h-4 w-4" />
+  'lotto_foot_15': <Gamepad2 className="h-4 w-4" />
 };
 
 export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {

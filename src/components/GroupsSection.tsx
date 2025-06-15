@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Users, Dices, Trophy, GameController2 } from 'lucide-react';
+import { Users, Dices, Trophy, Gamepad2 } from 'lucide-react';
 import { GroupModal } from './GroupModal';
 import { useGroups } from '@/hooks/useGroups';
 import type { Database } from '@/integrations/supabase/types';
@@ -21,7 +20,7 @@ const gameTypeLabels: Record<GameType, string> = {
 const gameTypeIcons: Record<GameType, React.ReactNode> = {
   'euromillions': <Trophy className="h-4 w-4" />,
   'lotto': <Dices className="h-4 w-4" />,
-  'lotto_foot_15': <GameController2 className="h-4 w-4" />
+  'lotto_foot_15': <Gamepad2 className="h-4 w-4" />
 };
 
 export const GroupsSection = () => {
