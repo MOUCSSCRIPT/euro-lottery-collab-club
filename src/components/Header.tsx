@@ -3,9 +3,18 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Dices, Users, Menu } from 'lucide-react';
 import { useMobile } from '@/hooks/useMobile';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserMenu } from '@/components/auth/UserMenu';
+import { useNavigate } from 'react-router-dom';
 
 export const Header = () => {
   const { isMobile } = useMobile();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAuthClick = () => {
+    navigate('/auth');
+  };
 
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
@@ -24,9 +33,25 @@ export const Header = () => {
           </div>
           
           {isMobile ? (
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              {user ? (
+                <UserMenu />
+              ) : (
+                !loading && (
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={handleAuthClick}
+                    className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
+                  >
+                    Connexion
+                  </Button>
+                )
+              )}
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </div>
           ) : (
             <nav className="flex items-center space-x-6">
               <a href="#groups" className="text-foreground hover:text-blue-600 transition-colors">
@@ -35,9 +60,18 @@ export const Header = () => {
               <a href="#stats" className="text-foreground hover:text-blue-600 transition-colors">
                 Statistiques
               </a>
-              <Button className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white">
-                Se connecter
-              </Button>
+              {user ? (
+                <UserMenu />
+              ) : (
+                !loading && (
+                  <Button 
+                    onClick={handleAuthClick}
+                    className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
+                  >
+                    Se connecter
+                  </Button>
+                )
+              )}
             </nav>
           )}
         </div>
