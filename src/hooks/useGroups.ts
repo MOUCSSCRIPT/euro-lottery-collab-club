@@ -14,10 +14,16 @@ export const useGroups = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  console.log('useGroups hook - user:', user?.id);
+
   const { data: groups, isLoading } = useQuery({
     queryKey: ['groups', user?.id],
     queryFn: async () => {
-      if (!user) return [];
+      console.log('Fetching groups for user:', user?.id);
+      if (!user) {
+        console.log('No user, returning empty array');
+        return [];
+      }
       
       const { data, error } = await supabase
         .from('groups')
@@ -32,6 +38,7 @@ export const useGroups = () => {
         `)
         .order('created_at', { ascending: false });
 
+      console.log('Groups query result:', { data, error });
       if (error) throw error;
       return data;
     },
@@ -40,6 +47,7 @@ export const useGroups = () => {
 
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: Omit<GroupInsert, 'created_by'>) => {
+      console.log('Creating group:', groupData);
       if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
@@ -51,7 +59,12 @@ export const useGroups = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating group:', error);
+        throw error;
+      }
+
+      console.log('Group created successfully:', data);
 
       // Add creator as first member
       const { error: memberError } = await supabase
@@ -63,8 +76,12 @@ export const useGroups = () => {
           percentage: 100,
         });
 
-      if (memberError) throw memberError;
+      if (memberError) {
+        console.error('Error adding member:', memberError);
+        throw memberError;
+      }
 
+      console.log('Member added successfully');
       return data;
     },
     onSuccess: () => {
@@ -75,6 +92,7 @@ export const useGroups = () => {
       });
     },
     onError: (error) => {
+      console.error('Group creation failed:', error);
       toast({
         title: "Erreur",
         description: error.message,
