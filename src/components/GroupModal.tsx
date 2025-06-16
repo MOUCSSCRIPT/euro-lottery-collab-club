@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,8 @@ const gameTypeIcons: Record<GameType, React.ReactNode> = {
 };
 
 export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
+  console.log('GroupModal render - open:', open);
+  
   const [groupName, setGroupName] = useState('');
   const [maxMembers, setMaxMembers] = useState(10);
   const [myContribution, setMyContribution] = useState(25);
@@ -52,7 +55,22 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
   const { estimatedTotal, grids, myPercentage } = calculateStats();
 
   const handleCreate = () => {
-    if (!groupName.trim()) return;
+    console.log('handleCreate called - groupName:', groupName);
+    
+    if (!groupName.trim()) {
+      console.log('Group name is empty, returning');
+      return;
+    }
+
+    console.log('Creating group with data:', {
+      name: groupName,
+      description: description || null,
+      game_type: gameType,
+      mode: isDemoMode ? 'demo' : 'real',
+      max_members: maxMembers,
+      total_budget: myContribution,
+      grids_count: grids,
+    });
 
     createGroup({
       name: groupName,
@@ -164,7 +182,6 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
             />
           </div>
 
-          {/* Prévisions */}
           <div className="bg-blue-50 p-4 rounded-lg space-y-3">
             <div className="flex items-center gap-2">
               <h4 className="font-semibold text-blue-900">Prévisions du groupe</h4>
@@ -202,11 +219,21 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                console.log('Cancel button clicked');
+                onOpenChange(false);
+              }} 
+              className="flex-1"
+            >
               Annuler
             </Button>
             <Button 
-              onClick={handleCreate}
+              onClick={() => {
+                console.log('Create button clicked');
+                handleCreate();
+              }}
               disabled={!groupName.trim() || isCreating}
               className="flex-1 bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
             >

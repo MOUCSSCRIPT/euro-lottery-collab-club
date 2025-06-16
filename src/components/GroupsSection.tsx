@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,9 +25,19 @@ const gameTypeIcons: Record<GameType, React.ReactNode> = {
 
 export const GroupsSection = () => {
   const [showModal, setShowModal] = useState(false);
-  const { groups, isLoading } = useGroups();
+  const { groups, isLoading, error } = useGroups();
 
-  console.log('GroupsSection render - isLoading:', isLoading, 'groups:', groups);
+  console.log('GroupsSection render - isLoading:', isLoading, 'groups:', groups, 'error:', error, 'showModal:', showModal);
+
+  const handleNewGroupClick = () => {
+    console.log('New group button clicked, setting showModal to true');
+    setShowModal(true);
+  };
+
+  const handleModalOpenChange = (open: boolean) => {
+    console.log('Modal open change:', open);
+    setShowModal(open);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,7 +75,7 @@ export const GroupsSection = () => {
               <p className="text-muted-foreground">Gérez vos participations collaboratives</p>
             </div>
             <Button 
-              onClick={() => setShowModal(true)}
+              onClick={handleNewGroupClick}
               className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
             >
               <Users className="mr-2 h-4 w-4" />
@@ -79,6 +88,45 @@ export const GroupsSection = () => {
             <p className="text-gray-600">Chargement de vos groupes...</p>
           </div>
         </div>
+        <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
+      </section>
+    );
+  }
+
+  // Afficher l'erreur si elle existe
+  if (error) {
+    console.error('Groups error:', error);
+    return (
+      <section id="groups" className="py-16 px-4 bg-white/50">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h3 className="text-3xl font-bold mb-2">Mes Groupes</h3>
+              <p className="text-muted-foreground">Gérez vos participations collaboratives</p>
+            </div>
+            <Button 
+              onClick={handleNewGroupClick}
+              className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Nouveau groupe
+            </Button>
+          </div>
+          
+          <div className="text-center py-12">
+            <div className="text-red-500 mb-4">
+              <h4 className="text-xl font-semibold mb-2">Erreur de chargement</h4>
+              <p className="text-sm">{error.message}</p>
+            </div>
+            <Button 
+              onClick={() => window.location.reload()}
+              variant="outline"
+            >
+              Réessayer
+            </Button>
+          </div>
+        </div>
+        <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
       </section>
     );
   }
@@ -92,7 +140,7 @@ export const GroupsSection = () => {
             <p className="text-muted-foreground">Gérez vos participations collaboratives</p>
           </div>
           <Button 
-            onClick={() => setShowModal(true)}
+            onClick={handleNewGroupClick}
             className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
           >
             <Users className="mr-2 h-4 w-4" />
@@ -106,7 +154,7 @@ export const GroupsSection = () => {
             <h4 className="text-xl font-semibold text-gray-600 mb-2">Aucun groupe pour le moment</h4>
             <p className="text-gray-500 mb-6">Créez votre premier groupe pour commencer à jouer ensemble !</p>
             <Button 
-              onClick={() => setShowModal(true)}
+              onClick={handleNewGroupClick}
               className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
             >
               <Users className="mr-2 h-4 w-4" />
@@ -192,7 +240,7 @@ export const GroupsSection = () => {
           </div>
         )}
 
-        <GroupModal open={showModal} onOpenChange={setShowModal} />
+        <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
       </div>
     </section>
   );

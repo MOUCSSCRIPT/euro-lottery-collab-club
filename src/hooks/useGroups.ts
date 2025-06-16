@@ -16,7 +16,7 @@ export const useGroups = () => {
 
   console.log('useGroups hook - user:', user?.id);
 
-  const { data: groups, isLoading } = useQuery({
+  const { data: groups, isLoading, error } = useQuery({
     queryKey: ['groups', user?.id],
     queryFn: async () => {
       console.log('Fetching groups for user:', user?.id);
@@ -25,25 +25,58 @@ export const useGroups = () => {
         return [];
       }
       
-      const { data, error } = await supabase
+      // Simplifier la requête pour éviter la récursion - d'abord récupérer juste les groupes
+      console.log('Step 1: Fetching groups only...');
+      const { data: groupsData, error: groupsError } = await supabase
         .from('groups')
-        .select(`
-          *,
-          group_members (
-            id,
-            user_id,
-            contribution,
-            percentage
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Groups query result:', { data, error });
-      if (error) throw error;
-      return data;
+      console.log('Groups query result:', { data: groupsData, error: groupsError });
+      
+      if (groupsError) {
+        console.error('Error fetching groups:', groupsError);
+        throw groupsError;
+      }
+
+      // Si on a des groupes, récupérer les membres séparément
+      if (groupsData && groupsData.length > 0) {
+        console.log('Step 2: Fetching group members...');
+        const groupIds = groupsData.map(g => g.id);
+        
+        const { data: membersData, error: membersError } = await supabase
+          .from('group_members')
+          .select('*')
+          .in('group_id', groupIds);
+
+        console.log('Members query result:', { data: membersData, error: membersError });
+        
+        if (membersError) {
+          console.warn('Error fetching members, continuing without:', membersError);
+          // Continue sans les membres plutôt que de faire échouer toute la requête
+          return groupsData.map(group => ({ ...group, group_members: [] }));
+        }
+
+        // Combiner les données manuellement
+        const groupsWithMembers = groupsData.map(group => ({
+          ...group,
+          group_members: membersData ? membersData.filter(m => m.group_id === group.id) : []
+        }));
+
+        console.log('Final groups with members:', groupsWithMembers);
+        return groupsWithMembers;
+      }
+
+      console.log('No groups found, returning empty array');
+      return groupsData || [];
     },
     enabled: !!user,
   });
+
+  // Log any query errors
+  if (error) {
+    console.error('Groups query error:', error);
+  }
 
   const createGroupMutation = useMutation({
     mutationFn: async (groupData: Omit<GroupInsert, 'created_by'>) => {
@@ -104,6 +137,7 @@ export const useGroups = () => {
   return {
     groups: groups || [],
     isLoading,
+    error,
     createGroup: createGroupMutation.mutate,
     isCreating: createGroupMutation.isPending,
   };
