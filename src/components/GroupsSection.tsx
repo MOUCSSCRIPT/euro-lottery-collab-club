@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -164,9 +165,9 @@ export const GroupsSection = () => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {groups.map((group) => {
-              const memberCount = group.group_members?.length || 1;
-              const myMembership = group.group_members?.find(m => m.user_id === group.created_by);
-              const myPercentage = myMembership?.percentage || 100;
+              // Simplification : on affiche 1 membre (le créateur) par défaut
+              const memberCount = 1;
+              const myPercentage = 100;
               
               return (
                 <Card key={group.id} className="p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">

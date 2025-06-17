@@ -7,7 +7,6 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Group = Database['public']['Tables']['groups']['Row'];
 type GroupInsert = Database['public']['Tables']['groups']['Insert'];
-type GroupMember = Database['public']['Tables']['group_members']['Row'];
 
 export const useGroups = () => {
   const { user } = useAuth();
@@ -25,8 +24,7 @@ export const useGroups = () => {
         return [];
       }
       
-      // Simplifier la requête pour éviter la récursion - d'abord récupérer juste les groupes
-      console.log('Step 1: Fetching groups only...');
+      console.log('Fetching groups...');
       const { data: groupsData, error: groupsError } = await supabase
         .from('groups')
         .select('*')
@@ -39,35 +37,7 @@ export const useGroups = () => {
         throw groupsError;
       }
 
-      // Si on a des groupes, récupérer les membres séparément
-      if (groupsData && groupsData.length > 0) {
-        console.log('Step 2: Fetching group members...');
-        const groupIds = groupsData.map(g => g.id);
-        
-        const { data: membersData, error: membersError } = await supabase
-          .from('group_members')
-          .select('*')
-          .in('group_id', groupIds);
-
-        console.log('Members query result:', { data: membersData, error: membersError });
-        
-        if (membersError) {
-          console.warn('Error fetching members, continuing without:', membersError);
-          // Continue sans les membres plutôt que de faire échouer toute la requête
-          return groupsData.map(group => ({ ...group, group_members: [] }));
-        }
-
-        // Combiner les données manuellement
-        const groupsWithMembers = groupsData.map(group => ({
-          ...group,
-          group_members: membersData ? membersData.filter(m => m.group_id === group.id) : []
-        }));
-
-        console.log('Final groups with members:', groupsWithMembers);
-        return groupsWithMembers;
-      }
-
-      console.log('No groups found, returning empty array');
+      console.log('Groups fetched successfully:', groupsData);
       return groupsData || [];
     },
     enabled: !!user,
