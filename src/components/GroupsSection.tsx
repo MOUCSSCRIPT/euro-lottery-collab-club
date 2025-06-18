@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ const gameTypeIcons: Record<GameType, React.ReactNode> = {
 
 export const GroupsSection = () => {
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
   const { groups, isLoading, error } = useGroups();
 
   console.log('GroupsSection render - isLoading:', isLoading, 'groups:', groups, 'error:', error, 'showModal:', showModal);
@@ -38,6 +40,11 @@ export const GroupsSection = () => {
   const handleModalOpenChange = (open: boolean) => {
     console.log('Modal open change:', open);
     setShowModal(open);
+  };
+
+  const handleViewDetails = (groupId: string) => {
+    console.log('Navigating to group details:', groupId);
+    navigate(`/group/${groupId}`);
   };
 
   const getStatusColor = (status: string) => {
@@ -231,7 +238,11 @@ export const GroupsSection = () => {
                         </span>
                       </div>
                     )}
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleViewDetails(group.id)}
+                    >
                       Voir les détails
                     </Button>
                   </div>
