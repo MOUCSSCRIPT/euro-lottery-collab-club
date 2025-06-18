@@ -1,16 +1,18 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Users } from 'lucide-react';
+import { Users, UserPlus } from 'lucide-react';
 import { GroupModal } from './GroupModal';
 import { useGroups } from '@/hooks/useGroups';
 import { GroupCard } from './groups/GroupCard';
 import { GroupsLoadingState } from './groups/GroupsLoadingState';
 import { GroupsErrorState } from './groups/GroupsErrorState';
 import { GroupsEmptyState } from './groups/GroupsEmptyState';
+import { JoinGroupModal } from './invitations/JoinGroupModal';
 
 export const GroupsSection = () => {
   const [showModal, setShowModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const { groups, isLoading, error } = useGroups();
 
   console.log('GroupsSection render - isLoading:', isLoading, 'groups:', groups, 'error:', error, 'showModal:', showModal);
@@ -20,9 +22,19 @@ export const GroupsSection = () => {
     setShowModal(true);
   };
 
+  const handleJoinGroupClick = () => {
+    console.log('Join group button clicked');
+    setShowJoinModal(true);
+  };
+
   const handleModalOpenChange = (open: boolean) => {
     console.log('Modal open change:', open);
     setShowModal(open);
+  };
+
+  const handleJoinModalOpenChange = (open: boolean) => {
+    console.log('Join modal open change:', open);
+    setShowJoinModal(open);
   };
 
   if (isLoading) {
@@ -30,6 +42,7 @@ export const GroupsSection = () => {
       <>
         <GroupsLoadingState onNewGroupClick={handleNewGroupClick} />
         <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
+        <JoinGroupModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
       </>
     );
   }
@@ -40,6 +53,7 @@ export const GroupsSection = () => {
       <>
         <GroupsErrorState error={error} onNewGroupClick={handleNewGroupClick} />
         <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
+        <JoinGroupModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
       </>
     );
   }
@@ -52,13 +66,23 @@ export const GroupsSection = () => {
             <h3 className="text-3xl font-bold mb-2">Mes Groupes</h3>
             <p className="text-muted-foreground">Gérez vos participations collaboratives</p>
           </div>
-          <Button 
-            onClick={handleNewGroupClick}
-            className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
-          >
-            <Users className="mr-2 h-4 w-4" />
-            Nouveau groupe
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={handleJoinGroupClick}
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Rejoindre un groupe
+            </Button>
+            <Button 
+              onClick={handleNewGroupClick}
+              className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Nouveau groupe
+            </Button>
+          </div>
         </div>
 
         {groups.length === 0 ? (
@@ -72,6 +96,7 @@ export const GroupsSection = () => {
         )}
 
         <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
+        <JoinGroupModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
       </div>
     </section>
   );

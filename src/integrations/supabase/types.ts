@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      group_invitations: {
+        Row: {
+          created_at: string
+          email: string | null
+          expires_at: string
+          group_id: string
+          id: string
+          invitation_code: string
+          invited_by: string
+          status: string | null
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          group_id: string
+          id?: string
+          invitation_code: string
+          invited_by: string
+          status?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          expires_at?: string
+          group_id?: string
+          id?: string
+          invitation_code?: string
+          invited_by?: string
+          status?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_invitations_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           contribution: number
@@ -116,7 +160,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      generate_invitation_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       game_type: "euromillions" | "lotto" | "lotto_foot_15"

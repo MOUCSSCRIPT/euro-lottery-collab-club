@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,11 +10,13 @@ import { Header } from '@/components/Header';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { InviteModal } from '@/components/invitations/InviteModal';
 
 const GroupDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   console.log('GroupDetails - fetching group with id:', id);
 
@@ -171,7 +172,7 @@ const GroupDetails = () => {
                     Membres du groupe
                   </CardTitle>
                   {isCreator && (
-                    <Button size="sm">
+                    <Button size="sm" onClick={() => setShowInviteModal(true)}>
                       <UserPlus className="mr-2 h-4 w-4" />
                       Inviter
                     </Button>
@@ -264,6 +265,16 @@ const GroupDetails = () => {
             </Card>
           </div>
         </div>
+
+        {/* Modal d'invitation */}
+        {isCreator && (
+          <InviteModal
+            open={showInviteModal}
+            onOpenChange={setShowInviteModal}
+            groupId={group.id}
+            groupName={group.name}
+          />
+        )}
       </div>
     </div>
   );
