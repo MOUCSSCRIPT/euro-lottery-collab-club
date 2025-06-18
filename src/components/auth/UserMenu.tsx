@@ -22,7 +22,7 @@ export const UserMenu = () => {
       await signOut();
       toast({
         title: "Déconnexion réussie",
-        description: "À bientôt sur EuroCollab !",
+        description: "À bientôt sur suerte+ !",
       });
     } catch (error) {
       toast({

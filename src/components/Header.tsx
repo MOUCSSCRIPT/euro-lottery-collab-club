@@ -26,7 +26,7 @@ export const Header = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-yellow-600 bg-clip-text text-transparent">
-                EuroCollab
+                suerte+
               </h1>
               <p className="text-sm text-muted-foreground">Gagnez ensemble</p>
             </div>

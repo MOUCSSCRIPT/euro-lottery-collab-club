@@ -38,7 +38,7 @@ const Auth = () => {
             <Dices className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-yellow-600 bg-clip-text text-transparent">
-            EuroCollab
+            suerte+
           </h1>
           <p className="text-gray-600 mt-2">Rejoignez la communauté des passionnés de loterie</p>
         </div>

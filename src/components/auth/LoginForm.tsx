@@ -31,7 +31,7 @@ export const LoginForm = () => {
       } else {
         toast({
           title: "Connexion réussie",
-          description: "Bienvenue sur EuroCollab !",
+          description: "Bienvenue sur suerte+ !",
         });
         navigate('/');
       }
