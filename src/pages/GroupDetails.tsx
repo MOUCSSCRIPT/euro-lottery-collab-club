@@ -27,11 +27,8 @@ const GroupDetails = () => {
           group_members (
             id,
             user_id,
-            contribution_amount,
-            percentage_share,
-            profiles (
-              email
-            )
+            contribution,
+            percentage
           )
         `)
         .eq('id', id)
@@ -75,8 +72,8 @@ const GroupDetails = () => {
   }
 
   const isCreator = user?.id === group.created_by;
-  const totalContributions = group.group_members?.reduce((sum: number, member: any) => sum + (member.contribution_amount || 0), 0) || 0;
-  const progressPercentage = group.target_amount ? (totalContributions / group.target_amount) * 100 : 0;
+  const totalContributions = group.group_members?.reduce((sum: number, member: any) => sum + (member.contribution || 0), 0) || 0;
+  const progressPercentage = group.total_budget ? (totalContributions / group.total_budget) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50">
@@ -122,8 +119,8 @@ const GroupDetails = () => {
                     <div className="text-sm text-muted-foreground">Collecté</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{group.target_amount}€</div>
-                    <div className="text-sm text-muted-foreground">Objectif</div>
+                    <div className="text-2xl font-bold text-yellow-600">{group.total_budget}€</div>
+                    <div className="text-sm text-muted-foreground">Budget total</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">{Math.round(progressPercentage)}%</div>
@@ -134,7 +131,7 @@ const GroupDetails = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Progression de la collecte</span>
-                    <span>{totalContributions}€ / {group.target_amount}€</span>
+                    <span>{totalContributions}€ / {group.total_budget}€</span>
                   </div>
                   <Progress value={progressPercentage} className="h-3" />
                 </div>
@@ -164,11 +161,11 @@ const GroupDetails = () => {
                       <div className="flex items-center space-x-3">
                         <Avatar>
                           <AvatarFallback>
-                            {member.profiles?.email?.charAt(0).toUpperCase() || 'U'}
+                            {member.user_id?.charAt(0).toUpperCase() || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{member.profiles?.email || 'Utilisateur'}</p>
+                          <p className="font-medium">Membre #{member.id.slice(-4)}</p>
                           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                             {member.user_id === group.created_by && (
                               <Badge variant="outline" className="text-xs">Créateur</Badge>
@@ -177,9 +174,9 @@ const GroupDetails = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">{member.contribution_amount || 0}€</div>
+                        <div className="font-medium">{member.contribution || 0}€</div>
                         <div className="text-sm text-muted-foreground">
-                          {Math.round(member.percentage_share || 0)}% des gains
+                          {Math.round(member.percentage || 0)}% des gains
                         </div>
                       </div>
                     </div>
