@@ -9,6 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      draws: {
+        Row: {
+          created_at: string
+          draw_date: string
+          game_type: Database["public"]["Enums"]["game_type"]
+          id: string
+          jackpot: number | null
+          status: string | null
+          winning_numbers: number[]
+          winning_stars: number[] | null
+        }
+        Insert: {
+          created_at?: string
+          draw_date: string
+          game_type: Database["public"]["Enums"]["game_type"]
+          id?: string
+          jackpot?: number | null
+          status?: string | null
+          winning_numbers: number[]
+          winning_stars?: number[] | null
+        }
+        Update: {
+          created_at?: string
+          draw_date?: string
+          game_type?: Database["public"]["Enums"]["game_type"]
+          id?: string
+          jackpot?: number | null
+          status?: string | null
+          winning_numbers?: number[]
+          winning_stars?: number[] | null
+        }
+        Relationships: []
+      }
+      group_grids: {
+        Row: {
+          cost: number
+          created_at: string
+          draw_date: string | null
+          grid_number: number
+          group_id: string
+          id: string
+          is_active: boolean | null
+          numbers: number[]
+          stars: number[] | null
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          draw_date?: string | null
+          grid_number: number
+          group_id: string
+          id?: string
+          is_active?: boolean | null
+          numbers: number[]
+          stars?: number[] | null
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          draw_date?: string | null
+          grid_number?: number
+          group_id?: string
+          id?: string
+          is_active?: boolean | null
+          numbers?: number[]
+          stars?: number[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_grids_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_invitations: {
         Row: {
           created_at: string
