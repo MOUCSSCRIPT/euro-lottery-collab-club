@@ -1,21 +1,11 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Database } from '@/integrations/supabase/types';
-
-type GameType = Database['public']['Enums']['game_type'];
-
-export interface GridData {
-  id: string;
-  group_id: string;
-  grid_number: number;
-  numbers: number[];
-  stars: number[] | null;
-  cost: number;
-  created_at: string;
-  draw_date: string | null;
-  is_active: boolean;
-}
+import { GridData, GenerateGridsParams } from '@/types/grid';
+import { getGridCost } from '@/utils/gridCosts';
+import { getNextDrawDate } from '@/utils/drawDates';
+import { generateOptimizedGrids } from '@/utils/gridGenerator';
 
 export const useGrids = (groupId: string) => {
   return useQuery({
@@ -53,14 +43,7 @@ export const useGenerateGrids = () => {
       gameType = 'euromillions',
       playerName,
       euromillionsOptions
-    }: {
-      groupId: string;
-      budget: number;
-      memberCount: number;
-      gameType?: GameType;
-      playerName?: string;
-      euromillionsOptions?: any;
-    }) => {
+    }: GenerateGridsParams) => {
       console.log('Generating grids with params:', { groupId, budget, memberCount, gameType, playerName, euromillionsOptions });
 
       // Calculate grid cost and count
@@ -115,159 +98,4 @@ export const useGenerateGrids = () => {
   });
 };
 
-function getGridCost(gameType: GameType): number {
-  switch (gameType) {
-    case 'euromillions':
-      return 2.5;
-    case 'lotto':
-      return 2.2;
-    case 'lotto_foot_15':
-      return 2.0; // Prix approximatif pour le Loto Foot 15
-    default:
-      return 2.5;
-  }
-}
-
-// Enhanced grid generation algorithm
-function generateOptimizedGrids(count: number, gameType: GameType, options?: any) {
-  const grids = [];
-  const usedCombinations = new Set<string>();
-
-  for (let i = 0; i < count; i++) {
-    let attempts = 0;
-    let grid;
-    
-    do {
-      grid = generateSingleGrid(gameType, options);
-      attempts++;
-    } while (usedCombinations.has(grid.key) && attempts < 100);
-
-    if (attempts < 100) {
-      usedCombinations.add(grid.key);
-      grids.push({
-        numbers: grid.numbers,
-        stars: grid.stars,
-        cost: grid.cost
-      });
-    } else {
-      // Fallback: generate without duplicate check
-      grids.push({
-        numbers: grid.numbers,
-        stars: grid.stars,
-        cost: grid.cost
-      });
-    }
-  }
-
-  return grids;
-}
-
-function generateSingleGrid(gameType: GameType, options?: any) {
-  switch (gameType) {
-    case 'euromillions':
-      // Enhanced Euromillions generation with options support
-      const numbers = generateUniqueNumbers(5, 1, 50);
-      const stars = generateUniqueNumbers(2, 1, 12);
-      
-      // Calculate cost based on options
-      let cost = 2.5; // Base cost
-      if (options?.luckyNumbers) cost += 1.0;
-      if (options?.system === 'System 7') cost += 7.0;
-      else if (options?.system === 'System 8') cost += 28.0;
-      else if (options?.system === 'System 9') cost += 84.0;
-      
-      return {
-        numbers: numbers.sort((a, b) => a - b),
-        stars: stars.sort((a, b) => a - b),
-        key: `${numbers.join('-')}_${stars.join('-')}`,
-        cost
-      };
-    case 'lotto':
-      // Lotto: 6 numbers (1-49)
-      const lotoNumbers = generateUniqueNumbers(6, 1, 49);
-      return {
-        numbers: lotoNumbers.sort((a, b) => a - b),
-        stars: null,
-        key: lotoNumbers.join('-'),
-        cost: 2.2
-      };
-    case 'lotto_foot_15':
-      // Loto Foot 15: 15 pronostics (1, N, 2 pour chaque match)
-      const predictions = Array.from({ length: 15 }, () => Math.floor(Math.random() * 3) + 1);
-      return {
-        numbers: predictions,
-        stars: null,
-        key: predictions.join('-'),
-        cost: 2.0
-      };
-    default:
-      // Fallback to euromillions
-      const defaultNumbers = generateUniqueNumbers(5, 1, 50);
-      const defaultStars = generateUniqueNumbers(2, 1, 12);
-      return {
-        numbers: defaultNumbers.sort((a, b) => a - b),
-        stars: defaultStars.sort((a, b) => a - b),
-        key: `${defaultNumbers.join('-')}_${defaultStars.join('-')}`,
-        cost: 2.5
-      };
-  }
-}
-
-function generateUniqueNumbers(count: number, min: number, max: number): number[] {
-  const numbers = [];
-  const available = Array.from({ length: max - min + 1 }, (_, i) => i + min);
-  
-  for (let i = 0; i < count; i++) {
-    const randomIndex = Math.floor(Math.random() * available.length);
-    numbers.push(available.splice(randomIndex, 1)[0]);
-  }
-  
-  return numbers;
-}
-
-function getNextDrawDate(gameType: GameType): string {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  
-  let daysUntilNextDraw;
-  
-  switch (gameType) {
-    case 'euromillions':
-      // Euromillions draws: Tuesday (2) and Friday (5)
-      if (dayOfWeek < 2) {
-        daysUntilNextDraw = 2 - dayOfWeek;
-      } else if (dayOfWeek < 5) {
-        daysUntilNextDraw = 5 - dayOfWeek;
-      } else {
-        daysUntilNextDraw = 7 - dayOfWeek + 2; // Next Tuesday
-      }
-      break;
-    case 'lotto':
-      // Lotto draws: Monday (1), Wednesday (3), Saturday (6)
-      if (dayOfWeek < 1) {
-        daysUntilNextDraw = 1 - dayOfWeek;
-      } else if (dayOfWeek < 3) {
-        daysUntilNextDraw = 3 - dayOfWeek;
-      } else if (dayOfWeek < 6) {
-        daysUntilNextDraw = 6 - dayOfWeek;
-      } else {
-        daysUntilNextDraw = 7 - dayOfWeek + 1; // Next Monday
-      }
-      break;
-    case 'lotto_foot_15':
-      // Loto Foot 15: Usually Saturday (6)
-      if (dayOfWeek < 6) {
-        daysUntilNextDraw = 6 - dayOfWeek;
-      } else {
-        daysUntilNextDraw = 7 - dayOfWeek + 6; // Next Saturday
-      }
-      break;
-    default:
-      daysUntilNextDraw = 1; // Default to tomorrow
-  }
-  
-  const nextDraw = new Date(today);
-  nextDraw.setDate(today.getDate() + daysUntilNextDraw);
-  
-  return nextDraw.toISOString().split('T')[0];
-}
+export type { GridData } from '@/types/grid';

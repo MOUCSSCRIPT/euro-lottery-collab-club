@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Euro } from 'lucide-react';
-import { EuromillionsOptions, EUROMILLIONS_PRICES } from '@/types/euromillions';
+import { EuromillionsOptions, EUROMILLIONS_PRICES, SystemType } from '@/types/euromillions';
 
 interface EuromillionsOptionsProps {
   options: EuromillionsOptions;
@@ -22,7 +22,7 @@ export const EuromillionsOptionsComponent = ({ options, onOptionsChange }: Eurom
     }
     
     if (options.system && options.system !== '') {
-      total += EUROMILLIONS_PRICES.systems[options.system];
+      total += EUROMILLIONS_PRICES.systems[options.system as keyof typeof EUROMILLIONS_PRICES.systems];
     }
     
     return total;
@@ -40,7 +40,7 @@ export const EuromillionsOptionsComponent = ({ options, onOptionsChange }: Eurom
   const handleSystemChange = (value: string) => {
     onOptionsChange({ 
       ...options, 
-      system: value as EuromillionsOptions['system']
+      system: value as SystemType
     });
   };
 

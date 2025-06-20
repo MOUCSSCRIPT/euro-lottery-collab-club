@@ -27,3 +27,5 @@ export const EUROMILLIONS_PRICES = {
     'System 9': 84.00
   }
 } as const;
+
+export type SystemType = '' | 'System 7' | 'System 8' | 'System 9';
