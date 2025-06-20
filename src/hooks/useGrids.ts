@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -51,14 +50,18 @@ export const useGenerateGrids = () => {
       groupId,
       budget,
       memberCount,
-      gameType = 'euromillions'
+      gameType = 'euromillions',
+      playerName,
+      euromillionsOptions
     }: {
       groupId: string;
       budget: number;
       memberCount: number;
       gameType?: GameType;
+      playerName?: string;
+      euromillionsOptions?: any;
     }) => {
-      console.log('Generating grids with params:', { groupId, budget, memberCount, gameType });
+      console.log('Generating grids with params:', { groupId, budget, memberCount, gameType, playerName, euromillionsOptions });
 
       // Calculate grid cost and count
       const gridCost = getGridCost(gameType);
@@ -68,8 +71,8 @@ export const useGenerateGrids = () => {
         throw new Error('Budget insuffisant pour générer des grilles');
       }
 
-      // Generate optimized grids
-      const grids = generateOptimizedGrids(maxGrids, gameType);
+      // Generate optimized grids with enhanced logic for Euromillions
+      const grids = generateOptimizedGrids(maxGrids, gameType, euromillionsOptions);
       
       // Insert grids into database
       const gridData = grids.map((grid, index) => ({
@@ -77,7 +80,7 @@ export const useGenerateGrids = () => {
         grid_number: index + 1,
         numbers: grid.numbers,
         stars: grid.stars,
-        cost: gridCost,
+        cost: grid.cost || gridCost,
         draw_date: getNextDrawDate(gameType)
       }));
 
@@ -98,7 +101,7 @@ export const useGenerateGrids = () => {
       queryClient.invalidateQueries({ queryKey: ['grids', variables.groupId] });
       toast({
         title: "Grilles générées !",
-        description: `${data.length} grilles ont été créées avec succès.`,
+        description: `${data.length} grilles ont été créées avec succès pour ${variables.playerName || 'le groupe'}.`,
       });
     },
     onError: (error) => {
@@ -125,8 +128,8 @@ function getGridCost(gameType: GameType): number {
   }
 }
 
-// Grid generation algorithm
-function generateOptimizedGrids(count: number, gameType: GameType) {
+// Enhanced grid generation algorithm
+function generateOptimizedGrids(count: number, gameType: GameType, options?: any) {
   const grids = [];
   const usedCombinations = new Set<string>();
 
@@ -135,7 +138,7 @@ function generateOptimizedGrids(count: number, gameType: GameType) {
     let grid;
     
     do {
-      grid = generateSingleGrid(gameType);
+      grid = generateSingleGrid(gameType, options);
       attempts++;
     } while (usedCombinations.has(grid.key) && attempts < 100);
 
@@ -143,13 +146,15 @@ function generateOptimizedGrids(count: number, gameType: GameType) {
       usedCombinations.add(grid.key);
       grids.push({
         numbers: grid.numbers,
-        stars: grid.stars
+        stars: grid.stars,
+        cost: grid.cost
       });
     } else {
       // Fallback: generate without duplicate check
       grids.push({
         numbers: grid.numbers,
-        stars: grid.stars
+        stars: grid.stars,
+        cost: grid.cost
       });
     }
   }
@@ -157,16 +162,25 @@ function generateOptimizedGrids(count: number, gameType: GameType) {
   return grids;
 }
 
-function generateSingleGrid(gameType: GameType) {
+function generateSingleGrid(gameType: GameType, options?: any) {
   switch (gameType) {
     case 'euromillions':
-      // Euromillions: 5 numbers (1-50) + 2 stars (1-12)
+      // Enhanced Euromillions generation with options support
       const numbers = generateUniqueNumbers(5, 1, 50);
       const stars = generateUniqueNumbers(2, 1, 12);
+      
+      // Calculate cost based on options
+      let cost = 2.5; // Base cost
+      if (options?.luckyNumbers) cost += 1.0;
+      if (options?.system === 'System 7') cost += 7.0;
+      else if (options?.system === 'System 8') cost += 28.0;
+      else if (options?.system === 'System 9') cost += 84.0;
+      
       return {
         numbers: numbers.sort((a, b) => a - b),
         stars: stars.sort((a, b) => a - b),
-        key: `${numbers.join('-')}_${stars.join('-')}`
+        key: `${numbers.join('-')}_${stars.join('-')}`,
+        cost
       };
     case 'lotto':
       // Lotto: 6 numbers (1-49)
@@ -174,7 +188,8 @@ function generateSingleGrid(gameType: GameType) {
       return {
         numbers: lotoNumbers.sort((a, b) => a - b),
         stars: null,
-        key: lotoNumbers.join('-')
+        key: lotoNumbers.join('-'),
+        cost: 2.2
       };
     case 'lotto_foot_15':
       // Loto Foot 15: 15 pronostics (1, N, 2 pour chaque match)
@@ -182,7 +197,8 @@ function generateSingleGrid(gameType: GameType) {
       return {
         numbers: predictions,
         stars: null,
-        key: predictions.join('-')
+        key: predictions.join('-'),
+        cost: 2.0
       };
     default:
       // Fallback to euromillions
@@ -191,7 +207,8 @@ function generateSingleGrid(gameType: GameType) {
       return {
         numbers: defaultNumbers.sort((a, b) => a - b),
         stars: defaultStars.sort((a, b) => a - b),
-        key: `${defaultNumbers.join('-')}_${defaultStars.join('-')}`
+        key: `${defaultNumbers.join('-')}_${defaultStars.join('-')}`,
+        cost: 2.5
       };
   }
 }
