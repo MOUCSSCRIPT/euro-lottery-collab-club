@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -40,7 +39,7 @@ export const EuromillionsOptionsComponent = ({ options, onOptionsChange }: Eurom
   const handleSystemChange = (value: string) => {
     onOptionsChange({ 
       ...options, 
-      system: value === 'none' ? '' : value as SystemType
+      system: value as SystemType
     });
   };
 

@@ -27,7 +27,7 @@ export function generateSingleGrid(gameType: GameType, options?: any) {
       // Calculate cost based on options
       let cost = 2.5; // Base cost
       if (options?.luckyNumbers) cost += 1.0;
-      if (options?.system && options?.system !== '' && options?.system !== 'none') {
+      if (options?.system && options?.system !== 'none') {
         if (options.system === 'System 7') cost += 7.0;
         else if (options.system === 'System 8') cost += 28.0;
         else if (options.system === 'System 9') cost += 84.0;

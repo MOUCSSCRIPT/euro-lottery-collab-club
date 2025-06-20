@@ -23,7 +23,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const [euromillionsOptions, setEuromillionsOptions] = useState<EuromillionsOptions>({
     gridCount: 1,
     luckyNumbers: false,
-    system: ''
+    system: 'none'
   });
   
   const generateGrids = useGenerateGrids();

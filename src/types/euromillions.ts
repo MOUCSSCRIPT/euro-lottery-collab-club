@@ -1,8 +1,7 @@
-
 export interface EuromillionsOptions {
   gridCount: number;
   luckyNumbers: boolean;
-  system: '' | 'System 7' | 'System 8' | 'System 9';
+  system: 'none' | 'System 7' | 'System 8' | 'System 9';
 }
 
 export interface EuromillionsGrid {
@@ -28,4 +27,4 @@ export const EUROMILLIONS_PRICES = {
   }
 } as const;
 
-export type SystemType = '' | 'System 7' | 'System 8' | 'System 9';
+export type SystemType = 'none' | 'System 7' | 'System 8' | 'System 9';
