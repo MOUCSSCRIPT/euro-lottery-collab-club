@@ -1,128 +1,166 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { GridData } from '@/hooks/useGrids';
-import { Star, Hash } from 'lucide-react';
+import { Star, Hash, Trophy } from 'lucide-react';
+import { Database } from '@/integrations/supabase/types';
+
+type GameType = Database['public']['Enums']['game_type'];
 
 interface GridDisplayProps {
   grids: GridData[];
-  gameType: 'euromillions' | 'lotto';
+  gameType: GameType;
 }
 
 export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
   if (!grids || grids.length === 0) {
     return (
       <Card>
-        <CardContent className="p-8 text-center">
-          <div className="text-muted-foreground">
-            Aucune grille générée pour le moment.
-            <br />
-            Utilisez le générateur ci-dessus pour créer vos grilles.
+        <CardHeader>
+          <CardTitle>Grilles générées</CardTitle>
+          <CardDescription>
+            Aucune grille n'a encore été générée pour ce groupe
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            Utilisez le générateur ci-dessus pour créer vos grilles
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Grilles générées</h3>
-        <Badge variant="secondary">
-          {grids.length} grille{grids.length > 1 ? 's' : ''}
-        </Badge>
-      </div>
-      
-      <div className="grid gap-4">
-        {grids.map((grid) => (
-          <Card key={grid.id} className="border-l-4 border-l-blue-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Hash className="h-4 w-4" />
-                  Grille #{grid.grid_number}
-                </span>
-                <Badge variant="outline">{grid.cost}€</Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {/* Numbers */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">
-                    Numéros :
-                  </span>
-                  <div className="flex gap-1">
-                    {grid.numbers.map((number, index) => (
-                      <div
-                        key={index}
-                        className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold"
-                      >
-                        {number}
-                      </div>
+  const gridLabel = gameType === 'lotto_foot_15' ? 'Bulletins' : 'Grilles';
+  const totalCost = grids.reduce((sum, grid) => sum + grid.cost, 0);
+
+  const renderGridContent = (grid: GridData) => {
+    switch (gameType) {
+      case 'euromillions':
+        return (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1">
+                <Hash className="h-4 w-4 text-blue-600" />
+                <div className="flex space-x-1">
+                  {grid.numbers.map((num, idx) => (
+                    <Badge key={idx} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      {num}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              {grid.stars && (
+                <div className="flex items-center space-x-1">
+                  <Star className="h-4 w-4 text-yellow-500" />
+                  <div className="flex space-x-1">
+                    {grid.stars.map((star, idx) => (
+                      <Badge key={idx} variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                        {star}
+                      </Badge>
                     ))}
                   </div>
                 </div>
-
-                {/* Stars (for Euromillions) */}
-                {gameType === 'euromillions' && grid.stars && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                      <Star className="h-3 w-3" />
-                      Étoiles :
-                    </span>
-                    <div className="flex gap-1">
-                      {grid.stars.map((star, index) => (
-                        <div
-                          key={index}
-                          className="w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center text-sm font-bold"
-                        >
-                          {star}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Draw Date */}
-                {grid.draw_date && (
-                  <div className="text-xs text-muted-foreground">
-                    Tirage du {new Date(grid.draw_date).toLocaleDateString('fr-FR')}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Summary */}
-      <Card className="bg-gray-50">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-sm text-muted-foreground">Total grilles</div>
-              <div className="text-lg font-bold">{grids.length}</div>
+              )}
             </div>
-            <div>
-              <div className="text-sm text-muted-foreground">Coût total</div>
-              <div className="text-lg font-bold">
-                {grids.reduce((sum, grid) => sum + Number(grid.cost), 0).toFixed(2)}€
-              </div>
-            </div>
-            <div className="md:col-span-1 col-span-2">
-              <div className="text-sm text-muted-foreground">Prochain tirage</div>
-              <div className="text-lg font-bold">
-                {grids[0]?.draw_date ? 
-                  new Date(grids[0].draw_date).toLocaleDateString('fr-FR') : 
-                  'Non défini'
-                }
-              </div>
+            <div className="text-sm text-muted-foreground">
+              {grid.cost.toFixed(2)}€
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        );
+      
+      case 'lotto':
+        return (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1">
+              <Hash className="h-4 w-4 text-green-600" />
+              <div className="flex space-x-1">
+                {grid.numbers.map((num, idx) => (
+                  <Badge key={idx} variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    {num}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {grid.cost.toFixed(2)}€
+            </div>
+          </div>
+        );
+      
+      case 'lotto_foot_15':
+        return (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-1">
+              <Trophy className="h-4 w-4 text-purple-600" />
+              <div className="flex space-x-1 flex-wrap">
+                {grid.numbers.map((prediction, idx) => (
+                  <Badge key={idx} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                    M{idx + 1}: {prediction === 1 ? '1' : prediction === 2 ? 'N' : '2'}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {grid.cost.toFixed(2)}€
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div className="flex items-center justify-between">
+            <div className="flex space-x-1">
+              {grid.numbers.map((num, idx) => (
+                <Badge key={idx} variant="outline">
+                  {num}
+                </Badge>
+              ))}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {grid.cost.toFixed(2)}€
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>{gridLabel} générées</CardTitle>
+            <CardDescription>
+              {grids.length} {grids.length > 1 ? gridLabel.toLowerCase() : gridLabel.toLowerCase().slice(0, -1)} 
+              {gameType === 'lotto_foot_15' ? '' : 's'} pour un total de {totalCost.toFixed(2)}€
+            </CardDescription>
+          </div>
+          <Badge variant="secondary" className="capitalize">
+            {gameType.replace('_', ' ')}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {grids.map((grid) => (
+            <Card key={grid.id} className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium">
+                  {gameType === 'lotto_foot_15' ? 'Bulletin' : 'Grille'} #{grid.grid_number}
+                </h4>
+                {grid.draw_date && (
+                  <Badge variant="outline" className="text-xs">
+                    {new Date(grid.draw_date).toLocaleDateString('fr-FR')}
+                  </Badge>
+                )}
+              </div>
+              {renderGridContent(grid)}
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

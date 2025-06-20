@@ -2,6 +2,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types';
+
+type GameType = Database['public']['Enums']['game_type'];
 
 export interface GridData {
   id: string;
@@ -53,12 +56,12 @@ export const useGenerateGrids = () => {
       groupId: string;
       budget: number;
       memberCount: number;
-      gameType?: 'euromillions' | 'lotto';
+      gameType?: GameType;
     }) => {
       console.log('Generating grids with params:', { groupId, budget, memberCount, gameType });
 
       // Calculate grid cost and count
-      const gridCost = gameType === 'euromillions' ? 2.5 : 2.2;
+      const gridCost = getGridCost(gameType);
       const maxGrids = Math.floor(budget / gridCost);
       
       if (maxGrids === 0) {
@@ -75,7 +78,7 @@ export const useGenerateGrids = () => {
         numbers: grid.numbers,
         stars: grid.stars,
         cost: gridCost,
-        draw_date: getNextDrawDate()
+        draw_date: getNextDrawDate(gameType)
       }));
 
       const { data, error } = await supabase
@@ -109,8 +112,21 @@ export const useGenerateGrids = () => {
   });
 };
 
+function getGridCost(gameType: GameType): number {
+  switch (gameType) {
+    case 'euromillions':
+      return 2.5;
+    case 'lotto':
+      return 2.2;
+    case 'lotto_foot_15':
+      return 2.0; // Prix approximatif pour le Loto Foot 15
+    default:
+      return 2.5;
+  }
+}
+
 // Grid generation algorithm
-function generateOptimizedGrids(count: number, gameType: 'euromillions' | 'lotto') {
+function generateOptimizedGrids(count: number, gameType: GameType) {
   const grids = [];
   const usedCombinations = new Set<string>();
 
@@ -141,24 +157,42 @@ function generateOptimizedGrids(count: number, gameType: 'euromillions' | 'lotto
   return grids;
 }
 
-function generateSingleGrid(gameType: 'euromillions' | 'lotto') {
-  if (gameType === 'euromillions') {
-    // Euromillions: 5 numbers (1-50) + 2 stars (1-12)
-    const numbers = generateUniqueNumbers(5, 1, 50);
-    const stars = generateUniqueNumbers(2, 1, 12);
-    return {
-      numbers: numbers.sort((a, b) => a - b),
-      stars: stars.sort((a, b) => a - b),
-      key: `${numbers.join('-')}_${stars.join('-')}`
-    };
-  } else {
-    // Lotto: 6 numbers (1-49)
-    const numbers = generateUniqueNumbers(6, 1, 49);
-    return {
-      numbers: numbers.sort((a, b) => a - b),
-      stars: null,
-      key: numbers.join('-')
-    };
+function generateSingleGrid(gameType: GameType) {
+  switch (gameType) {
+    case 'euromillions':
+      // Euromillions: 5 numbers (1-50) + 2 stars (1-12)
+      const numbers = generateUniqueNumbers(5, 1, 50);
+      const stars = generateUniqueNumbers(2, 1, 12);
+      return {
+        numbers: numbers.sort((a, b) => a - b),
+        stars: stars.sort((a, b) => a - b),
+        key: `${numbers.join('-')}_${stars.join('-')}`
+      };
+    case 'lotto':
+      // Lotto: 6 numbers (1-49)
+      const lotoNumbers = generateUniqueNumbers(6, 1, 49);
+      return {
+        numbers: lotoNumbers.sort((a, b) => a - b),
+        stars: null,
+        key: lotoNumbers.join('-')
+      };
+    case 'lotto_foot_15':
+      // Loto Foot 15: 15 pronostics (1, N, 2 pour chaque match)
+      const predictions = Array.from({ length: 15 }, () => Math.floor(Math.random() * 3) + 1);
+      return {
+        numbers: predictions,
+        stars: null,
+        key: predictions.join('-')
+      };
+    default:
+      // Fallback to euromillions
+      const defaultNumbers = generateUniqueNumbers(5, 1, 50);
+      const defaultStars = generateUniqueNumbers(2, 1, 12);
+      return {
+        numbers: defaultNumbers.sort((a, b) => a - b),
+        stars: defaultStars.sort((a, b) => a - b),
+        key: `${defaultNumbers.join('-')}_${defaultStars.join('-')}`
+      };
   }
 }
 
@@ -174,18 +208,45 @@ function generateUniqueNumbers(count: number, min: number, max: number): number[
   return numbers;
 }
 
-function getNextDrawDate(): string {
+function getNextDrawDate(gameType: GameType): string {
   const today = new Date();
   const dayOfWeek = today.getDay();
   
-  // Euromillions draws: Tuesday (2) and Friday (5)
   let daysUntilNextDraw;
-  if (dayOfWeek < 2) {
-    daysUntilNextDraw = 2 - dayOfWeek;
-  } else if (dayOfWeek < 5) {
-    daysUntilNextDraw = 5 - dayOfWeek;
-  } else {
-    daysUntilNextDraw = 7 - dayOfWeek + 2; // Next Tuesday
+  
+  switch (gameType) {
+    case 'euromillions':
+      // Euromillions draws: Tuesday (2) and Friday (5)
+      if (dayOfWeek < 2) {
+        daysUntilNextDraw = 2 - dayOfWeek;
+      } else if (dayOfWeek < 5) {
+        daysUntilNextDraw = 5 - dayOfWeek;
+      } else {
+        daysUntilNextDraw = 7 - dayOfWeek + 2; // Next Tuesday
+      }
+      break;
+    case 'lotto':
+      // Lotto draws: Monday (1), Wednesday (3), Saturday (6)
+      if (dayOfWeek < 1) {
+        daysUntilNextDraw = 1 - dayOfWeek;
+      } else if (dayOfWeek < 3) {
+        daysUntilNextDraw = 3 - dayOfWeek;
+      } else if (dayOfWeek < 6) {
+        daysUntilNextDraw = 6 - dayOfWeek;
+      } else {
+        daysUntilNextDraw = 7 - dayOfWeek + 1; // Next Monday
+      }
+      break;
+    case 'lotto_foot_15':
+      // Loto Foot 15: Usually Saturday (6)
+      if (dayOfWeek < 6) {
+        daysUntilNextDraw = 6 - dayOfWeek;
+      } else {
+        daysUntilNextDraw = 7 - dayOfWeek + 6; // Next Saturday
+      }
+      break;
+    default:
+      daysUntilNextDraw = 1; // Default to tomorrow
   }
   
   const nextDraw = new Date(today);

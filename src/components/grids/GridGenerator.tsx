@@ -19,7 +19,20 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const [budget, setBudget] = useState(50);
   const generateGrids = useGenerateGrids();
 
-  const gridCost = group.game_type === 'euromillions' ? 2.5 : 2.2;
+  const getGridCost = () => {
+    switch (group.game_type) {
+      case 'euromillions':
+        return 2.5;
+      case 'lotto':
+        return 2.2;
+      case 'lotto_foot_15':
+        return 2.0;
+      default:
+        return 2.5;
+    }
+  };
+
+  const gridCost = getGridCost();
   const maxGrids = Math.floor(budget / gridCost);
   const totalCost = maxGrids * gridCost;
   const costPerMember = totalCost / memberCount;
@@ -33,15 +46,56 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
     });
   };
 
+  const getGameInfo = () => {
+    switch (group.game_type) {
+      case 'euromillions':
+        return {
+          description: (
+            <>
+              <div>• 5 numéros de 1 à 50</div>
+              <div>• 2 étoiles de 1 à 12</div>
+              <div>• Coût par grille : 2,50€</div>
+            </>
+          )
+        };
+      case 'lotto':
+        return {
+          description: (
+            <>
+              <div>• 6 numéros de 1 à 49</div>
+              <div>• Coût par grille : 2,20€</div>
+            </>
+          )
+        };
+      case 'lotto_foot_15':
+        return {
+          description: (
+            <>
+              <div>• 15 matchs à pronostiquer</div>
+              <div>• 1, N ou 2 pour chaque match</div>
+              <div>• Coût par bulletin : 2,00€</div>
+            </>
+          )
+        };
+      default:
+        return {
+          description: <div>• Configuration par défaut</div>
+        };
+    }
+  };
+
+  const gridLabel = group.game_type === 'lotto_foot_15' ? 'bulletin' : 'grille';
+  const gridsLabel = group.game_type === 'lotto_foot_15' ? 'bulletins' : 'grilles';
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Dices className="h-5 w-5 text-blue-600" />
-          Générateur de grilles
+          Générateur de {gridsLabel}
         </CardTitle>
         <CardDescription>
-          Générez automatiquement des grilles optimisées pour votre groupe
+          Générez automatiquement des {gridsLabel} optimisées pour votre groupe
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -65,7 +119,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
           <div className="text-center">
             <div className="bg-blue-50 p-3 rounded-lg">
               <Calculator className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-              <div className="text-sm text-muted-foreground">Grilles max</div>
+              <div className="text-sm text-muted-foreground">{gridsLabel.charAt(0).toUpperCase() + gridsLabel.slice(1)} max</div>
               <div className="text-xl font-bold text-blue-600">{maxGrids}</div>
             </div>
           </div>
@@ -100,22 +154,11 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium">Type de jeu</h4>
             <Badge variant="secondary" className="capitalize">
-              {group.game_type}
+              {group.game_type.replace('_', ' ')}
             </Badge>
           </div>
           <div className="text-sm text-muted-foreground">
-            {group.game_type === 'euromillions' ? (
-              <>
-                <div>• 5 numéros de 1 à 50</div>
-                <div>• 2 étoiles de 1 à 12</div>
-                <div>• Coût par grille : 2,50€</div>
-              </>
-            ) : (
-              <>
-                <div>• 6 numéros de 1 à 49</div>
-                <div>• Coût par grille : 2,20€</div>
-              </>
-            )}
+            {getGameInfo().description}
           </div>
         </div>
 
@@ -134,7 +177,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
           ) : (
             <>
               <Dices className="mr-2 h-4 w-4" />
-              Générer {maxGrids} grille{maxGrids > 1 ? 's' : ''}
+              Générer {maxGrids} {maxGrids > 1 ? gridsLabel : gridLabel}
             </>
           )}
         </Button>
