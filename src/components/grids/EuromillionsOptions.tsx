@@ -21,7 +21,7 @@ export const EuromillionsOptionsComponent = ({ options, onOptionsChange }: Eurom
       total += EUROMILLIONS_PRICES.luckyNumbers;
     }
     
-    if (options.system && options.system !== '') {
+    if (options.system && options.system !== 'none') {
       total += EUROMILLIONS_PRICES.systems[options.system as keyof typeof EUROMILLIONS_PRICES.systems];
     }
     
@@ -40,7 +40,7 @@ export const EuromillionsOptionsComponent = ({ options, onOptionsChange }: Eurom
   const handleSystemChange = (value: string) => {
     onOptionsChange({ 
       ...options, 
-      system: value as SystemType
+      system: value === 'none' ? '' : value as SystemType
     });
   };
 
@@ -83,12 +83,12 @@ export const EuromillionsOptionsComponent = ({ options, onOptionsChange }: Eurom
 
           <div className="space-y-2">
             <Label htmlFor="system-select">Système</Label>
-            <Select value={options.system} onValueChange={handleSystemChange}>
+            <Select value={options.system || 'none'} onValueChange={handleSystemChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Aucun système" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucun système</SelectItem>
+                <SelectItem value="none">Aucun système</SelectItem>
                 <SelectItem value="System 7">Système 7 (+7,00€)</SelectItem>
                 <SelectItem value="System 8">Système 8 (+28,00€)</SelectItem>
                 <SelectItem value="System 9">Système 9 (+84,00€)</SelectItem>
