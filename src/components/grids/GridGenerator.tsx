@@ -11,6 +11,7 @@ import { useGenerateGrids } from '@/hooks/useGrids';
 import { Tables } from '@/integrations/supabase/types';
 import { EuromillionsOptionsComponent } from './EuromillionsOptions';
 import { EuromillionsManualEntry } from './EuromillionsManualEntry';
+import { LotoFootManualEntry } from './LotoFootManualEntry';
 import { GridModeSelector } from './GridModeSelector';
 import { EuromillionsOptions } from '@/types/euromillions';
 
@@ -27,11 +28,17 @@ interface ManualGrid {
   stars: number[];
 }
 
+interface LotoFootGrid {
+  id: string;
+  predictions: number[];
+}
+
 export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const [budget, setBudget] = useState(50);
   const [playerName, setPlayerName] = useState('');
   const [gridMode, setGridMode] = useState<GridMode>('auto');
   const [manualGrids, setManualGrids] = useState<ManualGrid[]>([]);
+  const [lotoFootGrids, setLotoFootGrids] = useState<LotoFootGrid[]>([]);
   const [euromillionsOptions, setEuromillionsOptions] = useState<EuromillionsOptions>({
     gridCount: 1,
     luckyNumbers: false,
@@ -60,17 +67,31 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
 
   const handleGenerate = () => {
     if (gridMode === 'manual') {
-      // Pour la saisie manuelle, on utilise les grilles créées manuellement
-      generateGrids.mutate({
-        groupId: group.id,
-        budget,
-        memberCount,
-        gameType: group.game_type,
-        playerName,
-        manualGrids: manualGrids.filter(grid => 
-          grid.mainNumbers.length === 5 && grid.stars.length === 2
-        )
-      });
+      if (group.game_type === 'lotto_foot_15') {
+        // Pour le Loto Foot 15
+        generateGrids.mutate({
+          groupId: group.id,
+          budget,
+          memberCount,
+          gameType: group.game_type,
+          playerName,
+          lotoFootGrids: lotoFootGrids.filter(grid => 
+            grid.predictions.length === 15 && grid.predictions.every(p => p >= 1 && p <= 3)
+          )
+        });
+      } else {
+        // Pour l'Euromillions
+        generateGrids.mutate({
+          groupId: group.id,
+          budget,
+          memberCount,
+          gameType: group.game_type,
+          playerName,
+          manualGrids: manualGrids.filter(grid => 
+            grid.mainNumbers.length === 5 && grid.stars.length === 2
+          )
+        });
+      }
     } else {
       // Génération automatique existante
       generateGrids.mutate({
@@ -113,6 +134,9 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
               <div>• 15 matchs à pronostiquer</div>
               <div>• 1, N ou 2 pour chaque match</div>
               <div>• Coût par bulletin : 2,00€</div>
+              <div>• 1 = Victoire équipe domicile</div>
+              <div>• N = Match nul</div>
+              <div>• 2 = Victoire équipe extérieur</div>
             </>
           )
         };
@@ -131,13 +155,31 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
     if (maxGrids === 0) return false;
     
     if (gridMode === 'manual') {
-      const completeGrids = manualGrids.filter(grid => 
-        grid.mainNumbers.length === 5 && grid.stars.length === 2
-      );
-      return completeGrids.length > 0;
+      if (group.game_type === 'lotto_foot_15') {
+        const completeGrids = lotoFootGrids.filter(grid => 
+          grid.predictions.length === 15 && grid.predictions.every(p => p >= 1 && p <= 3)
+        );
+        return completeGrids.length > 0;
+      } else {
+        const completeGrids = manualGrids.filter(grid => 
+          grid.mainNumbers.length === 5 && grid.stars.length === 2
+        );
+        return completeGrids.length > 0;
+      }
     }
     
     return true;
+  };
+
+  const getCompleteGridsCount = () => {
+    if (group.game_type === 'lotto_foot_15') {
+      return lotoFootGrids.filter(grid => 
+        grid.predictions.length === 15 && grid.predictions.every(p => p >= 1 && p <= 3)
+      ).length;
+    }
+    return manualGrids.filter(grid => 
+      grid.mainNumbers.length === 5 && grid.stars.length === 2
+    ).length;
   };
 
   return (
@@ -231,8 +273,8 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         </CardContent>
       </Card>
 
-      {/* Mode de génération (seulement pour Euromillions) */}
-      {group.game_type === 'euromillions' && (
+      {/* Mode de génération (seulement pour Euromillions et Loto Foot 15) */}
+      {(group.game_type === 'euromillions' || group.game_type === 'lotto_foot_15') && (
         <GridModeSelector mode={gridMode} onModeChange={setGridMode} />
       )}
 
@@ -244,10 +286,18 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         />
       )}
 
-      {/* Saisie manuelle */}
+      {/* Saisie manuelle Euromillions */}
       {group.game_type === 'euromillions' && gridMode === 'manual' && maxGrids > 0 && (
         <EuromillionsManualEntry 
           onGridsChange={setManualGrids}
+          maxGrids={maxGrids}
+        />
+      )}
+
+      {/* Saisie manuelle Loto Foot 15 */}
+      {group.game_type === 'lotto_foot_15' && gridMode === 'manual' && maxGrids > 0 && (
+        <LotoFootManualEntry 
+          onGridsChange={setLotoFootGrids}
           maxGrids={maxGrids}
         />
       )}
@@ -268,7 +318,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
           <>
             <Dices className="mr-2 h-4 w-4" />
             {gridMode === 'manual' 
-              ? `Valider ${manualGrids.filter(g => g.mainNumbers.length === 5 && g.stars.length === 2).length} ${gridMode === 'manual' && manualGrids.filter(g => g.mainNumbers.length === 5 && g.stars.length === 2).length > 1 ? gridsLabel : gridLabel}`
+              ? `Valider ${getCompleteGridsCount()} ${getCompleteGridsCount() > 1 ? gridsLabel : gridLabel}`
               : `Générer ${maxGrids} ${maxGrids > 1 ? gridsLabel : gridLabel}`
             }
           </>
@@ -288,9 +338,9 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         </div>
       )}
 
-      {gridMode === 'manual' && manualGrids.filter(g => g.mainNumbers.length === 5 && g.stars.length === 2).length === 0 && maxGrids > 0 && (
+      {gridMode === 'manual' && getCompleteGridsCount() === 0 && maxGrids > 0 && (
         <div className="text-center text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
-          Complétez au moins une grille pour continuer
+          Complétez au moins une {gridLabel} pour continuer
         </div>
       )}
     </div>
