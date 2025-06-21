@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Users, Dices, Trophy, Gamepad2 } from 'lucide-react';
+import { Users, Dices, Trophy, Gamepad2, UserPlus } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
 type Group = Database['public']['Tables']['groups']['Row'];
@@ -34,6 +34,11 @@ export const GroupCard = ({ group }: GroupCardProps) => {
   const handleViewDetails = (groupId: string) => {
     console.log('Navigating to group details:', groupId);
     navigate(`/group/${groupId}`);
+  };
+
+  const handleJoinGroup = (groupId: string) => {
+    console.log('Joining group:', groupId);
+    // TODO: Implement join group logic
   };
 
   const getStatusColor = (status: string) => {
@@ -121,20 +126,30 @@ export const GroupCard = ({ group }: GroupCardProps) => {
 
       <div className="pt-4 border-t border-gray-100">
         {group.next_draw_date && (
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between items-center mb-3">
             <span className="text-sm text-muted-foreground">Prochain tirage</span>
             <span className="text-sm font-medium">
               {new Date(group.next_draw_date).toLocaleDateString('fr-FR')}
             </span>
           </div>
         )}
-        <Button 
-          variant="outline" 
-          className="w-full"
-          onClick={() => handleViewDetails(group.id)}
-        >
-          Voir les détails
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
+            onClick={() => handleJoinGroup(group.id)}
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Rejoindre
+          </Button>
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => handleViewDetails(group.id)}
+          >
+            Voir les détails
+          </Button>
+        </div>
       </div>
     </Card>
   );

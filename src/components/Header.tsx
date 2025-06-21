@@ -16,17 +16,24 @@ export const Header = () => {
     navigate('/auth');
   };
 
+  const handleLogoClick = () => {
+    navigate('/');
+  };
+
   return (
     <header className="bg-white/90 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div 
+            className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={handleLogoClick}
+          >
             <div className="bg-gradient-to-r from-blue-600 to-yellow-500 p-2 rounded-xl">
               <Dices className="h-6 w-6 text-white" />
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-yellow-600 bg-clip-text text-transparent">
-                suerte+
+                SUERTE+
               </h1>
               <p className="text-sm text-muted-foreground">Gagnez ensemble</p>
             </div>
