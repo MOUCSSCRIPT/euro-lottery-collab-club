@@ -11,6 +11,12 @@ export interface GridData {
   is_active: boolean;
 }
 
+export interface ManualGrid {
+  id: string;
+  mainNumbers: number[];
+  stars: number[];
+}
+
 export interface GenerateGridsParams {
   groupId: string;
   budget: number;
@@ -18,4 +24,5 @@ export interface GenerateGridsParams {
   gameType?: 'euromillions' | 'lotto' | 'lotto_foot_15';
   playerName?: string;
   euromillionsOptions?: any;
+  manualGrids?: ManualGrid[];
 }

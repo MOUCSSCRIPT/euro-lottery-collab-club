@@ -10,6 +10,8 @@ import { Dices, Calculator, Users, Euro } from 'lucide-react';
 import { useGenerateGrids } from '@/hooks/useGrids';
 import { Tables } from '@/integrations/supabase/types';
 import { EuromillionsOptionsComponent } from './EuromillionsOptions';
+import { EuromillionsManualEntry } from './EuromillionsManualEntry';
+import { GridModeSelector } from './GridModeSelector';
 import { EuromillionsOptions } from '@/types/euromillions';
 
 interface GridGeneratorProps {
@@ -17,9 +19,19 @@ interface GridGeneratorProps {
   memberCount: number;
 }
 
+type GridMode = 'auto' | 'manual';
+
+interface ManualGrid {
+  id: string;
+  mainNumbers: number[];
+  stars: number[];
+}
+
 export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const [budget, setBudget] = useState(50);
   const [playerName, setPlayerName] = useState('');
+  const [gridMode, setGridMode] = useState<GridMode>('auto');
+  const [manualGrids, setManualGrids] = useState<ManualGrid[]>([]);
   const [euromillionsOptions, setEuromillionsOptions] = useState<EuromillionsOptions>({
     gridCount: 1,
     luckyNumbers: false,
@@ -47,14 +59,29 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const costPerMember = totalCost / memberCount;
 
   const handleGenerate = () => {
-    generateGrids.mutate({
-      groupId: group.id,
-      budget,
-      memberCount,
-      gameType: group.game_type,
-      playerName,
-      euromillionsOptions: group.game_type === 'euromillions' ? euromillionsOptions : undefined
-    });
+    if (gridMode === 'manual') {
+      // Pour la saisie manuelle, on utilise les grilles créées manuellement
+      generateGrids.mutate({
+        groupId: group.id,
+        budget,
+        memberCount,
+        gameType: group.game_type,
+        playerName,
+        manualGrids: manualGrids.filter(grid => 
+          grid.mainNumbers.length === 5 && grid.stars.length === 2
+        )
+      });
+    } else {
+      // Génération automatique existante
+      generateGrids.mutate({
+        groupId: group.id,
+        budget,
+        memberCount,
+        gameType: group.game_type,
+        playerName,
+        euromillionsOptions: group.game_type === 'euromillions' ? euromillionsOptions : undefined
+      });
+    }
   };
 
   const getGameInfo = () => {
@@ -99,8 +126,23 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const gridLabel = group.game_type === 'lotto_foot_15' ? 'bulletin' : 'grille';
   const gridsLabel = group.game_type === 'lotto_foot_15' ? 'bulletins' : 'grilles';
 
+  const canGenerate = () => {
+    if (!playerName.trim()) return false;
+    if (maxGrids === 0) return false;
+    
+    if (gridMode === 'manual') {
+      const completeGrids = manualGrids.filter(grid => 
+        grid.mainNumbers.length === 5 && grid.stars.length === 2
+      );
+      return completeGrids.length > 0;
+    }
+    
+    return true;
+  };
+
   return (
     <div className="space-y-6">
+      {/* Informations du joueur */}
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -108,7 +150,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
             Générateur de {gridsLabel}
           </CardTitle>
           <CardDescription>
-            Générez automatiquement des {gridsLabel} optimisées pour votre groupe
+            Générez automatiquement des {gridsLabel} optimisées ou choisissez vos numéros manuellement
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -186,47 +228,70 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
               {getGameInfo().description}
             </div>
           </div>
-
-          {/* Generate Button */}
-          <Button 
-            onClick={handleGenerate}
-            disabled={maxGrids === 0 || generateGrids.isPending || !playerName.trim()}
-            className="w-full bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600"
-            size="lg"
-          >
-            {generateGrids.isPending ? (
-              <>
-                <Dices className="mr-2 h-4 w-4 animate-spin" />
-                Génération en cours...
-              </>
-            ) : (
-              <>
-                <Dices className="mr-2 h-4 w-4" />
-                Générer {maxGrids} {maxGrids > 1 ? gridsLabel : gridLabel}
-              </>
-            )}
-          </Button>
-
-          {maxGrids === 0 && (
-            <div className="text-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-              Budget insuffisant. Minimum requis : {gridCost}€
-            </div>
-          )}
-
-          {!playerName.trim() && (
-            <div className="text-center text-sm text-orange-600 bg-orange-50 p-3 rounded-lg">
-              Veuillez saisir votre nom pour continuer
-            </div>
-          )}
         </CardContent>
       </Card>
 
-      {/* Euromillions Options */}
+      {/* Mode de génération (seulement pour Euromillions) */}
       {group.game_type === 'euromillions' && (
+        <GridModeSelector mode={gridMode} onModeChange={setGridMode} />
+      )}
+
+      {/* Options Euromillions (mode automatique seulement) */}
+      {group.game_type === 'euromillions' && gridMode === 'auto' && (
         <EuromillionsOptionsComponent 
           options={euromillionsOptions}
           onOptionsChange={setEuromillionsOptions}
         />
+      )}
+
+      {/* Saisie manuelle */}
+      {group.game_type === 'euromillions' && gridMode === 'manual' && maxGrids > 0 && (
+        <EuromillionsManualEntry 
+          onGridsChange={setManualGrids}
+          maxGrids={maxGrids}
+        />
+      )}
+
+      {/* Generate Button */}
+      <Button 
+        onClick={handleGenerate}
+        disabled={!canGenerate() || generateGrids.isPending}
+        className="w-full bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600"
+        size="lg"
+      >
+        {generateGrids.isPending ? (
+          <>
+            <Dices className="mr-2 h-4 w-4 animate-spin" />
+            Génération en cours...
+          </>
+        ) : (
+          <>
+            <Dices className="mr-2 h-4 w-4" />
+            {gridMode === 'manual' 
+              ? `Valider ${manualGrids.filter(g => g.mainNumbers.length === 5 && g.stars.length === 2).length} ${gridMode === 'manual' && manualGrids.filter(g => g.mainNumbers.length === 5 && g.stars.length === 2).length > 1 ? gridsLabel : gridLabel}`
+              : `Générer ${maxGrids} ${maxGrids > 1 ? gridsLabel : gridLabel}`
+            }
+          </>
+        )}
+      </Button>
+
+      {/* Messages d'erreur */}
+      {maxGrids === 0 && (
+        <div className="text-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+          Budget insuffisant. Minimum requis : {gridCost}€
+        </div>
+      )}
+
+      {!playerName.trim() && (
+        <div className="text-center text-sm text-orange-600 bg-orange-50 p-3 rounded-lg">
+          Veuillez saisir votre nom pour continuer
+        </div>
+      )}
+
+      {gridMode === 'manual' && manualGrids.filter(g => g.mainNumbers.length === 5 && g.stars.length === 2).length === 0 && maxGrids > 0 && (
+        <div className="text-center text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+          Complétez au moins une grille pour continuer
+        </div>
       )}
     </div>
   );

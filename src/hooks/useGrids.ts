@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { GridData, GenerateGridsParams } from '@/types/grid';
+import { GridData, GenerateGridsParams, ManualGrid } from '@/types/grid';
 import { getGridCost } from '@/utils/gridCosts';
 import { getNextDrawDate } from '@/utils/drawDates';
 import { generateOptimizedGrids } from '@/utils/gridGenerator';
@@ -42,20 +42,32 @@ export const useGenerateGrids = () => {
       memberCount,
       gameType = 'euromillions',
       playerName,
-      euromillionsOptions
+      euromillionsOptions,
+      manualGrids
     }: GenerateGridsParams) => {
-      console.log('Generating grids with params:', { groupId, budget, memberCount, gameType, playerName, euromillionsOptions });
+      console.log('Generating grids with params:', { groupId, budget, memberCount, gameType, playerName, euromillionsOptions, manualGrids });
 
       // Calculate grid cost and count
       const gridCost = getGridCost(gameType);
-      const maxGrids = Math.floor(budget / gridCost);
-      
-      if (maxGrids === 0) {
-        throw new Error('Budget insuffisant pour générer des grilles');
-      }
+      let grids;
 
-      // Generate optimized grids with enhanced logic for Euromillions
-      const grids = generateOptimizedGrids(maxGrids, gameType, euromillionsOptions);
+      if (manualGrids && manualGrids.length > 0) {
+        // Utiliser les grilles manuelles
+        grids = manualGrids.map(grid => ({
+          numbers: grid.mainNumbers,
+          stars: grid.stars,
+          cost: gridCost
+        }));
+      } else {
+        // Génération automatique
+        const maxGrids = Math.floor(budget / gridCost);
+        
+        if (maxGrids === 0) {
+          throw new Error('Budget insuffisant pour générer des grilles');
+        }
+
+        grids = generateOptimizedGrids(maxGrids, gameType, euromillionsOptions);
+      }
       
       // Insert grids into database
       const gridData = grids.map((grid, index) => ({
@@ -82,9 +94,10 @@ export const useGenerateGrids = () => {
     },
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['grids', variables.groupId] });
+      const modeText = variables.manualGrids ? 'manuellement' : 'automatiquement';
       toast({
         title: "Grilles générées !",
-        description: `${data.length} grilles ont été créées avec succès pour ${variables.playerName || 'le groupe'}.`,
+        description: `${data.length} grilles ont été créées ${modeText} avec succès pour ${variables.playerName || 'le groupe'}.`,
       });
     },
     onError: (error) => {
