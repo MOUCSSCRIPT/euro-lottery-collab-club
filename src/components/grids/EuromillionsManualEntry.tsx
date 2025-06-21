@@ -225,7 +225,7 @@ export const EuromillionsManualEntry = ({ onGridsChange, maxGrids }: Euromillion
       {/* Bouton d'ajout de grille */}
       {grids.length < maxGrids && (
         <Button
-          variant="dashed"
+          variant="outline"
           className="w-full border-2 border-dashed border-gray-300 hover:border-blue-500 hover:bg-blue-50"
           onClick={addGrid}
         >
