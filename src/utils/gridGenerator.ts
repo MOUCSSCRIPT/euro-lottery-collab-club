@@ -55,7 +55,7 @@ export function generateSingleGrid(gameType: GameType, options?: any) {
         numbers: predictions,
         stars: null,
         key: predictions.join('-'),
-        cost: 2.0
+        cost: 1.0
       };
     default:
       // Fallback to euromillions

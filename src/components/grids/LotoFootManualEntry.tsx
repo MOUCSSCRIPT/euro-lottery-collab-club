@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -19,7 +18,7 @@ interface LotoFootManualEntryProps {
 
 export const LotoFootManualEntry = ({ onGridsChange, maxGrids }: LotoFootManualEntryProps) => {
   const [grids, setGrids] = useState<LotoFootGrid[]>([
-    { id: '1', predictions: Array(15).fill([]), cost: 2.0, code: '' }
+    { id: '1', predictions: Array(15).fill([]), cost: 1.0, code: '' }
   ]);
 
   // Calculer le nombre de doubles et triples pour une grille
@@ -36,7 +35,7 @@ export const LotoFootManualEntry = ({ onGridsChange, maxGrids }: LotoFootManualE
   // Calculer le prix d'une grille
   const calculateGridCost = (predictions: number[][]) => {
     const { doubles, triples } = countDoublesAndTriples(predictions);
-    const baseCost = 2.0;
+    const baseCost = 1.0;
     const multiplier = Math.pow(2, doubles) * Math.pow(3, triples);
     return baseCost * multiplier;
   };
@@ -86,7 +85,7 @@ export const LotoFootManualEntry = ({ onGridsChange, maxGrids }: LotoFootManualE
       const newGrid = {
         id: Date.now().toString(),
         predictions: Array(15).fill([]),
-        cost: 2.0,
+        cost: 1.0,
         code: ''
       };
       const updatedGrids = [...grids, newGrid];
