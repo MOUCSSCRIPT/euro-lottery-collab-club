@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +29,9 @@ interface ManualGrid {
 
 interface LotoFootGrid {
   id: string;
-  predictions: number[];
+  predictions: number[][];
+  cost: number;
+  code: string;
 }
 
 export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
@@ -68,16 +69,27 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const handleGenerate = () => {
     if (gridMode === 'manual') {
       if (group.game_type === 'lotto_foot_15') {
-        // Pour le Loto Foot 15
+        // Convertir les grilles Loto Foot au format attendu par le backend
+        const validGrids = lotoFootGrids.filter(grid => 
+          grid.predictions.every(match => match.length > 0)
+        );
+        
+        const convertedGrids = validGrids.map(grid => ({
+          id: grid.id,
+          predictions: grid.predictions.map(match => {
+            // Si plusieurs sélections, prendre la première pour la compatibilité
+            // Dans une version avancée, on pourrait gérer les systèmes
+            return match.length > 0 ? match[0] : 1;
+          })
+        }));
+
         generateGrids.mutate({
           groupId: group.id,
           budget,
           memberCount,
           gameType: group.game_type,
           playerName,
-          lotoFootGrids: lotoFootGrids.filter(grid => 
-            grid.predictions.length === 15 && grid.predictions.every(p => p >= 1 && p <= 3)
-          )
+          lotoFootGrids: convertedGrids
         });
       } else {
         // Pour l'Euromillions
@@ -103,6 +115,41 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         euromillionsOptions: group.game_type === 'euromillions' ? euromillionsOptions : undefined
       });
     }
+  };
+
+  const gridLabel = group.game_type === 'lotto_foot_15' ? 'bulletin' : 'grille';
+  const gridsLabel = group.game_type === 'lotto_foot_15' ? 'bulletins' : 'grilles';
+
+  const canGenerate = () => {
+    if (!playerName.trim()) return false;
+    if (maxGrids === 0) return false;
+    
+    if (gridMode === 'manual') {
+      if (group.game_type === 'lotto_foot_15') {
+        const completeGrids = lotoFootGrids.filter(grid => 
+          grid.predictions.every(match => match.length > 0)
+        );
+        return completeGrids.length > 0;
+      } else {
+        const completeGrids = manualGrids.filter(grid => 
+          grid.mainNumbers.length === 5 && grid.stars.length === 2
+        );
+        return completeGrids.length > 0;
+      }
+    }
+    
+    return true;
+  };
+
+  const getCompleteGridsCount = () => {
+    if (group.game_type === 'lotto_foot_15') {
+      return lotoFootGrids.filter(grid => 
+        grid.predictions.every(match => match.length > 0)
+      ).length;
+    }
+    return manualGrids.filter(grid => 
+      grid.mainNumbers.length === 5 && grid.stars.length === 2
+    ).length;
   };
 
   const getGameInfo = () => {
@@ -133,7 +180,8 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
             <>
               <div>• 15 matchs à pronostiquer</div>
               <div>• 1, N ou 2 pour chaque match</div>
-              <div>• Coût par bulletin : 2,00€</div>
+              <div>• Coût par bulletin : 2,00€ (minimum)</div>
+              <div>• Coût calculé selon les doubles/triples</div>
               <div>• 1 = Victoire équipe domicile</div>
               <div>• N = Match nul</div>
               <div>• 2 = Victoire équipe extérieur</div>
@@ -145,41 +193,6 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
           description: <div>• Configuration par défaut</div>
         };
     }
-  };
-
-  const gridLabel = group.game_type === 'lotto_foot_15' ? 'bulletin' : 'grille';
-  const gridsLabel = group.game_type === 'lotto_foot_15' ? 'bulletins' : 'grilles';
-
-  const canGenerate = () => {
-    if (!playerName.trim()) return false;
-    if (maxGrids === 0) return false;
-    
-    if (gridMode === 'manual') {
-      if (group.game_type === 'lotto_foot_15') {
-        const completeGrids = lotoFootGrids.filter(grid => 
-          grid.predictions.length === 15 && grid.predictions.every(p => p >= 1 && p <= 3)
-        );
-        return completeGrids.length > 0;
-      } else {
-        const completeGrids = manualGrids.filter(grid => 
-          grid.mainNumbers.length === 5 && grid.stars.length === 2
-        );
-        return completeGrids.length > 0;
-      }
-    }
-    
-    return true;
-  };
-
-  const getCompleteGridsCount = () => {
-    if (group.game_type === 'lotto_foot_15') {
-      return lotoFootGrids.filter(grid => 
-        grid.predictions.length === 15 && grid.predictions.every(p => p >= 1 && p <= 3)
-      ).length;
-    }
-    return manualGrids.filter(grid => 
-      grid.mainNumbers.length === 5 && grid.stars.length === 2
-    ).length;
   };
 
   return (
