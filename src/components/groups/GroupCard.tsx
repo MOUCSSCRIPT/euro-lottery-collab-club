@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Users, Dices, Trophy, Gamepad2, UserPlus } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
+import { useGroupMembers } from '@/hooks/useGroupMembers';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/integrations/supabase/types';
 
 type Group = Database['public']['Tables']['groups']['Row'];
@@ -32,6 +34,8 @@ const gameTypeIcons: Record<GameType, React.ReactNode> = {
 export const GroupCard = ({ group }: GroupCardProps) => {
   const navigate = useNavigate();
   const { joinGroup } = useGroups();
+  const { user } = useAuth();
+  const { members, memberCount, currentUserMember, leaveGroup, isLeaving } = useGroupMembers(group.id);
 
   const handleViewDetails = (groupId: string) => {
     console.log('Navigating to group details:', groupId);
@@ -41,6 +45,11 @@ export const GroupCard = ({ group }: GroupCardProps) => {
   const handleJoinGroup = (groupId: string) => {
     console.log('Joining group:', groupId);
     joinGroup(groupId);
+  };
+
+  const handleLeaveGroup = (groupId: string) => {
+    console.log('Leaving group:', groupId);
+    leaveGroup(groupId);
   };
 
   const getStatusColor = (status: string) => {
@@ -69,9 +78,10 @@ export const GroupCard = ({ group }: GroupCardProps) => {
     return mode === 'demo' ? 'Démo' : 'Réel';
   };
 
-  // Simplification : on affiche 1 membre (le créateur) par défaut
-  const memberCount = 1;
-  const myPercentage = 100;
+  // Calcul des données réelles
+  const myPercentage = currentUserMember?.percentage || 0;
+  const isCreator = user?.id === group.created_by;
+  const isMember = !!currentUserMember;
 
   return (
     <Card className="p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
@@ -92,8 +102,18 @@ export const GroupCard = ({ group }: GroupCardProps) => {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-blue-600">{myPercentage}%</div>
-          <div className="text-sm text-muted-foreground">Ma part</div>
+          {isMember && (
+            <>
+              <div className="text-2xl font-bold text-blue-600">{Math.round(myPercentage)}%</div>
+              <div className="text-sm text-muted-foreground">Ma part</div>
+            </>
+          )}
+          {!isMember && (
+            <div className="text-sm text-muted-foreground text-right">
+              <div className="font-medium">Code: {group.team_code}</div>
+              <div>Non membre</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -136,14 +156,27 @@ export const GroupCard = ({ group }: GroupCardProps) => {
           </div>
         )}
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
-            onClick={() => handleJoinGroup(group.id)}
-          >
-            <UserPlus className="mr-2 h-4 w-4" />
-            Rejoindre
-          </Button>
+          {!isMember ? (
+            <Button 
+              variant="outline" 
+              className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
+              onClick={() => handleJoinGroup(group.id)}
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              Rejoindre
+            </Button>
+          ) : (
+            !isCreator && (
+              <Button 
+                variant="outline" 
+                className="flex-1 border-red-600 text-red-600 hover:bg-red-50"
+                onClick={() => handleLeaveGroup(group.id)}
+                disabled={isLeaving}
+              >
+                Quitter
+              </Button>
+            )
+          )}
           <Button 
             variant="outline" 
             className="flex-1"

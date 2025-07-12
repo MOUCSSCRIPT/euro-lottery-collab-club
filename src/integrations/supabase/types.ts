@@ -183,6 +183,7 @@ export type Database = {
           name: string
           next_draw_date: string | null
           status: string
+          team_code: string
           total_budget: number
           updated_at: string
         }
@@ -198,6 +199,7 @@ export type Database = {
           name: string
           next_draw_date?: string | null
           status?: string
+          team_code?: string
           total_budget?: number
           updated_at?: string
         }
@@ -213,6 +215,7 @@ export type Database = {
           name?: string
           next_draw_date?: string | null
           status?: string
+          team_code?: string
           total_budget?: number
           updated_at?: string
         }
@@ -317,6 +320,10 @@ export type Database = {
     }
     Functions: {
       generate_invitation_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_team_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
