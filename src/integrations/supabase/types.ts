@@ -320,6 +320,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      is_group_creator: {
+        Args: { check_group_id: string; check_user_id: string }
+        Returns: boolean
+      }
+      is_group_member: {
+        Args: { check_group_id: string; check_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       game_type: "euromillions" | "lotto" | "lotto_foot_15"
