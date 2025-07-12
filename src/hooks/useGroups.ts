@@ -104,11 +104,96 @@ export const useGroups = () => {
     },
   });
 
+  const joinGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      console.log('Joining group:', groupId);
+      if (!user) throw new Error('User not authenticated');
+
+      // Check if user is already a member
+      const { data: existingMember } = await supabase
+        .from('group_members')
+        .select('id')
+        .eq('group_id', groupId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (existingMember) {
+        throw new Error('Vous êtes déjà membre de ce groupe');
+      }
+
+      // Get group info to calculate contribution
+      const { data: groupData, error: groupError } = await supabase
+        .from('groups')
+        .select('total_budget, max_members')
+        .eq('id', groupId)
+        .single();
+
+      if (groupError) {
+        console.error('Error fetching group:', groupError);
+        throw groupError;
+      }
+
+      // Get current member count
+      const { count: memberCount, error: countError } = await supabase
+        .from('group_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('group_id', groupId);
+
+      if (countError) {
+        console.error('Error counting members:', countError);
+        throw countError;
+      }
+
+      if ((memberCount || 0) >= groupData.max_members) {
+        throw new Error('Ce groupe est complet');
+      }
+
+      // Calculate equal contribution
+      const contribution = groupData.total_budget / groupData.max_members;
+      const percentage = 100 / groupData.max_members;
+
+      // Add user as member
+      const { error: memberError } = await supabase
+        .from('group_members')
+        .insert({
+          group_id: groupId,
+          user_id: user.id,
+          contribution,
+          percentage,
+        });
+
+      if (memberError) {
+        console.error('Error joining group:', memberError);
+        throw memberError;
+      }
+
+      console.log('Successfully joined group');
+      return groupId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      toast({
+        title: "Groupe rejoint",
+        description: "Vous avez rejoint le groupe avec succès !",
+      });
+    },
+    onError: (error) => {
+      console.error('Join group failed:', error);
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     groups: groups || [],
     isLoading,
     error,
     createGroup: createGroupMutation.mutate,
     isCreating: createGroupMutation.isPending,
+    joinGroup: joinGroupMutation.mutate,
+    isJoining: joinGroupMutation.isPending,
   };
 };

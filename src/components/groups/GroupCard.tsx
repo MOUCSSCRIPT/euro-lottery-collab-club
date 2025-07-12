@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Users, Dices, Trophy, Gamepad2, UserPlus } from 'lucide-react';
+import { useGroups } from '@/hooks/useGroups';
 import type { Database } from '@/integrations/supabase/types';
 
 type Group = Database['public']['Tables']['groups']['Row'];
@@ -30,6 +31,7 @@ const gameTypeIcons: Record<GameType, React.ReactNode> = {
 
 export const GroupCard = ({ group }: GroupCardProps) => {
   const navigate = useNavigate();
+  const { joinGroup } = useGroups();
 
   const handleViewDetails = (groupId: string) => {
     console.log('Navigating to group details:', groupId);
@@ -38,7 +40,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
 
   const handleJoinGroup = (groupId: string) => {
     console.log('Joining group:', groupId);
-    // TODO: Implement join group logic
+    joinGroup(groupId);
   };
 
   const getStatusColor = (status: string) => {
