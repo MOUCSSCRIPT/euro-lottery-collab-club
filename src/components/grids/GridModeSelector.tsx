@@ -16,70 +16,70 @@ export const GridModeSelector = ({ mode, onModeChange }: GridModeSelectorProps) 
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="text-center mb-4">
-          <h3 className="text-lg font-semibold mb-2">Comment souhaitez-vous créer vos grilles ?</h3>
-          <p className="text-sm text-muted-foreground">
-            Choisissez entre la génération automatique ou la saisie manuelle
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-bold mb-2">Comment jouer ?</h3>
+          <p className="text-muted-foreground">
+            Choisissez votre style de jeu
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Button
-            variant={mode === 'auto' ? 'default' : 'outline'}
+            variant="ghost"
             className={cn(
-              "h-auto p-6 flex flex-col items-center gap-3",
+              "h-auto p-8 flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105",
               mode === 'auto' 
-                ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                : "hover:bg-blue-50 hover:border-blue-300"
+                ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl scale-105" 
+                : "bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200"
             )}
             onClick={() => onModeChange('auto')}
           >
             <div className={cn(
-              "p-3 rounded-full",
-              mode === 'auto' ? "bg-blue-500" : "bg-blue-100"
+              "p-4 rounded-full transition-all duration-300",
+              mode === 'auto' ? "bg-white/20 animate-pulse" : "bg-blue-200"
             )}>
               <Dices className={cn(
-                "h-6 w-6",
+                "h-8 w-8 transition-all duration-300",
                 mode === 'auto' ? "text-white" : "text-blue-600"
               )} />
             </div>
             <div className="text-center">
-              <div className="font-semibold mb-1">Génération automatique</div>
+              <div className="font-bold text-lg mb-1">Automatique</div>
               <div className={cn(
-                "text-xs",
-                mode === 'auto' ? "text-blue-100" : "text-muted-foreground"
+                "text-sm",
+                mode === 'auto' ? "text-white/90" : "text-blue-700"
               )}>
-                Laissez le hasard choisir vos numéros de façon optimisée
+                Laissez la chance décider
               </div>
             </div>
           </Button>
 
           <Button
-            variant={mode === 'manual' ? 'default' : 'outline'}
+            variant="ghost"
             className={cn(
-              "h-auto p-6 flex flex-col items-center gap-3",
+              "h-auto p-8 flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105",
               mode === 'manual' 
-                ? "bg-green-600 hover:bg-green-700 text-white" 
-                : "hover:bg-green-50 hover:border-green-300"
+                ? "bg-gradient-to-br from-green-500 to-green-600 text-white shadow-xl scale-105" 
+                : "bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 border-2 border-green-200"
             )}
             onClick={() => onModeChange('manual')}
           >
             <div className={cn(
-              "p-3 rounded-full",
-              mode === 'manual' ? "bg-green-500" : "bg-green-100"
+              "p-4 rounded-full transition-all duration-300",
+              mode === 'manual' ? "bg-white/20 animate-pulse" : "bg-green-200"
             )}>
               <Edit3 className={cn(
-                "h-6 w-6",
+                "h-8 w-8 transition-all duration-300",
                 mode === 'manual' ? "text-white" : "text-green-600"
               )} />
             </div>
             <div className="text-center">
-              <div className="font-semibold mb-1">Saisie manuelle</div>
+              <div className="font-bold text-lg mb-1">Manuel</div>
               <div className={cn(
-                "text-xs",
-                mode === 'manual' ? "text-green-100" : "text-muted-foreground"
+                "text-sm",
+                mode === 'manual' ? "text-white/90" : "text-green-700"
               )}>
-                Choisissez vous-même vos numéros et étoiles porte-bonheur
+                Vos numéros fétiches
               </div>
             </div>
           </Button>

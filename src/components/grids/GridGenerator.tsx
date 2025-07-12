@@ -9,13 +9,11 @@ import { EuromillionsManualEntry } from './EuromillionsManualEntry';
 import { LotoFootManualEntry } from './LotoFootManualEntry';
 import { GridModeSelector } from './GridModeSelector';
 import { EuromillionsOptions } from '@/types/euromillions';
-import { GridGeneratorHeader } from './generator/GridGeneratorHeader';
-import { PlayerNameInput } from './generator/PlayerNameInput';
-import { BudgetInput } from './generator/BudgetInput';
 import { GridCalculations } from './generator/GridCalculations';
 import { GameInfoCard } from './generator/GameInfoCard';
 import { GenerateButton } from './generator/GenerateButton';
 import { ValidationMessages } from './generator/ValidationMessages';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface GridGeneratorProps {
   group: Tables<'groups'>;
@@ -38,8 +36,7 @@ interface LotoFootGrid {
 }
 
 export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
-  const [budget, setBudget] = useState(50);
-  const [playerName, setPlayerName] = useState('');
+  const [budget] = useState(50); // Budget fixe limité à 50€
   const [gridMode, setGridMode] = useState<GridMode>('auto');
   const [manualGrids, setManualGrids] = useState<ManualGrid[]>([]);
   const [lotoFootGrids, setLotoFootGrids] = useState<LotoFootGrid[]>([]);
@@ -50,6 +47,10 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   });
   
   const generateGrids = useGenerateGrids();
+  const { user } = useAuth();
+  
+  // Récupérer le nom du joueur depuis les métadonnées utilisateur
+  const playerName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Joueur';
 
   const getGridCost = () => {
     switch (group.game_type) {
@@ -58,7 +59,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
       case 'lotto':
         return 2.2;
       case 'lotto_foot_15':
-        return 2.0;
+        return 1.0;
       default:
         return 2.5;
     }
@@ -124,7 +125,6 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const gridsLabel = group.game_type === 'lotto_foot_15' ? 'bulletins' : 'grilles';
 
   const canGenerate = () => {
-    if (!playerName.trim()) return false;
     if (maxGrids === 0) return false;
     
     if (gridMode === 'manual') {
@@ -157,33 +157,19 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Informations du joueur */}
-      <Card className="w-full">
-        <GridGeneratorHeader gridsLabel={gridsLabel} />
-        <CardContent className="space-y-6">
-          <PlayerNameInput 
-            playerName={playerName} 
-            onPlayerNameChange={setPlayerName} 
-          />
-
-          <BudgetInput 
-            budget={budget} 
-            onBudgetChange={setBudget} 
-          />
-
-          <Separator />
-
-          <GridCalculations
-            maxGrids={maxGrids}
-            totalCost={totalCost}
-            memberCount={memberCount}
-            costPerMember={costPerMember}
-            gridsLabel={gridsLabel}
-          />
-
+      {/* Affichage simplifié avec infos du joueur */}
+      <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Bonjour {playerName} !</h3>
+            <p className="text-sm text-muted-foreground">
+              Budget disponible: <span className="font-medium text-primary">{budget}€</span> • 
+              Maximum {maxGrids} {gridsLabel}
+            </p>
+          </div>
           <GameInfoCard gameType={group.game_type} />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Mode de génération (seulement pour Euromillions et Loto Foot 15) */}
       {(group.game_type === 'euromillions' || group.game_type === 'lotto_foot_15') && (
