@@ -11,9 +11,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, UserPlus, Calendar, Euro, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { InviteModal } from '@/components/invitations/InviteModal';
+import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
+import { TeamBadge } from '@/components/teams/TeamBadge';
 import { GridGenerator } from '@/components/grids/GridGenerator';
 import { GridDisplay } from '@/components/grids/GridDisplay';
 import { useState } from 'react';
+import { useTeamRequests } from '@/hooks/useTeamRequests';
 
 const GroupDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +24,8 @@ const GroupDetails = () => {
   const { groups, isLoading: groupsLoading } = useGroups();
   const { data: grids, isLoading: gridsLoading } = useGrids(id || '');
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showRequestsModal, setShowRequestsModal] = useState(false);
+  const { pendingRequests } = useTeamRequests(id);
 
   if (!id) {
     return <Navigate to="/" replace />;
@@ -63,13 +68,36 @@ const GroupDetails = () => {
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{group.name}</h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold">{group.name}</h1>
+                <TeamBadge 
+                  teamName={group.name} 
+                  isCreator={isCreator}
+                  className="text-sm"
+                />
+              </div>
               {group.description && (
                 <p className="text-muted-foreground">{group.description}</p>
               )}
             </div>
             {isCreator && (
               <div className="flex space-x-2">
+                <Button
+                  onClick={() => setShowRequestsModal(true)}
+                  variant="outline"
+                  className="border-green-600 text-green-600 hover:bg-green-50 relative"
+                >
+                  <Users className="mr-2 h-4 w-4" />
+                  Demandes
+                  {pendingRequests.length > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-2 -right-2 px-1 min-w-[1.25rem] h-5 text-xs"
+                    >
+                      {pendingRequests.length}
+                    </Badge>
+                  )}
+                </Button>
                 <Button
                   onClick={() => setShowInviteModal(true)}
                   variant="outline"
@@ -157,7 +185,7 @@ const GroupDetails = () => {
           <TabsContent value="members">
             <Card>
               <CardHeader>
-                <CardTitle>Membres du groupe</CardTitle>
+                <CardTitle>Membres de la TEAM</CardTitle>
                 <CardDescription>
                   Gérez les membres et leurs contributions
                 </CardDescription>
@@ -187,12 +215,18 @@ const GroupDetails = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Invite Modal */}
+        {/* Modals */}
         <InviteModal 
           open={showInviteModal} 
           onOpenChange={setShowInviteModal}
           groupId={group.id}
           groupName={group.name}
+        />
+        
+        <TeamRequestsModal
+          open={showRequestsModal}
+          onOpenChange={setShowRequestsModal}
+          groupId={group.id}
         />
       </div>
     </div>

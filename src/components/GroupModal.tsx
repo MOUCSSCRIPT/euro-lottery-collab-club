@@ -98,18 +98,18 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="h-5 w-5 text-blue-600" />
-            Créer un nouveau groupe
+            Créer une nouvelle TEAM
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           <div>
-            <Label htmlFor="groupName">Nom du groupe</Label>
+            <Label htmlFor="groupName">Nom de la TEAM</Label>
             <Input
               id="groupName"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              placeholder="Ex: Les Chanceux du Vendredi"
+              placeholder="Ex: Les Champions du Vendredi"
             />
           </div>
 
@@ -184,7 +184,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
 
           <div className="bg-blue-50 p-4 rounded-lg space-y-3">
             <div className="flex items-center gap-2">
-              <h4 className="font-semibold text-blue-900">Prévisions du groupe</h4>
+              <h4 className="font-semibold text-blue-900">Prévisions de la TEAM</h4>
               {isDemoMode && (
                 <Badge variant="secondary" className="text-xs">
                   Mode Démo
@@ -237,7 +237,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
               disabled={!groupName.trim() || isCreating}
               className="flex-1 bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
             >
-              {isCreating ? 'Création...' : 'Créer le groupe'}
+              {isCreating ? 'Création...' : 'Créer la TEAM'}
             </Button>
           </div>
         </div>

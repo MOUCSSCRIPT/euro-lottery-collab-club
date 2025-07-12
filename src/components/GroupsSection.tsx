@@ -8,7 +8,7 @@ import { GroupCard } from './groups/GroupCard';
 import { GroupsLoadingState } from './groups/GroupsLoadingState';
 import { GroupsErrorState } from './groups/GroupsErrorState';
 import { GroupsEmptyState } from './groups/GroupsEmptyState';
-import { JoinGroupModal } from './invitations/JoinGroupModal';
+import { JoinTeamModal } from './invitations/JoinTeamModal';
 
 export const GroupsSection = () => {
   const [showModal, setShowModal] = useState(false);
@@ -42,7 +42,7 @@ export const GroupsSection = () => {
       <>
         <GroupsLoadingState onNewGroupClick={handleNewGroupClick} />
         <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
-        <JoinGroupModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
+        <JoinTeamModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
       </>
     );
   }
@@ -53,7 +53,7 @@ export const GroupsSection = () => {
       <>
         <GroupsErrorState error={error} onNewGroupClick={handleNewGroupClick} />
         <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
-        <JoinGroupModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
+        <JoinTeamModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
       </>
     );
   }
@@ -63,8 +63,8 @@ export const GroupsSection = () => {
       <div className="container mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-3xl font-bold mb-2">Mes Groupes</h3>
-            <p className="text-muted-foreground">Gérez vos participations collaboratives</p>
+            <h3 className="text-3xl font-bold mb-2">Mes TEAMS</h3>
+            <p className="text-muted-foreground">Gérez vos équipes de jeu</p>
           </div>
           <div className="flex space-x-2">
             <Button 
@@ -73,14 +73,14 @@ export const GroupsSection = () => {
               className="border-blue-600 text-blue-600 hover:bg-blue-50"
             >
               <UserPlus className="mr-2 h-4 w-4" />
-              Rejoindre un groupe
+              Rejoindre une TEAM
             </Button>
             <Button 
               onClick={handleNewGroupClick}
               className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
             >
               <Users className="mr-2 h-4 w-4" />
-              Nouveau groupe
+              Nouvelle TEAM
             </Button>
           </div>
         </div>
@@ -96,7 +96,7 @@ export const GroupsSection = () => {
         )}
 
         <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
-        <JoinGroupModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
+        <JoinTeamModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
       </div>
     </section>
   );
