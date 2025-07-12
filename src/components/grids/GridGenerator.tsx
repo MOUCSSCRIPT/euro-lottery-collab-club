@@ -197,6 +197,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         <LotoFootManualEntry 
           onGridsChange={setLotoFootGrids}
           maxGrids={maxGrids}
+          groupId={group.id}
         />
       )}
 

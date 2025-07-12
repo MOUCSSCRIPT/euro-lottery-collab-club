@@ -218,6 +218,39 @@ export type Database = {
         }
         Relationships: []
       }
+      loto_foot_matches: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          match_date: string | null
+          match_position: number
+          team_away: string
+          team_home: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          match_date?: string | null
+          match_position: number
+          team_away: string
+          team_home: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          match_date?: string | null
+          match_position?: number
+          team_away?: string
+          team_home?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       team_join_requests: {
         Row: {
           created_at: string

@@ -7,6 +7,7 @@ import { LotoFootMatchRow } from './LotoFootMatchRow';
 import { LotoFootGridSummary } from './LotoFootGridSummary';
 import { LotoFootGridPreview } from './LotoFootGridPreview';
 import { LotoFootInstructions } from './LotoFootInstructions';
+import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 
 interface LotoFootGrid {
   id: string;
@@ -27,6 +28,7 @@ interface LotoFootGridCardProps {
   doubles: number;
   triples: number;
   multiplier: number;
+  groupId: string;
 }
 
 const matchLabels = [
@@ -46,8 +48,19 @@ export const LotoFootGridCard = ({
   validationMessage,
   doubles,
   triples,
-  multiplier
+  multiplier,
+  groupId
 }: LotoFootGridCardProps) => {
+  const { matches } = useLotoFootMatches(groupId);
+  
+  // Créer les labels de matchs en utilisant les vrais noms ou les noms par défaut
+  const getMatchLabel = (position: number) => {
+    const match = matches.find(m => m.match_position === position);
+    if (match) {
+      return `${match.team_home} vs ${match.team_away}`;
+    }
+    return `Match ${position}`;
+  };
   return (
     <Card className="relative">
       <CardHeader className="pb-4">
@@ -96,11 +109,11 @@ export const LotoFootGridCard = ({
               </tr>
             </thead>
             <tbody>
-              {matchLabels.map((matchLabel, matchIndex) => (
+              {Array.from({ length: 15 }, (_, matchIndex) => (
                 <LotoFootMatchRow
                   key={matchIndex}
                   matchIndex={matchIndex}
-                  matchLabel={matchLabel}
+                  matchLabel={getMatchLabel(matchIndex + 1)}
                   predictions={grid.predictions[matchIndex] || []}
                   onTogglePrediction={(prediction) => onTogglePrediction(matchIndex, prediction)}
                 />

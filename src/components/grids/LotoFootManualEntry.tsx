@@ -14,9 +14,10 @@ interface LotoFootGrid {
 interface LotoFootManualEntryProps {
   onGridsChange: (grids: LotoFootGrid[]) => void;
   maxGrids: number;
+  groupId: string;
 }
 
-export const LotoFootManualEntry = ({ onGridsChange, maxGrids }: LotoFootManualEntryProps) => {
+export const LotoFootManualEntry = ({ onGridsChange, maxGrids, groupId }: LotoFootManualEntryProps) => {
   const [grids, setGrids] = useState<LotoFootGrid[]>([
     { id: '1', predictions: Array(15).fill([]), cost: 1.0, code: '' }
   ]);
@@ -178,6 +179,7 @@ export const LotoFootManualEntry = ({ onGridsChange, maxGrids }: LotoFootManualE
             doubles={doubles}
             triples={triples}
             multiplier={multiplier}
+            groupId={groupId}
           />
         );
       })}

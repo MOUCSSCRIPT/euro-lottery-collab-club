@@ -15,6 +15,7 @@ import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
 import { TeamBadge } from '@/components/teams/TeamBadge';
 import { GridGenerator } from '@/components/grids/GridGenerator';
 import { GridDisplay } from '@/components/grids/GridDisplay';
+import { LotoFootMatchesAdmin } from '@/components/grids/loto-foot/LotoFootMatchesAdmin';
 import { useState } from 'react';
 import { useTeamRequests } from '@/hooks/useTeamRequests';
 
@@ -161,10 +162,13 @@ const GroupDetails = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="grids" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className={`grid w-full ${group.game_type === 'lotto_foot_15' && isCreator ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="grids">Grilles</TabsTrigger>
             <TabsTrigger value="members">Membres</TabsTrigger>
             <TabsTrigger value="history">Historique</TabsTrigger>
+            {group.game_type === 'lotto_foot_15' && isCreator && (
+              <TabsTrigger value="matches">Matchs</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="grids" className="space-y-6">
@@ -213,6 +217,15 @@ const GroupDetails = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {group.game_type === 'lotto_foot_15' && isCreator && (
+            <TabsContent value="matches">
+              <LotoFootMatchesAdmin 
+                groupId={group.id}
+                isAdmin={isCreator}
+              />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Modals */}
