@@ -21,15 +21,11 @@ type GameType = Database['public']['Enums']['game_type'];
 type GroupMode = Database['public']['Enums']['group_mode'];
 
 const gameTypeLabels: Record<GameType, string> = {
-  'euromillions': 'EuroMillions',
-  'lotto': 'Lotto',
-  'lotto_foot_15': 'Lotto Foot 15'
+  'euromillions': 'EuroMillions'
 };
 
 const gameTypeIcons: Record<GameType, React.ReactNode> = {
-  'euromillions': <Trophy className="h-4 w-4" />,
-  'lotto': <Dices className="h-4 w-4" />,
-  'lotto_foot_15': <Gamepad2 className="h-4 w-4" />
+  'euromillions': <Trophy className="h-4 w-4" />
 };
 
 export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
@@ -46,7 +42,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
 
   const calculateStats = () => {
     const estimatedTotal = maxMembers * myContribution;
-    const grids = Math.floor(estimatedTotal / (gameType === 'lotto_foot_15' ? 1 : 2));
+    const grids = Math.floor(estimatedTotal / 2);
     const myPercentage = (myContribution / estimatedTotal) * 100;
     
     return { estimatedTotal, grids, myPercentage };
@@ -200,7 +196,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
               </div>
               <div>
                 <span className="text-muted-foreground">
-                  {gameType === 'lotto_foot_15' ? 'Bulletins' : 'Grilles'} prévues
+                  Grilles prévues
                 </span>
                 <div className="font-semibold flex items-center gap-1">
                   {gameTypeIcons[gameType]}

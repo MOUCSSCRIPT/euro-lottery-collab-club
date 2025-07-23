@@ -20,15 +20,11 @@ interface GroupCardProps {
 }
 
 const gameTypeLabels: Record<GameType, string> = {
-  'euromillions': 'EuroMillions',
-  'lotto': 'Lotto',
-  'lotto_foot_15': 'Lotto Foot 15'
+  'euromillions': 'EuroMillions'
 };
 
 const gameTypeIcons: Record<GameType, React.ReactNode> = {
-  'euromillions': <Trophy className="h-4 w-4" />,
-  'lotto': <Dices className="h-4 w-4" />,
-  'lotto_foot_15': <Gamepad2 className="h-4 w-4" />
+  'euromillions': <Trophy className="h-4 w-4" />
 };
 
 export const GroupCard = ({ group }: GroupCardProps) => {
@@ -130,7 +126,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
 
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">
-            {group.game_type === 'lotto_foot_15' ? 'Bulletins' : 'Grilles'}
+            Grilles
           </span>
           <span className="flex items-center gap-1">
             {gameTypeIcons[group.game_type]}
