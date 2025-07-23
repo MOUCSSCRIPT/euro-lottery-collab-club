@@ -184,13 +184,10 @@ const GroupDetails = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="grids" className="space-y-6">
-          <TabsList className={`grid w-full ${group.game_type === 'lotto_foot_15' && isCreator ? 'grid-cols-4' : 'grid-cols-3'}`}>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="grids">Grilles</TabsTrigger>
             <TabsTrigger value="members">Membres</TabsTrigger>
             <TabsTrigger value="history">Historique</TabsTrigger>
-            {group.game_type === 'lotto_foot_15' && isCreator && (
-              <TabsTrigger value="matches">Matchs</TabsTrigger>
-            )}
           </TabsList>
 
           <TabsContent value="grids" className="space-y-6">
@@ -268,14 +265,7 @@ const GroupDetails = () => {
             </Card>
           </TabsContent>
 
-          {group.game_type === 'lotto_foot_15' && isCreator && (
-            <TabsContent value="matches">
-              <LotoFootMatchesAdmin 
-                groupId={group.id}
-                isAdmin={isCreator}
-              />
-            </TabsContent>
-          )}
+          {/* Seulement Euromillions maintenant */}
         </Tabs>
 
         {/* Modals */}

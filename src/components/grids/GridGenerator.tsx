@@ -53,16 +53,8 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const playerName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Joueur';
 
   const getGridCost = () => {
-    switch (group.game_type) {
-      case 'euromillions':
-        return 2.5;
-      case 'lotto':
-        return 2.2;
-      case 'lotto_foot_15':
-        return 1.0;
-      default:
-        return 2.5;
-    }
+    // Seulement Euromillions maintenant
+    return 2.5;
   };
 
   const gridCost = getGridCost();
@@ -72,44 +64,19 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
 
   const handleGenerate = () => {
     if (gridMode === 'manual') {
-      if (group.game_type === 'lotto_foot_15') {
-        // Convertir les grilles Loto Foot au format attendu par le backend
-        const validGrids = lotoFootGrids.filter(grid => 
-          grid.predictions.every(match => match.length > 0)
-        );
-        
-        const convertedGrids = validGrids.map(grid => ({
-          id: grid.id,
-          predictions: grid.predictions.map(match => {
-            // Si plusieurs sélections, prendre la première pour la compatibilité
-            // Dans une version avancée, on pourrait gérer les systèmes
-            return match.length > 0 ? match[0] : 1;
-          })
-        }));
-
-        generateGrids.mutate({
-          groupId: group.id,
-          budget,
-          memberCount,
-          gameType: 'euromillions',
-          playerName,
-          lotoFootGrids: convertedGrids
-        });
-      } else {
-        // Pour l'Euromillions
-        generateGrids.mutate({
-          groupId: group.id,
-          budget,
-          memberCount,
-          gameType: 'euromillions',
-          playerName,
-          manualGrids: manualGrids.filter(grid => 
-            grid.mainNumbers.length === 5 && grid.stars.length === 2
-          )
-        });
-      }
+      // Pour l'Euromillions en mode manuel
+      generateGrids.mutate({
+        groupId: group.id,
+        budget,
+        memberCount,
+        gameType: 'euromillions',
+        playerName,
+        manualGrids: manualGrids.filter(grid => 
+          grid.mainNumbers.length === 5 && grid.stars.length === 2
+        )
+      });
     } else {
-      // Génération automatique existante
+      // Génération automatique
       generateGrids.mutate({
         groupId: group.id,
         budget,
@@ -128,28 +95,16 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
     if (maxGrids === 0) return false;
     
     if (gridMode === 'manual') {
-      if (group.game_type === 'lotto_foot_15') {
-        const completeGrids = lotoFootGrids.filter(grid => 
-          grid.predictions.every(match => match.length > 0)
-        );
-        return completeGrids.length > 0;
-      } else {
-        const completeGrids = manualGrids.filter(grid => 
-          grid.mainNumbers.length === 5 && grid.stars.length === 2
-        );
-        return completeGrids.length > 0;
-      }
+      const completeGrids = manualGrids.filter(grid => 
+        grid.mainNumbers.length === 5 && grid.stars.length === 2
+      );
+      return completeGrids.length > 0;
     }
     
     return true;
   };
 
   const getCompleteGridsCount = () => {
-    if (group.game_type === 'lotto_foot_15') {
-      return lotoFootGrids.filter(grid => 
-        grid.predictions.every(match => match.length > 0)
-      ).length;
-    }
     return manualGrids.filter(grid => 
       grid.mainNumbers.length === 5 && grid.stars.length === 2
     ).length;
@@ -171,13 +126,11 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         </div>
       </div>
 
-      {/* Mode de génération (seulement pour Euromillions et Loto Foot 15) */}
-      {(group.game_type === 'euromillions' || group.game_type === 'lotto_foot_15') && (
-        <GridModeSelector mode={gridMode} onModeChange={setGridMode} />
-      )}
+      {/* Mode de génération pour Euromillions */}
+      <GridModeSelector mode={gridMode} onModeChange={setGridMode} />
 
       {/* Options Euromillions (mode automatique seulement) */}
-      {group.game_type === 'euromillions' && gridMode === 'auto' && (
+      {gridMode === 'auto' && (
         <EuromillionsOptionsComponent 
           options={euromillionsOptions}
           onOptionsChange={setEuromillionsOptions}
@@ -185,21 +138,14 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
       )}
 
       {/* Saisie manuelle Euromillions */}
-      {group.game_type === 'euromillions' && gridMode === 'manual' && maxGrids > 0 && (
+      {gridMode === 'manual' && maxGrids > 0 && (
         <EuromillionsManualEntry 
           onGridsChange={setManualGrids}
           maxGrids={maxGrids}
         />
       )}
 
-      {/* Saisie manuelle Loto Foot 15 */}
-      {group.game_type === 'lotto_foot_15' && gridMode === 'manual' && maxGrids > 0 && (
-        <LotoFootManualEntry 
-          onGridsChange={setLotoFootGrids}
-          maxGrids={maxGrids}
-          groupId={group.id}
-        />
-      )}
+      {/* Seulement Euromillions maintenant */}
 
       <GenerateButton
         canGenerate={canGenerate()}

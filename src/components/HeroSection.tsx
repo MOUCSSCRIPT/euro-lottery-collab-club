@@ -2,9 +2,16 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Users, Dices, Trophy } from 'lucide-react';
+import { Users, Dices, Trophy, Play } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const handlePlayClick = () => {
+    navigate('/auth');
+  };
+
   return (
     <section className="py-20 px-4">
       <div className="container mx-auto text-center">
@@ -18,14 +25,14 @@ export const HeroSection = () => {
             Augmentez vos chances de gagner en créant des groupes collaboratifs. 
             Évitez les doublons, partagez les coûts et les gains proportionnellement.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white px-8 py-3">
-              <Users className="mr-2 h-5 w-5" />
-              Créer un groupe
-            </Button>
-            <Button size="lg" variant="outline" className="border-blue-200 hover:bg-blue-50 px-8 py-3">
-              <Dices className="mr-2 h-5 w-5" />
-              Rejoindre un groupe
+          <div className="flex justify-center">
+            <Button 
+              size="lg" 
+              onClick={handlePlayClick}
+              className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white px-12 py-4 text-xl font-semibold transform transition-all duration-300 hover:scale-110 hover:shadow-2xl animate-pulse"
+            >
+              <Play className="mr-3 h-6 w-6" />
+              JOUER
             </Button>
           </div>
         </div>
