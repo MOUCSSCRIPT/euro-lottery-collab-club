@@ -61,28 +61,29 @@ export const GroupsSection = () => {
   return (
     <section id="groups" className="py-16 px-4 bg-white/50">
       <div className="container mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h3 className="text-3xl font-bold mb-2">Mes TEAMS</h3>
-            <p className="text-muted-foreground">Gérez vos équipes de jeu</p>
-          </div>
-          <div className="flex space-x-2">
-            <Button 
-              onClick={handleJoinGroupClick}
-              variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
-            >
-              <UserPlus className="mr-2 h-4 w-4" />
-              Rejoindre une TEAM
-            </Button>
-            <Button 
-              onClick={handleNewGroupClick}
-              className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Nouvelle TEAM
-            </Button>
-          </div>
+        {/* Boutons en haut avec responsive design */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 transition-all duration-1000">
+          <Button 
+            onClick={handleJoinGroupClick}
+            variant="outline"
+            className="border-blue-600 text-blue-600 hover:bg-blue-50 flex-1 sm:flex-none transition-all duration-1000 hover:scale-105"
+          >
+            <UserPlus className="mr-2 h-4 w-4" />
+            Rejoindre une TEAM
+          </Button>
+          <Button 
+            onClick={handleNewGroupClick}
+            className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white flex-1 sm:flex-none transition-all duration-1000 hover:scale-105"
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Nouvelle TEAM
+          </Button>
+        </div>
+
+        {/* Titre et description */}
+        <div className="text-center sm:text-left mb-8 transition-all duration-1000">
+          <h3 className="text-3xl font-bold mb-2">Mes TEAMS</h3>
+          <p className="text-muted-foreground">Gérez vos équipes de jeu</p>
         </div>
 
         {groups.length === 0 ? (
