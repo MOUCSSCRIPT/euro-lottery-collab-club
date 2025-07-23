@@ -91,7 +91,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
           groupId: group.id,
           budget,
           memberCount,
-          gameType: group.game_type,
+          gameType: 'euromillions',
           playerName,
           lotoFootGrids: convertedGrids
         });
@@ -101,7 +101,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
           groupId: group.id,
           budget,
           memberCount,
-          gameType: group.game_type,
+          gameType: 'euromillions',
           playerName,
           manualGrids: manualGrids.filter(grid => 
             grid.mainNumbers.length === 5 && grid.stars.length === 2
@@ -114,15 +114,15 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         groupId: group.id,
         budget,
         memberCount,
-        gameType: group.game_type,
+        gameType: 'euromillions',
         playerName,
-        euromillionsOptions: group.game_type === 'euromillions' ? euromillionsOptions : undefined
+        euromillionsOptions: euromillionsOptions
       });
     }
   };
 
-  const gridLabel = group.game_type === 'lotto_foot_15' ? 'bulletin' : 'grille';
-  const gridsLabel = group.game_type === 'lotto_foot_15' ? 'bulletins' : 'grilles';
+  const gridLabel = 'grille';
+  const gridsLabel = 'grilles';
 
   const canGenerate = () => {
     if (maxGrids === 0) return false;

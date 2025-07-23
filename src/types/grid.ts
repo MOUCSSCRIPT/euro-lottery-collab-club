@@ -26,7 +26,7 @@ export interface GenerateGridsParams {
   groupId: string;
   budget: number;
   memberCount: number;
-  gameType?: 'euromillions' | 'lotto' | 'lotto_foot_15';
+  gameType?: 'euromillions';
   playerName?: string;
   euromillionsOptions?: any;
   manualGrids?: ManualGrid[];

@@ -32,7 +32,7 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
     );
   }
 
-  const gridLabel = gameType === 'lotto_foot_15' ? 'Bulletins' : 'Grilles';
+  const gridLabel = 'Grilles';
   const totalCost = grids.reduce((sum, grid) => sum + grid.cost, 0);
 
   const renderGridContent = (grid: GridData) => {
@@ -70,44 +70,6 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
           </div>
         );
       
-      case 'lotto':
-        return (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1">
-              <Hash className="h-4 w-4 text-green-600" />
-              <div className="flex space-x-1">
-                {grid.numbers.map((num, idx) => (
-                  <Badge key={idx} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    {num}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {grid.cost.toFixed(2)}€
-            </div>
-          </div>
-        );
-      
-      case 'lotto_foot_15':
-        return (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1">
-              <Trophy className="h-4 w-4 text-purple-600" />
-              <div className="flex space-x-1 flex-wrap">
-                {grid.numbers.map((prediction, idx) => (
-                  <Badge key={idx} variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
-                    M{idx + 1}: {prediction === 1 ? '1' : prediction === 2 ? 'N' : '2'}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground">
-              {grid.cost.toFixed(2)}€
-            </div>
-          </div>
-        );
-      
       default:
         return (
           <div className="flex items-center justify-between">
@@ -133,8 +95,7 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
           <div>
             <CardTitle>{gridLabel} générées</CardTitle>
             <CardDescription>
-              {grids.length} {grids.length > 1 ? gridLabel.toLowerCase() : gridLabel.toLowerCase().slice(0, -1)} 
-              {gameType === 'lotto_foot_15' ? '' : 's'} pour un total de {totalCost.toFixed(2)}€
+              {grids.length} grilles pour un total de {totalCost.toFixed(2)}€
             </CardDescription>
           </div>
           <Badge variant="secondary" className="capitalize">
@@ -148,7 +109,7 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
             <Card key={grid.id} className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium">
-                  {gameType === 'lotto_foot_15' ? 'Bulletin' : 'Grille'} #{grid.grid_number}
+                  Grille #{grid.grid_number}
                 </h4>
                 {grid.draw_date && (
                   <Badge variant="outline" className="text-xs">

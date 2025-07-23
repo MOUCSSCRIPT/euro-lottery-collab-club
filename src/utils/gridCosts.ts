@@ -7,10 +7,6 @@ export function getGridCost(gameType: GameType): number {
   switch (gameType) {
     case 'euromillions':
       return 2.5;
-    case 'lotto':
-      return 2.2;
-    case 'lotto_foot_15':
-      return 1.0;
     default:
       return 2.5;
   }

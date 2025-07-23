@@ -20,11 +20,11 @@ interface GroupModalProps {
 type GameType = Database['public']['Enums']['game_type'];
 type GroupMode = Database['public']['Enums']['group_mode'];
 
-const gameTypeLabels: Record<GameType, string> = {
+const gameTypeLabels = {
   'euromillions': 'EuroMillions'
 };
 
-const gameTypeIcons: Record<GameType, React.ReactNode> = {
+const gameTypeIcons = {
   'euromillions': <Trophy className="h-4 w-4" />
 };
 

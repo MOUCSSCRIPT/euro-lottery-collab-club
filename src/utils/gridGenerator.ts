@@ -39,24 +39,6 @@ export function generateSingleGrid(gameType: GameType, options?: any) {
         key: `${numbers.join('-')}_${stars.join('-')}`,
         cost
       };
-    case 'lotto':
-      // Lotto: 6 numbers (1-49)
-      const lotoNumbers = generateUniqueNumbers(6, 1, 49);
-      return {
-        numbers: lotoNumbers.sort((a, b) => a - b),
-        stars: null,
-        key: lotoNumbers.join('-'),
-        cost: 2.2
-      };
-    case 'lotto_foot_15':
-      // Loto Foot 15: 15 pronostics (1, N, 2 pour chaque match)
-      const predictions = Array.from({ length: 15 }, () => Math.floor(Math.random() * 3) + 1);
-      return {
-        numbers: predictions,
-        stars: null,
-        key: predictions.join('-'),
-        cost: 1.0
-      };
     default:
       // Fallback to euromillions
       const defaultNumbers = generateUniqueNumbers(5, 1, 50);
