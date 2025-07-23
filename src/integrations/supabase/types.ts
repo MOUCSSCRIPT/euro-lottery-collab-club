@@ -337,7 +337,7 @@ export type Database = {
       }
     }
     Enums: {
-      game_type: "euromillions" | "lotto" | "lotto_foot_15"
+      game_type: "euromillions"
       group_mode: "demo" | "real"
     }
     CompositeTypes: {
@@ -466,7 +466,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      game_type: ["euromillions", "lotto", "lotto_foot_15"],
+      game_type: ["euromillions"],
       group_mode: ["demo", "real"],
     },
   },
