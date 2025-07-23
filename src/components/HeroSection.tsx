@@ -29,7 +29,7 @@ export const HeroSection = () => {
             <Button 
               size="lg" 
               onClick={handlePlayClick}
-              className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white px-12 py-4 text-xl font-semibold transform transition-all duration-300 hover:scale-110 hover:shadow-2xl animate-pulse"
+              className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white px-16 py-6 text-xl font-semibold transform transition-all duration-700 hover:scale-105 hover:shadow-2xl animate-pulse rounded-full"
             >
               <Play className="mr-3 h-6 w-6" />
               JOUER
