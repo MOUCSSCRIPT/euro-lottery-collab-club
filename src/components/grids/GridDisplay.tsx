@@ -108,9 +108,16 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
           {grids.map((grid) => (
             <Card key={grid.id} className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">
-                  Grille #{grid.grid_number}
-                </h4>
+                <div>
+                  <h4 className="font-medium">
+                    Grille #{grid.grid_number}
+                  </h4>
+                  {grid.player_name && (
+                    <p className="text-sm text-muted-foreground">
+                      Jouée par {grid.player_name}
+                    </p>
+                  )}
+                </div>
                 {grid.draw_date && (
                   <Badge variant="outline" className="text-xs">
                     {new Date(grid.draw_date).toLocaleDateString('fr-FR')}

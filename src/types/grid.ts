@@ -9,6 +9,8 @@ export interface GridData {
   created_at: string;
   draw_date: string | null;
   is_active: boolean;
+  player_name?: string;
+  created_by?: string;
 }
 
 export interface ManualGrid {

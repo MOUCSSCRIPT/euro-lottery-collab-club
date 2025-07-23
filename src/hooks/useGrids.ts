@@ -47,9 +47,16 @@ export const useGenerateGrids = () => {
     }: GenerateGridsParams) => {
       console.log('Generating grids with params:', { groupId, budget, memberCount, gameType, playerName, euromillionsOptions, manualGrids });
 
+      // Get current user
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        throw new Error('Utilisateur non authentifié');
+      }
+
       // Calculate grid cost and count
       const gridCost = getGridCost(gameType);
       let grids;
+      let totalCost = 0;
 
       if (manualGrids && manualGrids.length > 0) {
         // Utiliser les grilles manuelles
@@ -58,6 +65,7 @@ export const useGenerateGrids = () => {
           stars: grid.stars,
           cost: gridCost
         }));
+        totalCost = grids.length * gridCost;
       } else {
         // Génération automatique
         const maxGrids = Math.floor(budget / gridCost);
@@ -67,6 +75,32 @@ export const useGenerateGrids = () => {
         }
 
         grids = generateOptimizedGrids(maxGrids, gameType, euromillionsOptions);
+        totalCost = grids.reduce((sum, grid) => sum + (grid.cost || gridCost), 0);
+      }
+
+      // Vérifier et décompter les coins du joueur
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('coins')
+        .eq('user_id', user.user.id)
+        .single();
+
+      if (profileError) {
+        throw new Error('Erreur lors de la récupération du profil');
+      }
+
+      if (!profile || profile.coins < totalCost) {
+        throw new Error(`Coins insuffisants. Vous avez ${profile?.coins || 0} coins, il en faut ${totalCost}.`);
+      }
+
+      // Décompter les coins
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ coins: profile.coins - totalCost })
+        .eq('user_id', user.user.id);
+
+      if (updateError) {
+        throw new Error('Erreur lors de la déduction des coins');
       }
       
       // Insert grids into database
@@ -76,7 +110,9 @@ export const useGenerateGrids = () => {
         numbers: grid.numbers,
         stars: grid.stars,
         cost: grid.cost || gridCost,
-        draw_date: getNextDrawDate(gameType)
+        draw_date: getNextDrawDate(gameType),
+        player_name: playerName || 'Joueur',
+        created_by: user.user.id
       }));
 
       const { data, error } = await supabase

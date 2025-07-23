@@ -51,34 +51,40 @@ export type Database = {
         Row: {
           cost: number
           created_at: string
+          created_by: string | null
           draw_date: string | null
           grid_number: number
           group_id: string
           id: string
           is_active: boolean | null
           numbers: number[]
+          player_name: string | null
           stars: number[] | null
         }
         Insert: {
           cost: number
           created_at?: string
+          created_by?: string | null
           draw_date?: string | null
           grid_number: number
           group_id: string
           id?: string
           is_active?: boolean | null
           numbers: number[]
+          player_name?: string | null
           stars?: number[] | null
         }
         Update: {
           cost?: number
           created_at?: string
+          created_by?: string | null
           draw_date?: string | null
           grid_number?: number
           group_id?: string
           id?: string
           is_active?: boolean | null
           numbers?: number[]
+          player_name?: string | null
           stars?: number[] | null
         }
         Relationships: [
