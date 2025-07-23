@@ -254,6 +254,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          coins: number
+          country: string | null
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          coins?: number
+          country?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          coins?: number
+          country?: string | null
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       team_join_requests: {
         Row: {
           created_at: string
