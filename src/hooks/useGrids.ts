@@ -15,8 +15,9 @@ export const useGrids = (groupId: string) => {
   useEffect(() => {
     if (!groupId) return;
 
+    const channelName = `group-grids-${groupId}-${Date.now()}`;
     const channel = supabase
-      .channel(`group-grids-${groupId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

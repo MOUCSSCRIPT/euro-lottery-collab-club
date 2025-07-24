@@ -22,8 +22,9 @@ export const useProfile = () => {
   useEffect(() => {
     if (!user?.id) return;
 
+    const channelName = `profile-changes-${user.id}-${Date.now()}`;
     const channel = supabase
-      .channel('profile-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

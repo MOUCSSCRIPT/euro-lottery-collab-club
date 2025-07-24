@@ -20,8 +20,9 @@ export const useGroups = () => {
   useEffect(() => {
     if (!user?.id) return;
 
+    const channelName = `groups-changes-${user.id}-${Date.now()}`;
     const channel = supabase
-      .channel('groups-changes')
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

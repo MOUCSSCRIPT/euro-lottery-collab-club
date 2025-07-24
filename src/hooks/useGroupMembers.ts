@@ -16,8 +16,9 @@ export const useGroupMembers = (groupId?: string) => {
   useEffect(() => {
     if (!groupId) return;
 
+    const channelName = `group-members-${groupId}-${Date.now()}`;
     const channel = supabase
-      .channel(`group-members-${groupId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
