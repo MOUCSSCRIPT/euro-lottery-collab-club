@@ -17,7 +17,7 @@ interface InviteModalProps {
 
 export const InviteModal = ({ open, onOpenChange, groupId, groupName }: InviteModalProps) => {
   const [email, setEmail] = useState('');
-  const [invitationCode, setInvitationCode] = useState('');
+  const [invitationCreated, setInvitationCreated] = useState(false);
   const { createInvitation, isCreatingInvitation } = useInvitations(groupId);
   const { toast } = useToast();
 
@@ -27,24 +27,13 @@ export const InviteModal = ({ open, onOpenChange, groupId, groupName }: InviteMo
       email: email.trim() || undefined 
     });
     
-    // Simulate code generation for demo
-    const newCode = Math.random().toString(36).substr(2, 8).toUpperCase();
-    setInvitationCode(newCode);
+    setInvitationCreated(true);
     
     if (email.trim()) {
       setEmail('');
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast({
-      title: "Copié !",
-      description: "Le code a été copié dans le presse-papiers",
-    });
-  };
-
-  const shareUrl = invitationCode ? `${window.location.origin}/join/${invitationCode}` : '';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -79,7 +68,7 @@ export const InviteModal = ({ open, onOpenChange, groupId, groupName }: InviteMo
             </p>
           </div>
 
-          {invitationCode && (
+          {invitationCreated && (
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-green-600 font-medium">
                 ✅ Invitation créée avec succès !
