@@ -19,6 +19,7 @@ import { GridDisplay } from '@/components/grids/GridDisplay';
 import { LotoFootMatchesAdmin } from '@/components/grids/loto-foot/LotoFootMatchesAdmin';
 import { useState } from 'react';
 import { useTeamRequests } from '@/hooks/useTeamRequests';
+import { useGroupCreator } from '@/hooks/useGroupCreator';
 import { useToast } from '@/hooks/use-toast';
 
 const GroupDetails = () => {
@@ -61,6 +62,7 @@ const GroupDetails = () => {
   }
 
   const isCreator = group.created_by === user?.id;
+  const { data: creatorName } = useGroupCreator(group.created_by);
 
 
   return (
@@ -75,11 +77,18 @@ const GroupDetails = () => {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold">{group.name}</h1>
-                  <TeamBadge 
-                    teamName={group.name} 
-                    isCreator={isCreator}
-                    className="text-sm"
-                  />
+                  <div className="flex items-center gap-2">
+                    <TeamBadge 
+                      teamName={group.name} 
+                      isCreator={isCreator}
+                      className="text-sm"
+                    />
+                    {isCreator && creatorName && (
+                      <span className="text-sm text-muted-foreground">
+                        ({creatorName})
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {group.description && (
                   <p className="text-muted-foreground">{group.description}</p>
