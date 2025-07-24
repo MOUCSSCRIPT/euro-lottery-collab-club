@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
 import { TeamBadge } from '@/components/teams/TeamBadge';
+import { useGroupCreator } from '@/hooks/useGroupCreator';
 import { GridGenerator } from '@/components/grids/GridGenerator';
 import { GridDisplay } from '@/components/grids/GridDisplay';
 import { LotoFootMatchesAdmin } from '@/components/grids/loto-foot/LotoFootMatchesAdmin';
@@ -55,6 +56,7 @@ const GroupDetails = () => {
   }
 
   const group = groups?.find(g => g.id === id);
+  const { data: creatorName } = useGroupCreator(group?.created_by);
 
   if (!group) {
     return <Navigate to="/" replace />;
@@ -76,7 +78,7 @@ const GroupDetails = () => {
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold">{group.name}</h1>
                   <TeamBadge 
-                    teamName={group.name} 
+                    creatorName={creatorName} 
                     isCreator={isCreator}
                     className="text-sm"
                   />
