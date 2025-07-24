@@ -180,7 +180,8 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
                 type="number"
                 value={myContribution}
                 onChange={(e) => setMyContribution(Number(e.target.value))}
-                min={isDemoMode ? 1 : 5}
+                min={2.5}
+                step={0.5}
               />
             </div>
           </div>
