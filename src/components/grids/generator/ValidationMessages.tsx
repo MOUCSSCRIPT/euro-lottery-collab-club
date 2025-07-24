@@ -23,7 +23,7 @@ export const ValidationMessages = ({
       {/* Messages d'erreur */}
       {maxGrids === 0 && (
         <div className="text-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-          Budget insuffisant. Minimum requis : {gridCost}€
+          Budget insuffisant. Minimum requis : 2,5€
         </div>
       )}
 

@@ -17,8 +17,8 @@ export const BudgetInput = ({ budget, onBudgetChange }: BudgetInputProps) => {
         type="number"
         value={budget}
         onChange={(e) => onBudgetChange(Number(e.target.value))}
-        min="1"
-        step="1"
+        min="2.5"
+        step="0.5"
       />
     </div>
   );
