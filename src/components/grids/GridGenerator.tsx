@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,9 @@ import { GameInfoCard } from './generator/GameInfoCard';
 import { GenerateButton } from './generator/GenerateButton';
 import { ValidationMessages } from './generator/ValidationMessages';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProfile } from '@/hooks/useProfile';
+import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
+import { AlertCircle, TrendingDown } from 'lucide-react';
 
 interface GridGeneratorProps {
   group: Tables<'groups'>;
@@ -28,6 +31,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   
   const generateGrids = useGenerateGrids();
   const { user } = useAuth();
+  const { profile } = useProfile();
   
   // Le générateur est toujours accessible aux membres du groupe
   const isGroupPublic = true; // Tous les membres peuvent générer des grilles
@@ -44,6 +48,20 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const maxGrids = Math.floor(budget / gridCost);
   const totalCost = maxGrids * gridCost;
   const costPerMember = totalCost / memberCount;
+
+  // Calculs en temps réel pour les SuerteCoins
+  const currentCoins = profile?.coins || 0;
+  const requiredCoins = totalCost;
+  const remainingCoins = currentCoins - requiredCoins;
+  const hasInsufficientCoins = remainingCoins < 0;
+
+  // Preview de déduction instantanée
+  const coinDeductionPreview = useMemo(() => ({
+    current: currentCoins,
+    required: requiredCoins,
+    remaining: Math.max(0, remainingCoins),
+    insufficient: hasInsufficientCoins
+  }), [currentCoins, requiredCoins, remainingCoins, hasInsufficientCoins]);
 
   const handleGenerate = () => {
     // Seulement mode manuel maintenant
@@ -65,6 +83,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const canGenerate = () => {
     if (budget < 2.5) return false; // Budget minimum 2,5€
     if (maxGrids === 0) return false;
+    if (hasInsufficientCoins) return false; // Vérifier les SuerteCoins
     
     const completeGrids = manualGrids.filter(grid => 
       grid.mainNumbers.length === 5 && grid.stars.length === 2
@@ -80,6 +99,55 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Affichage du solde SuerteCoins en haut */}
+      <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                Votre solde SuerteCoins
+              </h3>
+              <SuerteCoinsDisplay 
+                amount={currentCoins} 
+                size="lg" 
+                variant="default"
+                showLabel={true}
+              />
+            </div>
+            
+            {/* Prévisualisation de la déduction */}
+            {requiredCoins > 0 && (
+              <div className="text-right">
+                <div className="text-sm text-yellow-700 mb-1">Coût de cette génération:</div>
+                <div className="flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                  <SuerteCoinsDisplay 
+                    amount={requiredCoins} 
+                    size="md" 
+                    variant={hasInsufficientCoins ? "error" : "warning"}
+                  />
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  Restant: <span className={hasInsufficientCoins ? "text-red-600 font-bold" : "text-green-600"}>
+                    {coinDeductionPreview.remaining.toFixed(1)} SuerteCoins
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Message d'erreur pour SuerteCoins insuffisants */}
+          {hasInsufficientCoins && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+              <p className="text-red-700 text-sm">
+                Vous n'avez pas assez de SuerteCoins. Il vous manque {Math.abs(remainingCoins).toFixed(1)} SuerteCoins.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Vérifier si le groupe est public */}
       {!isGroupPublic && (
         <Card className="bg-red-50 border-red-200">
@@ -99,14 +167,14 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
               <div>
                 <h3 className="text-lg font-semibold">Bonjour {playerName} !</h3>
                 <p className="text-sm text-muted-foreground">
-                  Maximum {maxGrids} {gridsLabel} • Coût par grille: 2,5€
+                  Maximum {maxGrids} {gridsLabel} • Coût par grille: 2,5 SuerteCoins
                 </p>
               </div>
               <GameInfoCard gameType={group.game_type} />
             </div>
             
             <div className="max-w-xs">
-              <Label htmlFor="budget">Budget (€)</Label>
+              <Label htmlFor="budget">Budget (SuerteCoins)</Label>
               <Input
                 id="budget"
                 type="number"
@@ -114,8 +182,11 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
                 onChange={(e) => setBudget(Number(e.target.value))}
                 min="2.5"
                 step="2.5"
-                className="mt-1"
+                className={`mt-1 ${hasInsufficientCoins ? 'border-red-300 focus:border-red-500' : ''}`}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Minimum: 2,5 SuerteCoins par grille
+              </p>
             </div>
           </div>
         </CardContent>
@@ -146,6 +217,9 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         gridMode="manual"
         completeGridsCount={getCompleteGridsCount()}
         gridLabel={gridLabel}
+        hasInsufficientCoins={hasInsufficientCoins}
+        requiredCoins={requiredCoins}
+        currentCoins={currentCoins}
       />
     </div>
   );

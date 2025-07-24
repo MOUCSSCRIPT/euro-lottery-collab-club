@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Coins, User, Globe, Save } from 'lucide-react';
+import { User, Globe, Save } from 'lucide-react';
+import { SuerteCoinsIcon } from '@/components/ui/SuerteCoinsIcon';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -81,19 +82,19 @@ export const ProfileModal = ({ open, onOpenChange }: ProfileModalProps) => {
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Coins Display */}
+          {/* SuerteCoins Display */}
           <Card className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200">
             <CardContent className="pt-6">
               <div className="flex items-center justify-center gap-3">
                 <div className="bg-yellow-500 p-3 rounded-full">
-                  <Coins className="h-6 w-6 text-white" />
+                  <SuerteCoinsIcon size={24} className="text-white" />
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-yellow-700">
                     {profile?.coins || 50}
                   </div>
                   <div className="text-sm text-yellow-600">
-                    Coins disponibles
+                    SuerteCoins disponibles
                   </div>
                 </div>
               </div>

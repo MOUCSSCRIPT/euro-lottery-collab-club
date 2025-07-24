@@ -8,6 +8,9 @@ interface ValidationMessagesProps {
   gridMode: 'auto' | 'manual';
   completeGridsCount: number;
   gridLabel: string;
+  hasInsufficientCoins?: boolean;
+  requiredCoins?: number;
+  currentCoins?: number;
 }
 
 export const ValidationMessages = ({
@@ -16,14 +19,23 @@ export const ValidationMessages = ({
   playerName,
   gridMode,
   completeGridsCount,
-  gridLabel
+  gridLabel,
+  hasInsufficientCoins = false,
+  requiredCoins = 0,
+  currentCoins = 0
 }: ValidationMessagesProps) => {
   return (
     <>
       {/* Messages d'erreur */}
       {maxGrids === 0 && (
         <div className="text-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
-          Budget insuffisant. Minimum requis : 2,5€
+          Budget insuffisant. Minimum requis : 2,5 SuerteCoins
+        </div>
+      )}
+
+      {hasInsufficientCoins && (
+        <div className="text-center text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+          SuerteCoins insuffisants. Vous avez {currentCoins.toFixed(1)} SuerteCoins mais il vous faut {requiredCoins.toFixed(1)} SuerteCoins.
         </div>
       )}
 

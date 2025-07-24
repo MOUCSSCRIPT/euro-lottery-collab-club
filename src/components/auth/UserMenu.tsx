@@ -8,7 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, LogOut, Coins } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
+import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProfileModal } from '../profile/ProfileModal';
@@ -58,10 +59,11 @@ export const UserMenu = () => {
             <div className="flex items-center gap-2 w-full">
               <div className="font-medium">{displayName}</div>
               {profile && (
-                <div className="flex items-center gap-1 text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full text-xs">
-                  <Coins className="h-3 w-3" />
-                  {profile.coins}
-                </div>
+                <SuerteCoinsDisplay 
+                  amount={profile.coins} 
+                  size="sm" 
+                  variant="default"
+                />
               )}
             </div>
             <div className="text-xs text-muted-foreground">{user.email}</div>
