@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { GridData } from '@/hooks/useGrids';
 import { Star, Hash, Trophy } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type GameType = Database['public']['Enums']['game_type'];
 
@@ -12,6 +14,44 @@ interface GridDisplayProps {
   grids: GridData[];
   gameType: GameType;
 }
+
+const PlayerDisplay = ({ createdBy, playerName }: { createdBy: string | null; playerName: string | null }) => {
+  const { data: profile } = useQuery({
+    queryKey: ['player-profile', createdBy],
+    queryFn: async () => {
+      if (!createdBy) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('username, country')
+        .eq('user_id', createdBy)
+        .single();
+      return data;
+    },
+    enabled: !!createdBy,
+  });
+
+  const getCountryFlag = (countryCode: string | null) => {
+    if (!countryCode) return '🌍';
+    
+    const countryFlags: { [key: string]: string } = {
+      'FR': '🇫🇷', 'ES': '🇪🇸', 'IT': '🇮🇹', 'DE': '🇩🇪', 'GB': '🇬🇧',
+      'PT': '🇵🇹', 'NL': '🇳🇱', 'BE': '🇧🇪', 'CH': '🇨🇭', 'AT': '🇦🇹',
+      'LU': '🇱🇺', 'IE': '🇮🇪', 'MA': '🇲🇦', 'TN': '🇹🇳', 'DZ': '🇩🇿'
+    };
+    
+    return countryFlags[countryCode] || '🌍';
+  };
+
+  const displayName = profile?.username || playerName || 'Joueur';
+  const flag = getCountryFlag(profile?.country);
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-lg">{flag}</span>
+      <span className="text-sm text-muted-foreground font-medium">{displayName}</span>
+    </div>
+  );
+};
 
 export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
   if (!grids || grids.length === 0) {
@@ -112,11 +152,10 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
                   <h4 className="font-medium">
                     Grille #{grid.grid_number}
                   </h4>
-                  {grid.player_name && (
-                    <p className="text-sm text-muted-foreground">
-                      Jouée par {grid.player_name}
-                    </p>
-                  )}
+                  <PlayerDisplay 
+                    createdBy={grid.created_by} 
+                    playerName={grid.player_name}
+                  />
                 </div>
                 {grid.draw_date && (
                   <Badge variant="outline" className="text-xs">

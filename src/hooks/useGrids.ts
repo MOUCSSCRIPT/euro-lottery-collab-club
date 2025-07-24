@@ -103,10 +103,23 @@ export const useGenerateGrids = () => {
         throw new Error('Erreur lors de la déduction des coins');
       }
       
+      // Récupérer le nombre de grilles existantes pour la numérotation
+      const { data: existingGrids, error: gridError } = await supabase
+        .from('group_grids')
+        .select('grid_number')
+        .eq('group_id', groupId)
+        .eq('is_active', true);
+
+      if (gridError) {
+        throw new Error('Erreur lors de la récupération des grilles existantes');
+      }
+
+      const nextGridNumber = existingGrids ? Math.max(...existingGrids.map(g => g.grid_number), 0) + 1 : 1;
+      
       // Insert grids into database
       const gridData = grids.map((grid, index) => ({
         group_id: groupId,
-        grid_number: index + 1,
+        grid_number: nextGridNumber + index,
         numbers: grid.numbers,
         stars: grid.stars,
         cost: grid.cost || gridCost,
