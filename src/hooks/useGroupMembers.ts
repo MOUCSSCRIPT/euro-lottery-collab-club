@@ -17,36 +17,55 @@ export const useGroupMembers = (groupId?: string) => {
   useEffect(() => {
     if (!groupId) return;
 
-    // Clean up existing channel if it exists
+    // Clean up existing channel
     if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (error) {
+        console.log('Error removing channel:', error);
+      }
       channelRef.current = null;
     }
 
-    const channelName = `group-members-${groupId}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'group_members',
-          filter: `group_id=eq.${groupId}`
-        },
-        (payload) => {
-          console.log('Group members changed:', payload);
-          queryClient.invalidateQueries({ queryKey: ['group-members', groupId] });
-          queryClient.invalidateQueries({ queryKey: ['groups'] });
-        }
-      )
-      .subscribe();
+    // Create new channel with unique name
+    const channelName = `group-members-${groupId}-${Math.random().toString(36).substring(7)}`;
+    
+    try {
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'group_members',
+            filter: `group_id=eq.${groupId}`
+          },
+          (payload) => {
+            console.log('Group members changed:', payload);
+            queryClient.invalidateQueries({ queryKey: ['group-members', groupId] });
+            queryClient.invalidateQueries({ queryKey: ['groups'] });
+          }
+        );
 
-    channelRef.current = channel;
+      // Only subscribe if channel was created successfully
+      if (channel) {
+        channel.subscribe((status) => {
+          console.log('Group members subscription status:', status);
+        });
+        channelRef.current = channel;
+      }
+    } catch (error) {
+      console.log('Error creating group members subscription:', error);
+    }
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch (error) {
+          console.log('Error in cleanup:', error);
+        }
         channelRef.current = null;
       }
     };

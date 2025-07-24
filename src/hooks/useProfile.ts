@@ -23,35 +23,54 @@ export const useProfile = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    // Clean up existing channel if it exists
+    // Clean up existing channel
     if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (error) {
+        console.log('Error removing channel:', error);
+      }
       channelRef.current = null;
     }
 
-    const channelName = `profile-changes-${user.id}-${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Profile changed:', payload);
-          queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
-        }
-      )
-      .subscribe();
+    // Create new channel with unique name
+    const channelName = `profile-changes-${user.id}-${Math.random().toString(36).substring(7)}`;
+    
+    try {
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Profile changed:', payload);
+            queryClient.invalidateQueries({ queryKey: ['profile', user.id] });
+          }
+        );
 
-    channelRef.current = channel;
+      // Only subscribe if channel was created successfully
+      if (channel) {
+        channel.subscribe((status) => {
+          console.log('Profile subscription status:', status);
+        });
+        channelRef.current = channel;
+      }
+    } catch (error) {
+      console.log('Error creating profile subscription:', error);
+    }
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        try {
+          supabase.removeChannel(channelRef.current);
+        } catch (error) {
+          console.log('Error in cleanup:', error);
+        }
         channelRef.current = null;
       }
     };
