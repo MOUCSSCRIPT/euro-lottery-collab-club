@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Edit, Trash2, Settings } from 'lucide-react';
-import { useLotoFootMatches, CreateLotoFootMatchData, UpdateLotoFootMatchData } from '@/hooks/useLotoFootMatches';
+// LotoFoot functionality temporarily disabled
 
 interface LotoFootMatchesAdminProps {
   groupId: string;
@@ -13,7 +13,11 @@ interface LotoFootMatchesAdminProps {
 }
 
 export const LotoFootMatchesAdmin = ({ groupId, isAdmin }: LotoFootMatchesAdminProps) => {
-  const { matches, createMatch, updateMatch, deleteMatch } = useLotoFootMatches(groupId);
+  // Temporarily disabled - LotoFoot functionality not implemented yet
+  const matches: any[] = [];
+  const createMatch = { mutateAsync: async () => {} };
+  const updateMatch = { mutateAsync: async () => {} };
+  const deleteMatch = { mutateAsync: async () => {} };
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -30,26 +34,8 @@ export const LotoFootMatchesAdmin = ({ groupId, isAdmin }: LotoFootMatchesAdminP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingMatch) {
-      const updateData: UpdateLotoFootMatchData = {
-        team_home: formData.team_home,
-        team_away: formData.team_away,
-        match_date: formData.match_date || undefined
-      };
-      
-      await updateMatch.mutateAsync({ id: editingMatch, data: updateData });
-      setEditingMatch(null);
-    } else {
-      const createData: CreateLotoFootMatchData = {
-        group_id: groupId,
-        match_position: formData.match_position,
-        team_home: formData.team_home,
-        team_away: formData.team_away,
-        match_date: formData.match_date || undefined
-      };
-      
-      await createMatch.mutateAsync(createData);
-    }
+    // Temporarily disabled functionality
+    console.log('Would create/update match:', formData);
     
     setFormData({ match_position: 1, team_home: '', team_away: '', match_date: '' });
     setIsDialogOpen(false);
@@ -68,7 +54,7 @@ export const LotoFootMatchesAdmin = ({ groupId, isAdmin }: LotoFootMatchesAdminP
 
   const handleDelete = async (id: string) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce match ?')) {
-      await deleteMatch.mutateAsync(id);
+      console.log('Would delete match:', id);
     }
   };
 

@@ -7,7 +7,7 @@ import { LotoFootMatchRow } from './LotoFootMatchRow';
 import { LotoFootGridSummary } from './LotoFootGridSummary';
 import { LotoFootGridPreview } from './LotoFootGridPreview';
 import { LotoFootInstructions } from './LotoFootInstructions';
-import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
+// LotoFoot functionality temporarily disabled
 
 interface LotoFootGrid {
   id: string;
@@ -51,7 +51,7 @@ export const LotoFootGridCard = ({
   multiplier,
   groupId
 }: LotoFootGridCardProps) => {
-  const { matches } = useLotoFootMatches(groupId);
+  const matches: any[] = [];
   
   // Créer les labels de matchs en utilisant les vrais noms ou les noms par défaut
   const getMatchLabel = (position: number) => {
