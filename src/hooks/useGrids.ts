@@ -6,8 +6,37 @@ import { GridData, GenerateGridsParams, ManualGrid } from '@/types/grid';
 import { getGridCost } from '@/utils/gridCosts';
 import { getNextDrawDate } from '@/utils/drawDates';
 import { generateOptimizedGrids } from '@/utils/gridGenerator';
+import { useEffect } from 'react';
 
 export const useGrids = (groupId: string) => {
+  const queryClient = useQueryClient();
+
+  // Real-time listener for grid changes
+  useEffect(() => {
+    if (!groupId) return;
+
+    const channel = supabase
+      .channel(`group-grids-${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'group_grids',
+          filter: `group_id=eq.${groupId}`
+        },
+        (payload) => {
+          console.log('Group grids changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['grids', groupId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [groupId, queryClient]);
+
   return useQuery({
     queryKey: ['grids', groupId],
     queryFn: async () => {
@@ -142,7 +171,16 @@ export const useGenerateGrids = () => {
       return data;
     },
     onSuccess: (data, variables) => {
+      // Optimistically update grids cache
+      queryClient.setQueryData(['grids', variables.groupId], (old: GridData[] | undefined) => {
+        return [...(old || []), ...data];
+      });
+      
+      // Invalidate related queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['grids', variables.groupId] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] }); // Update coins
+      queryClient.invalidateQueries({ queryKey: ['groups'] }); // Update group info
+      
       const modeText = variables.manualGrids ? 'manuellement' : 'automatiquement';
       toast({
         title: "Grilles générées !",

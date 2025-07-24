@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
+import { useEffect } from 'react';
 
 type Group = Database['public']['Tables']['groups']['Row'];
 type GroupInsert = Database['public']['Tables']['groups']['Insert'];
@@ -14,6 +15,31 @@ export const useGroups = () => {
   const queryClient = useQueryClient();
 
   console.log('useGroups hook - user:', user?.id);
+
+  // Real-time listener for groups changes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel('groups-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'groups'
+        },
+        (payload) => {
+          console.log('Groups changed:', payload);
+          queryClient.invalidateQueries({ queryKey: ['groups'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const { data: groups, isLoading, error } = useQuery({
     queryKey: ['groups', user?.id],
@@ -87,8 +113,14 @@ export const useGroups = () => {
       console.log('Member added successfully');
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (newGroup) => {
+      // Optimistic update - add new group to cache immediately
+      queryClient.setQueryData(['groups', user?.id], (old: Group[] | undefined) => {
+        return [newGroup, ...(old || [])];
+      });
+      
       queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['group-members'] }); // Refresh member lists
       toast({
         title: "Groupe créé",
         description: "Votre groupe a été créé avec succès !",
@@ -170,8 +202,12 @@ export const useGroups = () => {
       console.log('Successfully joined group');
       return groupId;
     },
-    onSuccess: () => {
+    onSuccess: (groupId) => {
+      // Optimistic updates
       queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['group-members', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['grids', groupId] });
+      
       toast({
         title: "Groupe rejoint",
         description: "Vous avez rejoint le groupe avec succès !",
