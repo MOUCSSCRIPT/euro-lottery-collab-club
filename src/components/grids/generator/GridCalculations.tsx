@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Calculator, Euro, Users } from 'lucide-react';
+import { Calculator, Users } from 'lucide-react';
+import { SuerteCoinsIcon } from '@/components/ui/SuerteCoinsIcon';
 
 interface GridCalculationsProps {
   maxGrids: number;
@@ -29,9 +30,9 @@ export const GridCalculations = ({
       
       <div className="text-center">
         <div className="bg-green-50 p-3 rounded-lg">
-          <Euro className="h-5 w-5 text-green-600 mx-auto mb-1" />
+          <SuerteCoinsIcon size={20} className="text-green-600 mx-auto mb-1" />
           <div className="text-sm text-muted-foreground">Coût total</div>
-          <div className="text-xl font-bold text-green-600">{totalCost.toFixed(2)}€</div>
+          <div className="text-xl font-bold text-green-600">{totalCost.toFixed(1)}</div>
         </div>
       </div>
       
@@ -45,9 +46,9 @@ export const GridCalculations = ({
       
       <div className="text-center">
         <div className="bg-yellow-50 p-3 rounded-lg">
-          <Euro className="h-5 w-5 text-yellow-600 mx-auto mb-1" />
+          <SuerteCoinsIcon size={20} className="text-yellow-600 mx-auto mb-1" />
           <div className="text-sm text-muted-foreground">Par membre</div>
-          <div className="text-xl font-bold text-yellow-600">{costPerMember.toFixed(2)}€</div>
+          <div className="text-xl font-bold text-yellow-600">{costPerMember.toFixed(1)}</div>
         </div>
       </div>
     </div>

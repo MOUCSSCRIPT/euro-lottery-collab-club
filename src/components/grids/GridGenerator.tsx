@@ -154,24 +154,6 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
       {/* Sélecteur de mode */}
       <GridModeSelector mode={gridMode} onModeChange={setGridMode} />
       
-      {/* Budget field in manual mode */}
-      {gridMode === 'manual' && (
-        <div className="max-w-xs">
-          <Label htmlFor="budget">Budget (SuerteCoins)</Label>
-          <Input
-            id="budget"
-            type="number"
-            value={budget}
-            onChange={(e) => setBudget(Number(e.target.value))}
-            min="2.5"
-            step="2.5"
-            className={`mt-1 ${hasInsufficientCoins ? 'border-red-300 focus:border-red-500' : ''}`}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Minimum: 2,5 SuerteCoins par grille
-          </p>
-        </div>
-      )}
 
       {/* Options FDJ disponibles dans les deux modes */}
       <EuromillionsOptionsComponent 

@@ -7,6 +7,7 @@ import { Star, Hash, Trophy } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 
 type GameType = Database['public']['Enums']['game_type'];
 
@@ -104,9 +105,11 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
                 </div>
               )}
             </div>
-            <div className="text-sm text-muted-foreground">
-              {grid.cost.toFixed(2)}€
-            </div>
+            <SuerteCoinsDisplay 
+              amount={grid.cost} 
+              size="sm" 
+              variant="default"
+            />
           </div>
         );
       
@@ -120,9 +123,11 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
                 </Badge>
               ))}
             </div>
-            <div className="text-sm text-muted-foreground">
-              {grid.cost.toFixed(2)}€
-            </div>
+            <SuerteCoinsDisplay 
+              amount={grid.cost} 
+              size="sm" 
+              variant="default"
+            />
           </div>
         );
     }
@@ -134,8 +139,13 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>{gridLabel} générées</CardTitle>
-            <CardDescription>
-              {grids.length} grilles pour un total de {totalCost.toFixed(2)}€
+            <CardDescription className="flex items-center gap-2">
+              {grids.length} grilles pour un total de 
+              <SuerteCoinsDisplay 
+                amount={totalCost} 
+                size="sm" 
+                variant="default"
+              />
             </CardDescription>
           </div>
           <Badge variant="secondary" className="capitalize">

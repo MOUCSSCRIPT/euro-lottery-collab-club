@@ -211,9 +211,39 @@ export const useGroups = () => {
         throw new Error('Ce groupe est complet');
       }
 
-      // Calculate equal contribution
-      const contribution = groupData.total_budget / groupData.max_members;
-      const percentage = 100 / groupData.max_members;
+      // Get all current members to calculate proper contributions
+      const { data: currentMembers, error: membersError } = await supabase
+        .from('group_members')
+        .select('contribution')
+        .eq('group_id', groupId);
+
+      if (membersError) {
+        console.error('Error fetching current members:', membersError);
+        throw membersError;
+      }
+
+      const currentMemberCount = currentMembers?.length || 0;
+      const totalMembers = currentMemberCount + 1; // Including new member
+      
+      // Calculate equal contribution and percentage based on actual members
+      const contribution = groupData.total_budget / totalMembers;
+      const percentage = 100 / totalMembers;
+
+      // Update existing members' percentages
+      if (currentMembers && currentMembers.length > 0) {
+        const { error: updateError } = await supabase
+          .from('group_members')
+          .update({ 
+            contribution,
+            percentage 
+          })
+          .eq('group_id', groupId);
+
+        if (updateError) {
+          console.error('Error updating existing members:', updateError);
+          throw updateError;
+        }
+      }
 
       // Add user as member
       const { error: memberError } = await supabase
