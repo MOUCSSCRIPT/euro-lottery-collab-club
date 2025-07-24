@@ -65,6 +65,8 @@ export const UserMenu = () => {
                   amount={profile.coins} 
                   size="sm" 
                   variant="default"
+                  clickable
+                  onClick={() => setShowCoinPurchaseModal(true)}
                 />
               )}
             </div>
@@ -74,10 +76,6 @@ export const UserMenu = () => {
           <DropdownMenuItem onClick={() => setShowProfileModal(true)}>
             <User className="mr-2 h-4 w-4" />
             <span>Mon Profil</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setShowCoinPurchaseModal(true)}>
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            <span>Acheter des Coins</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>

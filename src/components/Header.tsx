@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dices, Users, Menu } from 'lucide-react';
 import { useMobile } from '@/hooks/useMobile';
@@ -8,12 +8,14 @@ import { UserMenu } from '@/components/auth/UserMenu';
 import { useNavigate } from 'react-router-dom';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { useProfile } from '@/hooks/useProfile';
+import { CoinPurchaseModal } from '@/components/coins/CoinPurchaseModal';
 
 export const Header = () => {
   const { isMobile } = useMobile();
   const { user, loading } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
+  const [showCoinPurchaseModal, setShowCoinPurchaseModal] = useState(false);
 
   const handleAuthClick = () => {
     navigate('/auth');
@@ -68,6 +70,8 @@ export const Header = () => {
                   amount={profile.coins} 
                   size="sm" 
                   variant="default"
+                  clickable
+                  onClick={() => setShowCoinPurchaseModal(true)}
                 />
               )}
             </div>
@@ -98,12 +102,19 @@ export const Header = () => {
                   amount={profile.coins} 
                   size="sm" 
                   variant="default"
+                  clickable
+                  onClick={() => setShowCoinPurchaseModal(true)}
                 />
               )}
             </div>
           )}
         </div>
       </div>
+      
+      <CoinPurchaseModal
+        open={showCoinPurchaseModal}
+        onOpenChange={setShowCoinPurchaseModal}
+      />
     </header>
   );
 };

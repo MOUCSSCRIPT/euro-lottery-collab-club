@@ -8,6 +8,8 @@ interface SuerteCoinsDisplayProps {
   variant?: 'default' | 'success' | 'warning' | 'error';
   showLabel?: boolean;
   className?: string;
+  onClick?: () => void;
+  clickable?: boolean;
 }
 
 export const SuerteCoinsDisplay = ({ 
@@ -15,7 +17,9 @@ export const SuerteCoinsDisplay = ({
   size = 'md', 
   variant = 'default',
   showLabel = false,
-  className 
+  className,
+  onClick,
+  clickable = false
 }: SuerteCoinsDisplayProps) => {
   const sizeClasses = {
     sm: 'text-sm',
@@ -36,13 +40,20 @@ export const SuerteCoinsDisplay = ({
     error: 'text-red-600 bg-red-50 border-red-200'
   };
 
+  const Component = clickable ? 'button' : 'div';
+
   return (
-    <div className={cn(
-      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-medium",
-      sizeClasses[size],
-      variantClasses[variant],
-      className
-    )}>
+    <Component 
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border font-medium",
+        sizeClasses[size],
+        variantClasses[variant],
+        clickable && "cursor-pointer hover:scale-105 transition-transform duration-200 hover:shadow-md",
+        className
+      )}
+      onClick={clickable ? onClick : undefined}
+      type={clickable ? "button" : undefined}
+    >
       <SuerteCoinsIcon 
         size={iconSizes[size]} 
         className="flex-shrink-0"
@@ -51,6 +62,6 @@ export const SuerteCoinsDisplay = ({
       {showLabel && (
         <span className="text-xs opacity-80">SuerteCoins</span>
       )}
-    </div>
+    </Component>
   );
 };
