@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useCoinPurchase } from "@/hooks/useCoinPurchase";
+import { MandatoryProfileSetup } from "@/components/profile/MandatoryProfileSetup";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Games from "./pages/Games";
@@ -17,14 +18,16 @@ const AppContent = () => {
   useCoinPurchase();
   
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/games" element={<Games />} />
-      <Route path="/group/:id" element={<GroupDetails />} />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <MandatoryProfileSetup>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/games" element={<Games />} />
+        <Route path="/group/:id" element={<GroupDetails />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </MandatoryProfileSetup>
   );
 };
 

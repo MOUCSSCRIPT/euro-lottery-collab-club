@@ -6,8 +6,8 @@ type GameType = Database['public']['Enums']['game_type'];
 export function getGridCost(gameType: GameType): number {
   switch (gameType) {
     case 'euromillions':
-      return 2.5;
+      return 25; // 25 SuerteCoins per grid
     default:
-      return 2.5;
+      return 25;
   }
 }

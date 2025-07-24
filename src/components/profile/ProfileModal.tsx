@@ -39,9 +39,10 @@ const countries = [
 interface ProfileModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  mandatory?: boolean;
 }
 
-export const ProfileModal = ({ open, onOpenChange }: ProfileModalProps) => {
+export const ProfileModal = ({ open, onOpenChange, mandatory = false }: ProfileModalProps) => {
   const { user } = useAuth();
   const { profile, updateProfile, createProfile } = useProfile();
   const [username, setUsername] = useState('');
@@ -58,6 +59,10 @@ export const ProfileModal = ({ open, onOpenChange }: ProfileModalProps) => {
   }, [profile, user]);
 
   const handleSave = async () => {
+    if (!username.trim()) {
+      return;
+    }
+    
     if (profile) {
       await updateProfile.mutateAsync({ username, country });
     } else {
@@ -66,10 +71,12 @@ export const ProfileModal = ({ open, onOpenChange }: ProfileModalProps) => {
     onOpenChange(false);
   };
 
+  const canSave = username.trim().length > 0;
+
   const selectedCountry = countries.find(c => c.code === country);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={mandatory ? undefined : onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -113,7 +120,11 @@ export const ProfileModal = ({ open, onOpenChange }: ProfileModalProps) => {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Votre pseudo de joueur"
               className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+              required={mandatory}
             />
+            {mandatory && !username.trim() && (
+              <p className="text-sm text-red-500">Le pseudo est obligatoire</p>
+            )}
           </div>
 
           {/* Country */}
@@ -149,11 +160,11 @@ export const ProfileModal = ({ open, onOpenChange }: ProfileModalProps) => {
           {/* Save Button */}
           <Button 
             onClick={handleSave}
-            disabled={updateProfile.isPending || createProfile.isPending}
+            disabled={updateProfile.isPending || createProfile.isPending || !canSave}
             className="w-full bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
           >
             <Save className="mr-2 h-4 w-4" />
-            {updateProfile.isPending || createProfile.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
+            {updateProfile.isPending || createProfile.isPending ? 'Sauvegarde...' : mandatory ? 'Créer mon profil' : 'Sauvegarder'}
           </Button>
         </div>
       </DialogContent>

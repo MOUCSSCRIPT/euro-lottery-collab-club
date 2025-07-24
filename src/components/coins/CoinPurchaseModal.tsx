@@ -13,10 +13,10 @@ interface CoinPurchaseModalProps {
 }
 
 const coinPackages = [
-  { coins: 10, price: 10, popular: false },
-  { coins: 25, price: 25, popular: true },
-  { coins: 50, price: 50, popular: false },
-  { coins: 100, price: 100, popular: false },
+  { coins: 100, price: 10, popular: false },
+  { coins: 250, price: 25, popular: true },
+  { coins: 500, price: 50, popular: false },
+  { coins: 1000, price: 100, popular: false },
 ];
 
 export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps) => {
@@ -66,7 +66,7 @@ export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps
         
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground text-center">
-            1€ = 1 SuerteCoin
+            1€ = 10 SuerteCoins
           </div>
           
           <div className="grid gap-3">

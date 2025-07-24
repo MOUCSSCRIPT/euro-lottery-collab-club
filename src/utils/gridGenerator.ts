@@ -24,13 +24,13 @@ export function generateSingleGrid(gameType: GameType, options?: any) {
       const numbers = generateUniqueNumbers(5, 1, 50);
       const stars = generateUniqueNumbers(2, 1, 12);
       
-      // Calculate cost based on options
-      let cost = 2.5; // Base cost
-      if (options?.luckyNumbers) cost += 1.0;
+      // Calculate cost based on options (in SuerteCoins)
+      let cost = 25; // Base cost in SuerteCoins
+      if (options?.luckyNumbers) cost += 10;
       if (options?.system && options?.system !== 'none') {
-        if (options.system === 'System 7') cost += 7.0;
-        else if (options.system === 'System 8') cost += 28.0;
-        else if (options.system === 'System 9') cost += 84.0;
+        if (options.system === 'System 7') cost += 70;
+        else if (options.system === 'System 8') cost += 280;
+        else if (options.system === 'System 9') cost += 840;
       }
       
       return {
@@ -47,7 +47,7 @@ export function generateSingleGrid(gameType: GameType, options?: any) {
         numbers: defaultNumbers.sort((a, b) => a - b),
         stars: defaultStars.sort((a, b) => a - b),
         key: `${defaultNumbers.join('-')}_${defaultStars.join('-')}`,
-        cost: 2.5
+        cost: 25
       };
   }
 }
