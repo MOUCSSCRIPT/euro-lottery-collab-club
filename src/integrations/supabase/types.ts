@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      coin_purchases: {
+        Row: {
+          amount: number
+          coins: number
+          created_at: string
+          id: string
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          coins: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          coins?: number
+          created_at?: string
+          id?: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       draws: {
         Row: {
           created_at: string

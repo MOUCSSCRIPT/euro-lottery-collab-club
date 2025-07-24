@@ -8,18 +8,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, ShoppingCart } from 'lucide-react';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProfileModal } from '../profile/ProfileModal';
 import { useProfile } from '@/hooks/useProfile';
+import { CoinPurchaseModal } from '@/components/coins/CoinPurchaseModal';
 
 export const UserMenu = () => {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const { toast } = useToast();
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showCoinPurchaseModal, setShowCoinPurchaseModal] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -73,6 +75,10 @@ export const UserMenu = () => {
             <User className="mr-2 h-4 w-4" />
             <span>Mon Profil</span>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowCoinPurchaseModal(true)}>
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            <span>Acheter des Coins</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
             <LogOut className="mr-2 h-4 w-4" />
@@ -84,6 +90,11 @@ export const UserMenu = () => {
       <ProfileModal 
         open={showProfileModal} 
         onOpenChange={setShowProfileModal} 
+      />
+      
+      <CoinPurchaseModal
+        open={showCoinPurchaseModal}
+        onOpenChange={setShowCoinPurchaseModal}
       />
     </>
   );
