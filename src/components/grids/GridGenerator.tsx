@@ -8,7 +8,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { EuromillionsManualEntry } from './EuromillionsManualEntry';
 import { EuromillionsOptionsComponent } from './EuromillionsOptions';
 import { GridModeSelector } from './GridModeSelector';
-import { GameInfoCard } from './generator/GameInfoCard';
+
 import { GenerateButton } from './generator/GenerateButton';
 import { ValidationMessages } from './generator/ValidationMessages';
 import { useAuth } from '@/contexts/AuthContext';
@@ -168,7 +168,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
                   }
                 </p>
               </div>
-              <GameInfoCard gameType={group.game_type} />
+              
             </div>
             
             {gridMode === 'manual' && (
@@ -192,13 +192,11 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         </CardContent>
       </Card>
 
-      {/* Options FDJ en mode automatique */}
-      {gridMode === 'auto' && (
-        <EuromillionsOptionsComponent 
-          options={euromillionsOptions}
-          onOptionsChange={setEuromillionsOptions}
-        />
-      )}
+      {/* Options FDJ disponibles dans les deux modes */}
+      <EuromillionsOptionsComponent 
+        options={euromillionsOptions}
+        onOptionsChange={setEuromillionsOptions}
+      />
 
       {/* Saisie manuelle uniquement en mode manuel */}
       {gridMode === 'manual' && maxGrids > 0 && (

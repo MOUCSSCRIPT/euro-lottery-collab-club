@@ -98,50 +98,48 @@ export const EuromillionsManualEntry = ({ onGridsChange, maxGrids }: Euromillion
   return (
     <div className="space-y-4">
       {grids.map((grid, index) => (
-        <Card key={grid.id} className="relative">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <span className="bg-blue-100 text-blue-800 w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">
-                  {index + 1}
-                </span>
-                Grille {index + 1}
-                {isGridComplete(grid) && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    Complète
-                  </Badge>
-                )}
-              </CardTitle>
-              {grids.length > 1 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeGrid(grid.id)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+        <Card key={grid.id} className="p-3">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="font-medium text-sm flex items-center gap-2">
+              <span className="bg-blue-100 text-blue-800 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">
+                {index + 1}
+              </span>
+              Grille {index + 1}
+              {isGridComplete(grid) && (
+                <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                  Complète
+                </Badge>
               )}
-            </div>
-          </CardHeader>
+            </h4>
+            {grids.length > 1 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => removeGrid(grid.id)}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
           
-          <CardContent className="space-y-6">
+          <div className="space-y-3">
             {/* Numéros principaux */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <h4 className="font-medium">Numéros principaux</h4>
+              <div className="flex items-center gap-2 mb-2">
+                <h4 className="font-medium text-xs">Numéros principaux</h4>
                 <Badge variant="outline" className="text-xs">
                   {grid.mainNumbers.length}/5
                 </Badge>
               </div>
-              <div className="grid grid-cols-10 gap-2">
+              <div className="grid grid-cols-10 gap-1">
                 {Array.from({ length: 50 }, (_, i) => i + 1).map(number => (
                   <Button
                     key={number}
                     variant={grid.mainNumbers.includes(number) ? "default" : "outline"}
                     size="sm"
                     className={cn(
-                      "h-8 w-8 p-0 text-xs font-medium",
+                      "h-7 w-7 p-0 text-xs font-medium",
                       grid.mainNumbers.includes(number) 
                         ? "bg-blue-600 hover:bg-blue-700 text-white" 
                         : "hover:bg-blue-50"
@@ -157,21 +155,21 @@ export const EuromillionsManualEntry = ({ onGridsChange, maxGrids }: Euromillion
 
             {/* Étoiles */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-4 w-4 text-yellow-500" />
-                <h4 className="font-medium">Étoiles</h4>
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-3 w-3 text-yellow-500" />
+                <h4 className="font-medium text-xs">Étoiles</h4>
                 <Badge variant="outline" className="text-xs">
                   {grid.stars.length}/2
                 </Badge>
               </div>
-              <div className="grid grid-cols-12 gap-2">
+              <div className="grid grid-cols-12 gap-1">
                 {Array.from({ length: 12 }, (_, i) => i + 1).map(star => (
                   <Button
                     key={star}
                     variant={grid.stars.includes(star) ? "default" : "outline"}
                     size="sm"
                     className={cn(
-                      "h-8 w-8 p-0 text-xs font-medium",
+                      "h-7 w-7 p-0 text-xs font-medium",
                       grid.stars.includes(star) 
                         ? "bg-yellow-500 hover:bg-yellow-600 text-white" 
                         : "hover:bg-yellow-50"
@@ -187,17 +185,16 @@ export const EuromillionsManualEntry = ({ onGridsChange, maxGrids }: Euromillion
 
             {/* Aperçu de la grille */}
             {(grid.mainNumbers.length > 0 || grid.stars.length > 0) && (
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <h5 className="text-sm font-medium mb-2">Aperçu :</h5>
-                <div className="flex items-center gap-3">
+              <div className="bg-gray-50 p-2 rounded">
+                <div className="flex items-center gap-2 text-xs">
                   <div className="flex gap-1">
                     {grid.mainNumbers.map(num => (
-                      <Badge key={num} className="bg-blue-600 text-white">
+                      <Badge key={num} className="bg-blue-600 text-white text-xs h-5">
                         {num}
                       </Badge>
                     ))}
                     {Array.from({ length: 5 - grid.mainNumbers.length }).map((_, i) => (
-                      <Badge key={i} variant="outline" className="text-gray-400">
+                      <Badge key={i} variant="outline" className="text-gray-400 text-xs h-5">
                         --
                       </Badge>
                     ))}
@@ -205,20 +202,20 @@ export const EuromillionsManualEntry = ({ onGridsChange, maxGrids }: Euromillion
                   <span className="text-gray-400">|</span>
                   <div className="flex gap-1">
                     {grid.stars.map(star => (
-                      <Badge key={star} className="bg-yellow-500 text-white">
-                        ⭐ {star}
+                      <Badge key={star} className="bg-yellow-500 text-white text-xs h-5">
+                        ⭐{star}
                       </Badge>
                     ))}
                     {Array.from({ length: 2 - grid.stars.length }).map((_, i) => (
-                      <Badge key={i} variant="outline" className="text-gray-400">
-                        ⭐ --
+                      <Badge key={i} variant="outline" className="text-gray-400 text-xs h-5">
+                        ⭐--
                       </Badge>
                     ))}
                   </div>
                 </div>
               </div>
             )}
-          </CardContent>
+          </div>
         </Card>
       ))}
 
