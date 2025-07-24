@@ -260,39 +260,6 @@ export type Database = {
         }
         Relationships: []
       }
-      loto_foot_matches: {
-        Row: {
-          created_at: string
-          group_id: string
-          id: string
-          match_date: string | null
-          match_position: number
-          team_away: string
-          team_home: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          match_date?: string | null
-          match_position: number
-          team_away: string
-          team_home: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          match_date?: string | null
-          match_position?: number
-          team_away?: string
-          team_home?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           coins: number
@@ -367,6 +334,30 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       accessible_group_ids: {
@@ -391,6 +382,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_coins_to_user: {
+        Args: { _user_id: string; _amount: number }
+        Returns: boolean
+      }
       generate_invitation_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -398,6 +393,17 @@ export type Database = {
       generate_team_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
       }
       is_group_creator: {
         Args: { check_group_id: string; check_user_id: string }
@@ -407,8 +413,13 @@ export type Database = {
         Args: { check_group_id: string; check_user_id: string }
         Returns: boolean
       }
+      set_user_coins: {
+        Args: { _user_id: string; _amount: number }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       game_type: "euromillions"
       group_mode: "demo" | "real"
     }
@@ -538,6 +549,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       game_type: ["euromillions"],
       group_mode: ["demo", "real"],
     },
