@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 type GroupMember = Database['public']['Tables']['group_members']['Row'];
 
@@ -11,10 +11,17 @@ export const useGroupMembers = (groupId?: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const channelRef = useRef<any>(null);
 
   // Real-time listener for group member changes
   useEffect(() => {
     if (!groupId) return;
+
+    // Clean up existing channel if it exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
     const channelName = `group-members-${groupId}-${Date.now()}`;
     const channel = supabase
@@ -35,8 +42,13 @@ export const useGroupMembers = (groupId?: string) => {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [groupId, queryClient]);
 

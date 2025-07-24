@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -6,14 +5,21 @@ import { GridData, GenerateGridsParams, ManualGrid } from '@/types/grid';
 import { getGridCost } from '@/utils/gridCosts';
 import { getNextDrawDate } from '@/utils/drawDates';
 import { generateOptimizedGrids } from '@/utils/gridGenerator';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export const useGrids = (groupId: string) => {
   const queryClient = useQueryClient();
+  const channelRef = useRef<any>(null);
 
   // Real-time listener for grid changes
   useEffect(() => {
     if (!groupId) return;
+
+    // Clean up existing channel if it exists
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
     const channelName = `group-grids-${groupId}-${Date.now()}`;
     const channel = supabase
@@ -33,8 +39,13 @@ export const useGrids = (groupId: string) => {
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [groupId, queryClient]);
 
