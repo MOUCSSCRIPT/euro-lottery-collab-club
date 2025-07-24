@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { useGenerateGrids } from '@/hooks/useGrids';
 import { Tables } from '@/integrations/supabase/types';
 import { EuromillionsManualEntry } from './EuromillionsManualEntry';
+import { EuromillionsOptionsComponent } from './EuromillionsOptions';
+import { GridModeSelector } from './GridModeSelector';
 import { GameInfoCard } from './generator/GameInfoCard';
 import { GenerateButton } from './generator/GenerateButton';
 import { ValidationMessages } from './generator/ValidationMessages';
@@ -13,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { AlertCircle, TrendingDown } from 'lucide-react';
+import { EuromillionsOptions } from '@/types/euromillions';
 
 interface GridGeneratorProps {
   group: Tables<'groups'>;
@@ -28,6 +31,12 @@ interface ManualGrid {
 export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const [budget, setBudget] = useState(2.5); // Budget minimum de 2,5€ pour 1 grille
   const [manualGrids, setManualGrids] = useState<ManualGrid[]>([]);
+  const [gridMode, setGridMode] = useState<'auto' | 'manual'>('manual');
+  const [euromillionsOptions, setEuromillionsOptions] = useState<EuromillionsOptions>({
+    gridCount: 1,
+    luckyNumbers: false,
+    system: 'none'
+  });
   
   const generateGrids = useGenerateGrids();
   const { user } = useAuth();
@@ -40,13 +49,27 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const playerName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Joueur';
 
   const getGridCost = () => {
-    // Seulement Euromillions maintenant
-    return 2.5;
+    let baseCost = 2.5; // Coût de base Euromillions
+    
+    if (gridMode === 'auto') {
+      // En mode automatique, appliquer les options FDJ
+      if (euromillionsOptions.luckyNumbers) baseCost += 1.0;
+      if (euromillionsOptions.system && euromillionsOptions.system !== 'none') {
+        const systemCosts = {
+          'System 7': 7.0,
+          'System 8': 28.0,
+          'System 9': 84.0
+        };
+        baseCost += systemCosts[euromillionsOptions.system];
+      }
+    }
+    
+    return baseCost;
   };
 
   const gridCost = getGridCost();
-  const maxGrids = Math.floor(budget / gridCost);
-  const totalCost = maxGrids * gridCost;
+  const maxGrids = gridMode === 'auto' ? euromillionsOptions.gridCount : Math.floor(budget / gridCost);
+  const totalCost = gridMode === 'auto' ? (euromillionsOptions.gridCount * gridCost) : (maxGrids * gridCost);
   const costPerMember = totalCost / memberCount;
 
   // Calculs en temps réel pour les SuerteCoins
@@ -64,31 +87,48 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   }), [currentCoins, requiredCoins, remainingCoins, hasInsufficientCoins]);
 
   const handleGenerate = () => {
-    // Seulement mode manuel maintenant
-    generateGrids.mutate({
-      groupId: group.id,
-      budget,
-      memberCount,
-      gameType: 'euromillions',
-      playerName,
-      manualGrids: manualGrids.filter(grid => 
-        grid.mainNumbers.length === 5 && grid.stars.length === 2
-      )
-    });
+    if (gridMode === 'auto') {
+      // Mode automatique avec options FDJ
+      generateGrids.mutate({
+        groupId: group.id,
+        budget: totalCost,
+        memberCount,
+        gameType: 'euromillions',
+        playerName,
+        euromillionsOptions
+      });
+    } else {
+      // Mode manuel
+      generateGrids.mutate({
+        groupId: group.id,
+        budget,
+        memberCount,
+        gameType: 'euromillions',
+        playerName,
+        manualGrids: manualGrids.filter(grid => 
+          grid.mainNumbers.length === 5 && grid.stars.length === 2
+        )
+      });
+    }
   };
 
   const gridLabel = 'grille';
   const gridsLabel = 'grilles';
 
   const canGenerate = () => {
-    if (budget < 2.5) return false; // Budget minimum 2,5€
-    if (maxGrids === 0) return false;
     if (hasInsufficientCoins) return false; // Vérifier les SuerteCoins
     
-    const completeGrids = manualGrids.filter(grid => 
-      grid.mainNumbers.length === 5 && grid.stars.length === 2
-    );
-    return completeGrids.length > 0;
+    if (gridMode === 'auto') {
+      return euromillionsOptions.gridCount > 0;
+    } else {
+      if (budget < 2.5) return false; // Budget minimum 2,5€
+      if (maxGrids === 0) return false;
+      
+      const completeGrids = manualGrids.filter(grid => 
+        grid.mainNumbers.length === 5 && grid.stars.length === 2
+      );
+      return completeGrids.length > 0;
+    }
   };
 
   const getCompleteGridsCount = () => {
@@ -111,6 +151,9 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         </Card>
       )}
       
+      {/* Sélecteur de mode */}
+      <GridModeSelector mode={gridMode} onModeChange={setGridMode} />
+      
       {/* Interface avec budget modifiable */}
       <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
         <CardContent className="pt-6">
@@ -119,33 +162,46 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
               <div>
                 <h3 className="text-lg font-semibold">Bonjour {playerName} !</h3>
                 <p className="text-sm text-muted-foreground">
-                  Maximum {maxGrids} {gridsLabel} • Coût par grille: 2,5 SuerteCoins
+                  {gridMode === 'auto' 
+                    ? `${euromillionsOptions.gridCount} ${gridsLabel} • Coût par grille: ${gridCost.toFixed(1)} SuerteCoins`
+                    : `Maximum ${maxGrids} ${gridsLabel} • Coût par grille: 2,5 SuerteCoins`
+                  }
                 </p>
               </div>
               <GameInfoCard gameType={group.game_type} />
             </div>
             
-            <div className="max-w-xs">
-              <Label htmlFor="budget">Budget (SuerteCoins)</Label>
-              <Input
-                id="budget"
-                type="number"
-                value={budget}
-                onChange={(e) => setBudget(Number(e.target.value))}
-                min="2.5"
-                step="2.5"
-                className={`mt-1 ${hasInsufficientCoins ? 'border-red-300 focus:border-red-500' : ''}`}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Minimum: 2,5 SuerteCoins par grille
-              </p>
-            </div>
+            {gridMode === 'manual' && (
+              <div className="max-w-xs">
+                <Label htmlFor="budget">Budget (SuerteCoins)</Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  value={budget}
+                  onChange={(e) => setBudget(Number(e.target.value))}
+                  min="2.5"
+                  step="2.5"
+                  className={`mt-1 ${hasInsufficientCoins ? 'border-red-300 focus:border-red-500' : ''}`}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Minimum: 2,5 SuerteCoins par grille
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Saisie manuelle uniquement */}
-      {maxGrids > 0 && (
+      {/* Options FDJ en mode automatique */}
+      {gridMode === 'auto' && (
+        <EuromillionsOptionsComponent 
+          options={euromillionsOptions}
+          onOptionsChange={setEuromillionsOptions}
+        />
+      )}
+
+      {/* Saisie manuelle uniquement en mode manuel */}
+      {gridMode === 'manual' && maxGrids > 0 && (
         <EuromillionsManualEntry 
           onGridsChange={setManualGrids}
           maxGrids={maxGrids}
@@ -155,18 +211,18 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
       <GenerateButton
         canGenerate={canGenerate()}
         isGenerating={generateGrids.isPending}
-        gridMode="manual"
+        gridMode={gridMode}
         completeGridsCount={getCompleteGridsCount()}
-        maxGrids={maxGrids}
+        maxGrids={gridMode === 'auto' ? euromillionsOptions.gridCount : maxGrids}
         gridsLabel={gridsLabel}
         onGenerate={handleGenerate}
       />
 
       <ValidationMessages
-        maxGrids={maxGrids}
+        maxGrids={gridMode === 'auto' ? euromillionsOptions.gridCount : maxGrids}
         gridCost={gridCost}
         playerName={playerName}
-        gridMode="manual"
+        gridMode={gridMode}
         completeGridsCount={getCompleteGridsCount()}
         gridLabel={gridLabel}
         hasInsufficientCoins={hasInsufficientCoins}

@@ -23,37 +23,8 @@ export const GridModeSelector = ({ mode, onModeChange }: GridModeSelectorProps) 
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Button
-            variant="ghost"
-            className={cn(
-              "h-auto p-8 flex flex-col items-center gap-4 transition-all duration-300 hover:scale-105",
-              mode === 'auto' 
-                ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl scale-105" 
-                : "bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 border-2 border-blue-200"
-            )}
-            onClick={() => onModeChange('auto')}
-          >
-            <div className={cn(
-              "p-4 rounded-full transition-all duration-300",
-              mode === 'auto' ? "bg-white/20 animate-pulse" : "bg-blue-200"
-            )}>
-              <Dices className={cn(
-                "h-8 w-8 transition-all duration-300",
-                mode === 'auto' ? "text-white" : "text-blue-600"
-              )} />
-            </div>
-            <div className="text-center">
-              <div className="font-bold text-lg mb-1">Automatique</div>
-              <div className={cn(
-                "text-sm",
-                mode === 'auto' ? "text-white/90" : "text-blue-700"
-              )}>
-                Laissez la chance décider
-              </div>
-            </div>
-          </Button>
-
+        <div className="grid grid-cols-1 gap-4">
+          {/* Manuel comme choix principal */}
           <Button
             variant="ghost"
             className={cn(
@@ -83,6 +54,24 @@ export const GridModeSelector = ({ mode, onModeChange }: GridModeSelectorProps) 
               </div>
             </div>
           </Button>
+
+          {/* Automatique comme option discrète */}
+          <div className="flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-auto p-4 flex items-center gap-2 text-sm transition-all duration-300",
+                mode === 'auto' 
+                  ? "bg-muted text-foreground border border-border" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              )}
+              onClick={() => onModeChange('auto')}
+            >
+              <Dices className="h-4 w-4" />
+              <span>Ou laissez faire le hasard</span>
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
