@@ -77,18 +77,11 @@ const GroupDetails = () => {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold">{group.name}</h1>
-                  <div className="flex items-center gap-2">
-                    <TeamBadge 
-                      teamName={group.name} 
-                      isCreator={isCreator}
-                      className="text-sm"
-                    />
-                    {isCreator && creatorName && (
-                      <span className="text-sm text-muted-foreground">
-                        ({creatorName})
-                      </span>
-                    )}
-                  </div>
+                  <TeamBadge 
+                    teamName={creatorName || 'Capitaine'} 
+                    isCreator={isCreator}
+                    className="text-sm"
+                  />
                 </div>
                 {group.description && (
                   <p className="text-muted-foreground">{group.description}</p>
