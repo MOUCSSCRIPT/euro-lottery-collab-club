@@ -137,49 +137,6 @@ const GroupDetails = () => {
             )}
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <div>
-                  <div className="text-2xl font-bold">{memberCount}</div>
-                  <div className="text-sm text-muted-foreground">Membres</div>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <Euro className="h-4 w-4 text-green-600" />
-                <div>
-                  <div className="text-2xl font-bold">{group.total_budget}€</div>
-                  <div className="text-sm text-muted-foreground">Budget</div>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-purple-600" />
-                <div>
-                  <div className="text-2xl font-bold">{grids?.length || 0}</div>
-                  <div className="text-sm text-muted-foreground">Grilles</div>
-                </div>
-              </div>
-            </Card>
-            
-            <Card className="p-4">
-              <div className="flex items-center space-x-2">
-                <Badge 
-                  variant={group.status === 'active' ? 'default' : 'secondary'}
-                  className="capitalize"
-                >
-                  {group.status}
-                </Badge>
-              </div>
-            </Card>
-          </div>
         </div>
 
         {/* Main Content Tabs */}
