@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, UserPlus, Calendar, Euro, Settings, Copy } from 'lucide-react';
+import { Users, Calendar, Euro, Settings, Copy } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { InviteModal } from '@/components/invitations/InviteModal';
+
 import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
 import { TeamBadge } from '@/components/teams/TeamBadge';
 import { GridGenerator } from '@/components/grids/GridGenerator';
@@ -28,7 +28,7 @@ const GroupDetails = () => {
   const { groups, isLoading: groupsLoading } = useGroups();
   const { members, memberCount } = useGroupMembers(id);
   const { data: grids, isLoading: gridsLoading } = useGrids(id || '');
-  const [showInviteModal, setShowInviteModal] = useState(false);
+  
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const { pendingRequests } = useTeamRequests(id);
 
@@ -120,14 +120,6 @@ const GroupDetails = () => {
                       {pendingRequests.length}
                     </Badge>
                   )}
-                </Button>
-                <Button
-                  onClick={() => setShowInviteModal(true)}
-                  variant="outline"
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Inviter
                 </Button>
                 <Button variant="ghost" size="icon">
                   <Settings className="h-4 w-4" />
@@ -222,13 +214,6 @@ const GroupDetails = () => {
           {/* Seulement Euromillions maintenant */}
         </Tabs>
 
-        {/* Modals */}
-        <InviteModal 
-          open={showInviteModal} 
-          onOpenChange={setShowInviteModal}
-          groupId={group.id}
-          groupName={group.name}
-        />
         
         <TeamRequestsModal
           open={showRequestsModal}
