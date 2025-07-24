@@ -17,7 +17,7 @@ import { TeamBadge } from '@/components/teams/TeamBadge';
 import { useGroupCreator } from '@/hooks/useGroupCreator';
 import { GridGenerator } from '@/components/grids/GridGenerator';
 import { GridDisplay } from '@/components/grids/GridDisplay';
-import { LotoFootMatchesAdmin } from '@/components/grids/loto-foot/LotoFootMatchesAdmin';
+// LotoFoot removed - only EuroMillions supported
 import { useState } from 'react';
 import { useTeamRequests } from '@/hooks/useTeamRequests';
 import { useToast } from '@/hooks/use-toast';

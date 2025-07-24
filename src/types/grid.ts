@@ -19,11 +19,6 @@ export interface ManualGrid {
   stars: number[];
 }
 
-export interface LotoFootGrid {
-  id: string;
-  predictions: number[];
-}
-
 export interface GenerateGridsParams {
   groupId: string;
   budget: number;
@@ -32,5 +27,4 @@ export interface GenerateGridsParams {
   playerName?: string;
   euromillionsOptions?: any;
   manualGrids?: ManualGrid[];
-  lotoFootGrids?: LotoFootGrid[];
 }

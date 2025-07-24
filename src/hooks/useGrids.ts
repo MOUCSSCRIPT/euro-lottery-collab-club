@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { GridData, GenerateGridsParams, ManualGrid } from '@/types/grid';
+import { GridData, GenerateGridsParams } from '@/types/grid';
 import { getGridCost } from '@/utils/gridCosts';
 import { getNextDrawDate } from '@/utils/drawDates';
 import { generateOptimizedGrids } from '@/utils/gridGenerator';
@@ -118,24 +118,62 @@ export const useGenerateGrids = () => {
       let grids;
       let totalCost = 0;
 
+      let gridsToInsert: Array<{
+        numbers: number[],
+        stars: number[],
+        cost: number
+      }> = [];
+
       if (manualGrids && manualGrids.length > 0) {
-        // Utiliser les grilles manuelles
-        grids = manualGrids.map(grid => ({
+        // Gérer les grilles manuelles EuroMillions avec détection de doublons
+        gridsToInsert = manualGrids.map(grid => ({
           numbers: grid.mainNumbers,
           stars: grid.stars,
           cost: gridCost
         }));
-        totalCost = grids.length * gridCost;
+
+        // Vérifier les doublons pour les grilles manuelles
+        console.log(`🔍 Checking for duplicates among ${gridsToInsert.length} manual grids`);
+        
+        const { data: existingGrids } = await supabase
+          .from('group_grids')
+          .select('numbers, stars')
+          .eq('group_id', groupId)
+          .eq('is_active', true);
+
+        const existingKeys = new Set(
+          existingGrids?.map(grid => 
+            `${[...grid.numbers].sort((a, b) => a - b).join('-')}_${grid.stars ? [...grid.stars].sort((a, b) => a - b).join('-') : ''}`
+          ) || []
+        );
+
+        const originalCount = gridsToInsert.length;
+        gridsToInsert = gridsToInsert.filter(grid => {
+          const key = `${[...grid.numbers].sort((a, b) => a - b).join('-')}_${[...grid.stars].sort((a, b) => a - b).join('-')}`;
+          return !existingKeys.has(key);
+        });
+
+        const filteredCount = originalCount - gridsToInsert.length;
+        if (filteredCount > 0) {
+          console.log(`⚠️ Filtered out ${filteredCount} duplicate manual grids`);
+          toast({
+            title: "Doublons détectés",
+            description: `${filteredCount} grille(s) manuelle(s) identique(s) ont été ignorée(s)`,
+            variant: "destructive",
+          });
+        }
+
+        totalCost = gridsToInsert.length * gridCost;
       } else {
-        // Génération automatique
+        // Génération automatique avec détection de doublons intégrée
         const maxGrids = Math.floor(budget / gridCost);
         
         if (maxGrids === 0) {
           throw new Error('Budget insuffisant pour générer des grilles');
         }
 
-        grids = await generateOptimizedGrids(maxGrids, gameType, euromillionsOptions, groupId);
-        totalCost = grids.reduce((sum, grid) => sum + (grid.cost || gridCost), 0);
+        gridsToInsert = await generateOptimizedGrids(maxGrids, gameType, euromillionsOptions, groupId);
+        totalCost = gridsToInsert.reduce((sum, grid) => sum + (grid.cost || gridCost), 0);
       }
 
       // Vérifier et décompter les coins du joueur
@@ -151,6 +189,10 @@ export const useGenerateGrids = () => {
 
       if (!profile || profile.coins < totalCost) {
         throw new Error(`Coins insuffisants. Vous avez ${profile?.coins || 0} coins, il en faut ${totalCost}.`);
+      }
+
+      if (gridsToInsert.length === 0) {
+        throw new Error('Aucune nouvelle grille à insérer (toutes sont des doublons)');
       }
 
       // Décompter les coins
@@ -176,8 +218,8 @@ export const useGenerateGrids = () => {
 
       const nextGridNumber = existingGrids ? Math.max(...existingGrids.map(g => g.grid_number), 0) + 1 : 1;
       
-      // Insert grids into database
-      const gridData = grids.map((grid, index) => ({
+      // Préparer les données pour l'insertion avec détection robuste des doublons
+      const gridData = gridsToInsert.map((grid, index) => ({
         group_id: groupId,
         grid_number: nextGridNumber + index,
         numbers: grid.numbers,
@@ -188,18 +230,41 @@ export const useGenerateGrids = () => {
         created_by: user.user.id
       }));
 
-      const { data, error } = await supabase
-        .from('group_grids')
-        .insert(gridData)
-        .select();
+      console.log(`💾 Inserting ${gridData.length} grids into database`);
+      
+      // Insérer avec gestion des erreurs de contrainte unique
+      try {
+        const { data, error } = await supabase
+          .from('group_grids')
+          .insert(gridData)
+          .select();
 
-      if (error) {
-        console.error('Error creating grids:', error);
-        throw error;
+        if (error) {
+          // Si c'est une erreur de contrainte unique, informer l'utilisateur
+          if (error.code === '23505') {
+            console.warn('⚠️ Duplicate constraint violation detected during insertion');
+            throw new Error("Certaines grilles identiques existent déjà. Veuillez réessayer avec d'autres nombres.");
+          }
+          console.error('Error creating grids:', error);
+          throw new Error(`Erreur lors de l'insertion des grilles: ${error.message}`);
+        }
+
+        if (!data || data.length === 0) {
+          throw new Error('Aucune grille n\'a été créée');
+        }
+
+        console.log(`✅ Successfully inserted ${data.length} grids`);
+        return data;
+      } catch (insertError) {
+        // En cas d'erreur, restaurer les coins
+        await supabase
+          .from('profiles')
+          .update({ coins: profile.coins })
+          .eq('user_id', user.user.id);
+        
+        throw insertError;
       }
 
-      console.log('Grids created:', data);
-      return data;
     },
     onSuccess: (data, variables) => {
       // Optimistically update grids cache
