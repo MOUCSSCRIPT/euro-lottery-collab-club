@@ -154,43 +154,24 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
       {/* Sélecteur de mode */}
       <GridModeSelector mode={gridMode} onModeChange={setGridMode} />
       
-      {/* Interface avec budget modifiable */}
-      <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Bonjour {playerName} !</h3>
-                <p className="text-sm text-muted-foreground">
-                  {gridMode === 'auto' 
-                    ? `${euromillionsOptions.gridCount} ${gridsLabel} • Coût par grille: ${gridCost.toFixed(1)} SuerteCoins`
-                    : `Maximum ${maxGrids} ${gridsLabel} • Coût par grille: 2,5 SuerteCoins`
-                  }
-                </p>
-              </div>
-              
-            </div>
-            
-            {gridMode === 'manual' && (
-              <div className="max-w-xs">
-                <Label htmlFor="budget">Budget (SuerteCoins)</Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  value={budget}
-                  onChange={(e) => setBudget(Number(e.target.value))}
-                  min="2.5"
-                  step="2.5"
-                  className={`mt-1 ${hasInsufficientCoins ? 'border-red-300 focus:border-red-500' : ''}`}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Minimum: 2,5 SuerteCoins par grille
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Budget field in manual mode */}
+      {gridMode === 'manual' && (
+        <div className="max-w-xs">
+          <Label htmlFor="budget">Budget (SuerteCoins)</Label>
+          <Input
+            id="budget"
+            type="number"
+            value={budget}
+            onChange={(e) => setBudget(Number(e.target.value))}
+            min="2.5"
+            step="2.5"
+            className={`mt-1 ${hasInsufficientCoins ? 'border-red-300 focus:border-red-500' : ''}`}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Minimum: 2,5 SuerteCoins par grille
+          </p>
+        </div>
+      )}
 
       {/* Options FDJ disponibles dans les deux modes */}
       <EuromillionsOptionsComponent 
