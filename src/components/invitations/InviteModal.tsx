@@ -81,44 +81,11 @@ export const InviteModal = ({ open, onOpenChange, groupId, groupName }: InviteMo
 
           {invitationCode && (
             <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-              <div>
-                <Label>Code d'invitation</Label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Input
-                    value={invitationCode}
-                    readOnly
-                    className="bg-white"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyToClipboard(invitationCode)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <Label>Lien d'invitation</Label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Input
-                    value={shareUrl}
-                    readOnly
-                    className="bg-white text-sm"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyToClipboard(shareUrl)}
-                  >
-                    <Link className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
+              <p className="text-sm text-green-600 font-medium">
+                ✅ Invitation créée avec succès !
+              </p>
               <p className="text-sm text-muted-foreground">
-                Partagez ce code ou ce lien pour inviter des membres au groupe "{groupName}"
+                Les membres peuvent maintenant rejoindre le groupe "{groupName}" via le bouton "Rejoindre une team" sur la page d'accueil.
               </p>
             </div>
           )}

@@ -129,9 +129,8 @@ const GroupDetails = () => {
                   <UserPlus className="mr-2 h-4 w-4" />
                   Inviter
                 </Button>
-                <Button variant="outline">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Paramètres
+                <Button variant="ghost" size="icon">
+                  <Settings className="h-4 w-4" />
                 </Button>
               </div>
             )}
