@@ -37,6 +37,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
   const [description, setDescription] = useState('');
   const [gameType, setGameType] = useState<GameType>('euromillions');
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isPrivateGroup, setIsPrivateGroup] = useState(false);
   
   const { createGroup, isCreating } = useGroups();
 
@@ -76,6 +77,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
       max_members: maxMembers,
       total_budget: myContribution,
       grids_count: grids,
+      status: isPrivateGroup ? 'private' : 'public',
     });
     
     // Reset form
@@ -85,6 +87,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
     setMyContribution(25);
     setGameType('euromillions');
     setIsDemoMode(false);
+    setIsPrivateGroup(false);
     onOpenChange(false);
   };
 
@@ -128,17 +131,32 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
             </Select>
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
-            <div className="space-y-1">
-              <Label className="text-sm font-medium">Mode Démo</Label>
-              <p className="text-xs text-muted-foreground">
-                Testez sans mise d'argent réel
-              </p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Mode Démo</Label>
+                <p className="text-xs text-muted-foreground">
+                  Testez sans mise d'argent réel
+                </p>
+              </div>
+              <Switch
+                checked={isDemoMode}
+                onCheckedChange={setIsDemoMode}
+              />
             </div>
-            <Switch
-              checked={isDemoMode}
-              onCheckedChange={setIsDemoMode}
-            />
+
+            <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Groupe Privé</Label>
+                <p className="text-xs text-muted-foreground">
+                  Les nouveaux membres doivent demander l'accès
+                </p>
+              </div>
+              <Switch
+                checked={isPrivateGroup}
+                onCheckedChange={setIsPrivateGroup}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

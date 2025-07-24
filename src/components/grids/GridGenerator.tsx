@@ -27,8 +27,8 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const generateGrids = useGenerateGrids();
   const { user } = useAuth();
   
-  // Vérifier si le groupe est ouvert au public
-  const isGroupPublic = group.status !== 'private';
+  // Le générateur est toujours accessible aux membres du groupe
+  const isGroupPublic = true; // Tous les membres peuvent générer des grilles
   
   // Récupérer le nom du joueur depuis les métadonnées utilisateur
   const playerName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Joueur';
@@ -61,7 +61,6 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const gridsLabel = 'grilles';
 
   const canGenerate = () => {
-    if (!isGroupPublic) return false; // Groupe privé - pas de génération
     if (budget < 2.5) return false; // Budget minimum 2,5€
     if (maxGrids === 0) return false;
     
