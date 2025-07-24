@@ -8,7 +8,9 @@ import { Progress } from '@/components/ui/progress';
 import { Users, Dices, Trophy, Gamepad2, UserPlus } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
 import { useGroupMembers } from '@/hooks/useGroupMembers';
+import { useGroupBudgetData } from '@/hooks/useGroupBudgetData';
 import { useAuth } from '@/contexts/AuthContext';
+import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import type { Database } from '@/integrations/supabase/types';
 
 type Group = Database['public']['Tables']['groups']['Row'];
@@ -32,6 +34,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
   const { joinGroup } = useGroups();
   const { user } = useAuth();
   const { members, memberCount, currentUserMember, leaveGroup, isLeaving } = useGroupMembers(group.id);
+  const { data: budgetData } = useGroupBudgetData(group.id);
 
   const handleViewDetails = (groupId: string) => {
     console.log('Navigating to group details:', groupId);
@@ -75,7 +78,8 @@ export const GroupCard = ({ group }: GroupCardProps) => {
   };
 
   // Calcul des données réelles
-  const myPercentage = currentUserMember?.percentage || 0;
+  const realUserPercentage = budgetData?.userPercentage || 0;
+  const realTotalBudget = budgetData?.totalBudgetPlayed || 0;
   const isCreator = user?.id === group.created_by;
   const isMember = !!currentUserMember;
 
@@ -100,7 +104,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
         <div className="text-right">
           {isMember && (
             <>
-              <div className="text-2xl font-bold text-blue-600">{Math.round(myPercentage)}%</div>
+              <div className="text-2xl font-bold text-blue-600">{Math.round(realUserPercentage)}%</div>
               <div className="text-sm text-muted-foreground">Ma part</div>
             </>
           )}
@@ -136,9 +140,11 @@ export const GroupCard = ({ group }: GroupCardProps) => {
 
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Budget total</span>
-          <span className="font-semibold">
-            {group.total_budget}{group.mode === 'demo' ? ' pts' : '€'}
-          </span>
+          <SuerteCoinsDisplay 
+            amount={realTotalBudget} 
+            size="sm" 
+            variant="default"
+          />
         </div>
       </div>
 
