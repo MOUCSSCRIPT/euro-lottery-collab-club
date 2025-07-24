@@ -99,54 +99,6 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Affichage du solde SuerteCoins en haut */}
-      <Card className="bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-yellow-800 mb-2">
-                Votre solde SuerteCoins
-              </h3>
-              <SuerteCoinsDisplay 
-                amount={currentCoins} 
-                size="lg" 
-                variant="default"
-                showLabel={true}
-              />
-            </div>
-            
-            {/* Prévisualisation de la déduction */}
-            {requiredCoins > 0 && (
-              <div className="text-right">
-                <div className="text-sm text-yellow-700 mb-1">Coût de cette génération:</div>
-                <div className="flex items-center gap-2">
-                  <TrendingDown className="h-4 w-4 text-red-500" />
-                  <SuerteCoinsDisplay 
-                    amount={requiredCoins} 
-                    size="md" 
-                    variant={hasInsufficientCoins ? "error" : "warning"}
-                  />
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">
-                  Restant: <span className={hasInsufficientCoins ? "text-red-600 font-bold" : "text-green-600"}>
-                    {coinDeductionPreview.remaining.toFixed(1)} SuerteCoins
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Message d'erreur pour SuerteCoins insuffisants */}
-          {hasInsufficientCoins && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
-              <p className="text-red-700 text-sm">
-                Vous n'avez pas assez de SuerteCoins. Il vous manque {Math.abs(remainingCoins).toFixed(1)} SuerteCoins.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Vérifier si le groupe est public */}
       {!isGroupPublic && (

@@ -6,10 +6,13 @@ import { useMobile } from '@/hooks/useMobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { useNavigate } from 'react-router-dom';
+import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
+import { useProfile } from '@/hooks/useProfile';
 
 export const Header = () => {
   const { isMobile } = useMobile();
   const { user, loading } = useAuth();
+  const { profile } = useProfile();
   const navigate = useNavigate();
 
   const handleAuthClick = () => {
@@ -40,46 +43,64 @@ export const Header = () => {
           </div>
           
           {isMobile ? (
-            <div className="flex items-center space-x-2">
-              {user ? (
-                <UserMenu />
-              ) : (
-                !loading && (
-                  <Button 
-                    variant="default" 
-                    size="sm"
-                    onClick={handleAuthClick}
-                    className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
-                  >
-                    Connexion
-                  </Button>
-                )
+            <div className="flex flex-col items-end space-y-2">
+              <div className="flex items-center space-x-2">
+                {user ? (
+                  <UserMenu />
+                ) : (
+                  !loading && (
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={handleAuthClick}
+                      className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
+                    >
+                      Connexion
+                    </Button>
+                  )
+                )}
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </div>
+              {user && profile && (
+                <SuerteCoinsDisplay 
+                  amount={profile.coins} 
+                  size="sm" 
+                  variant="default"
+                />
               )}
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
             </div>
           ) : (
-            <nav className="flex items-center space-x-6">
-              <a href="#groups" className="text-foreground hover:text-blue-600 transition-colors">
-                Mes Groupes
-              </a>
-              <a href="#stats" className="text-foreground hover:text-blue-600 transition-colors">
-                Statistiques
-              </a>
-              {user ? (
-                <UserMenu />
-              ) : (
-                !loading && (
-                  <Button 
-                    onClick={handleAuthClick}
-                    className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
-                  >
-                    Se connecter
-                  </Button>
-                )
+            <div className="flex flex-col items-end space-y-2">
+              <nav className="flex items-center space-x-6">
+                <a href="#groups" className="text-foreground hover:text-blue-600 transition-colors">
+                  Mes Groupes
+                </a>
+                <a href="#stats" className="text-foreground hover:text-blue-600 transition-colors">
+                  Statistiques
+                </a>
+                {user ? (
+                  <UserMenu />
+                ) : (
+                  !loading && (
+                    <Button 
+                      onClick={handleAuthClick}
+                      className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
+                    >
+                      Se connecter
+                    </Button>
+                  )
+                )}
+              </nav>
+              {user && profile && (
+                <SuerteCoinsDisplay 
+                  amount={profile.coins} 
+                  size="sm" 
+                  variant="default"
+                />
               )}
-            </nav>
+            </div>
           )}
         </div>
       </div>
