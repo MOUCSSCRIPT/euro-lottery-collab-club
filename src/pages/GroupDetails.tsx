@@ -191,9 +191,7 @@ const GroupDetails = () => {
           </TabsList>
 
           <TabsContent value="grids" className="space-y-6">
-            {isCreator && (
-              <GridGenerator group={group} memberCount={memberCount} />
-            )}
+            <GridGenerator group={group} memberCount={memberCount} />
             
             {gridsLoading ? (
               <div className="space-y-4">
