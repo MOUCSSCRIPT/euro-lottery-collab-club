@@ -159,27 +159,30 @@ export const GroupCard = ({ group }: GroupCardProps) => {
               onClick={() => handleJoinGroup(group.id)}
             >
               <UserPlus className="mr-2 h-4 w-4" />
-              Rejoindre
+              {group.status === 'private' ? 'Rejoindre' : 'Jouer'}
             </Button>
           ) : (
-            !isCreator && (
+            <>
+              {!isCreator && (
+                <Button 
+                  variant="outline" 
+                  className="flex-1 border-red-600 text-red-600 hover:bg-red-50"
+                  onClick={() => handleLeaveGroup(group.id)}
+                  disabled={isLeaving}
+                >
+                  Quitter
+                </Button>
+              )}
               <Button 
                 variant="outline" 
-                className="flex-1 border-red-600 text-red-600 hover:bg-red-50"
-                onClick={() => handleLeaveGroup(group.id)}
-                disabled={isLeaving}
+                className="flex-1"
+                onClick={() => handleViewDetails(group.id)}
               >
-                Quitter
+                <Gamepad2 className="mr-2 h-4 w-4" />
+                Jouer
               </Button>
-            )
+            </>
           )}
-          <Button 
-            variant="outline" 
-            className="flex-1"
-            onClick={() => handleViewDetails(group.id)}
-          >
-            Voir les détails
-          </Button>
         </div>
       </div>
     </Card>

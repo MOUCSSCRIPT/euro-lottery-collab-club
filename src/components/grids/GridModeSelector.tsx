@@ -3,7 +3,7 @@ import React from 'react';
 import { Edit3, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type GridMode = 'auto' | 'manual' | 'optimized';
+type GridMode = 'auto' | 'manual';
 
 interface GridModeSelectorProps {
   mode: GridMode;
@@ -39,18 +39,6 @@ export const GridModeSelector = ({ mode, onModeChange }: GridModeSelectorProps) 
         Auto
       </button>
       
-      <button
-        className={cn(
-          "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all text-sm",
-          mode === 'optimized' 
-            ? "border-green-500 bg-green-50 text-green-700" 
-            : "border-gray-200 hover:border-gray-300 text-gray-500"
-        )}
-        onClick={() => onModeChange('optimized')}
-      >
-        <Zap className="h-3 w-3" />
-        Optimisée
-      </button>
     </div>
   );
 };
