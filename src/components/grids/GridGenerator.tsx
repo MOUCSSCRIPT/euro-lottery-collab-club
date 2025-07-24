@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useGenerateGrids } from '@/hooks/useGrids';
 import { Tables } from '@/integrations/supabase/types';
 import { EuromillionsManualEntry } from './EuromillionsManualEntry';
@@ -21,7 +23,7 @@ interface ManualGrid {
 }
 
 export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
-  const [budget] = useState(50); // Budget fixe limité à 50€
+  const [budget, setBudget] = useState(2.5); // Budget minimum de 2,5€ pour 1 grille
   const [manualGrids, setManualGrids] = useState<ManualGrid[]>([]);
   
   const generateGrids = useGenerateGrids();
@@ -89,18 +91,32 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
         </Card>
       )}
       
-      {/* Interface simplifiée - seulement saisie manuelle */}
+      {/* Interface avec budget modifiable */}
       <Card className="bg-gradient-to-r from-primary/10 to-primary/5">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Bonjour {playerName} !</h3>
-              <p className="text-sm text-muted-foreground">
-                Budget disponible: <span className="font-medium text-primary">{budget}€</span> • 
-                Maximum {maxGrids} {gridsLabel}
-              </p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Bonjour {playerName} !</h3>
+                <p className="text-sm text-muted-foreground">
+                  Maximum {maxGrids} {gridsLabel} • Coût par grille: 2,5€
+                </p>
+              </div>
+              <GameInfoCard gameType={group.game_type} />
             </div>
-            <GameInfoCard gameType={group.game_type} />
+            
+            <div className="max-w-xs">
+              <Label htmlFor="budget">Budget (€)</Label>
+              <Input
+                id="budget"
+                type="number"
+                value={budget}
+                onChange={(e) => setBudget(Number(e.target.value))}
+                min="2.5"
+                step="2.5"
+                className="mt-1"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
