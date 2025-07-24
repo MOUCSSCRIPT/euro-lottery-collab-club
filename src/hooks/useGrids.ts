@@ -134,7 +134,7 @@ export const useGenerateGrids = () => {
           throw new Error('Budget insuffisant pour générer des grilles');
         }
 
-        grids = generateOptimizedGrids(maxGrids, gameType, euromillionsOptions);
+        grids = await generateOptimizedGrids(maxGrids, gameType, euromillionsOptions, groupId);
         totalCost = grids.reduce((sum, grid) => sum + (grid.cost || gridCost), 0);
       }
 

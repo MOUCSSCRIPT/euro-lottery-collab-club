@@ -21,8 +21,8 @@ export function generateSingleGrid(gameType: GameType, options?: any) {
   switch (gameType) {
     case 'euromillions':
       // Enhanced Euromillions generation with options support
-      const numbers = generateUniqueNumbers(5, 1, 50);
-      const stars = generateUniqueNumbers(2, 1, 12);
+      const numbers = generateUniqueNumbers(5, 1, 50).sort((a, b) => a - b);
+      const stars = generateUniqueNumbers(2, 1, 12).sort((a, b) => a - b);
       
       // Calculate cost based on options (in SuerteCoins)
       let cost = 25; // Base cost in SuerteCoins
@@ -33,47 +33,83 @@ export function generateSingleGrid(gameType: GameType, options?: any) {
         else if (options.system === 'System 9') cost += 840;
       }
       
+      // Create key AFTER sorting for consistent comparison
+      const key = `${numbers.join('-')}_${stars.join('-')}`;
+      
       return {
-        numbers: numbers.sort((a, b) => a - b),
-        stars: stars.sort((a, b) => a - b),
-        key: `${numbers.join('-')}_${stars.join('-')}`,
+        numbers,
+        stars,
+        key,
         cost
       };
     default:
       // Fallback to euromillions
-      const defaultNumbers = generateUniqueNumbers(5, 1, 50);
-      const defaultStars = generateUniqueNumbers(2, 1, 12);
+      const defaultNumbers = generateUniqueNumbers(5, 1, 50).sort((a, b) => a - b);
+      const defaultStars = generateUniqueNumbers(2, 1, 12).sort((a, b) => a - b);
+      const defaultKey = `${defaultNumbers.join('-')}_${defaultStars.join('-')}`;
+      
       return {
-        numbers: defaultNumbers.sort((a, b) => a - b),
-        stars: defaultStars.sort((a, b) => a - b),
-        key: `${defaultNumbers.join('-')}_${defaultStars.join('-')}`,
+        numbers: defaultNumbers,
+        stars: defaultStars,
+        key: defaultKey,
         cost: 25
       };
   }
 }
 
-export function generateOptimizedGrids(count: number, gameType: GameType, options?: any) {
+export async function generateOptimizedGrids(count: number, gameType: GameType, options?: any, groupId?: string) {
   const grids = [];
   const usedCombinations = new Set<string>();
+  
+  // If groupId is provided, fetch existing grids to avoid duplicates across sessions
+  if (groupId) {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: existingGrids } = await supabase
+        .from('group_grids')
+        .select('numbers, stars')
+        .eq('group_id', groupId)
+        .eq('is_active', true);
+      
+      if (existingGrids) {
+        existingGrids.forEach(grid => {
+          const sortedNumbers = [...grid.numbers].sort((a, b) => a - b);
+          const sortedStars = grid.stars ? [...grid.stars].sort((a, b) => a - b) : [];
+          const key = `${sortedNumbers.join('-')}_${sortedStars.join('-')}`;
+          usedCombinations.add(key);
+        });
+        console.log(`Loaded ${usedCombinations.size} existing grid combinations to avoid duplicates`);
+      }
+    } catch (error) {
+      console.warn('Could not fetch existing grids for duplicate detection:', error);
+    }
+  }
 
   for (let i = 0; i < count; i++) {
     let attempts = 0;
     let grid;
+    const maxAttempts = Math.max(500, count * 10); // Increased max attempts
     
     do {
       grid = generateSingleGrid(gameType, options);
       attempts++;
-    } while (usedCombinations.has(grid.key) && attempts < 100);
+      
+      if (attempts % 100 === 0) {
+        console.log(`Grid ${i + 1}: ${attempts} attempts to find unique combination`);
+      }
+    } while (usedCombinations.has(grid.key) && attempts < maxAttempts);
 
-    if (attempts < 100) {
+    if (attempts < maxAttempts) {
       usedCombinations.add(grid.key);
       grids.push({
         numbers: grid.numbers,
         stars: grid.stars,
         cost: grid.cost
       });
+      console.log(`Grid ${i + 1} generated successfully after ${attempts} attempts`);
     } else {
-      // Fallback: generate without duplicate check
+      console.warn(`Grid ${i + 1}: Could not find unique combination after ${attempts} attempts, using duplicate`);
+      // Still add the grid but log the issue
       grids.push({
         numbers: grid.numbers,
         stars: grid.stars,
@@ -82,5 +118,6 @@ export function generateOptimizedGrids(count: number, gameType: GameType, option
     }
   }
 
+  console.log(`Generated ${grids.length} grids with ${usedCombinations.size} total unique combinations`);
   return grids;
 }
