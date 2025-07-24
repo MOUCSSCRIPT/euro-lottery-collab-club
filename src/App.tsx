@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Games from "./pages/Games";
 import GroupDetails from "./pages/GroupDetails";
+import { Admin } from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const AppContent = () => {
@@ -24,6 +25,7 @@ const AppContent = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/games" element={<Games />} />
         <Route path="/group/:id" element={<GroupDetails />} />
+        <Route path="/admin" element={<Admin />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

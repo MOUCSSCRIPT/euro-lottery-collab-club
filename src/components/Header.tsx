@@ -8,12 +8,14 @@ import { UserMenu } from '@/components/auth/UserMenu';
 import { useNavigate } from 'react-router-dom';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { useProfile } from '@/hooks/useProfile';
+import { useUserRole } from '@/hooks/useAdminActions';
 import { CoinPurchaseModal } from '@/components/coins/CoinPurchaseModal';
 
 export const Header = () => {
   const { isMobile } = useMobile();
   const { user, loading } = useAuth();
   const { profile } = useProfile();
+  const { data: userRole } = useUserRole();
   const navigate = useNavigate();
   const [showCoinPurchaseModal, setShowCoinPurchaseModal] = useState(false);
 
@@ -84,6 +86,14 @@ export const Header = () => {
                 <a href="#stats" className="text-foreground hover:text-blue-600 transition-colors">
                   Statistiques
                 </a>
+                {userRole === 'admin' && (
+                  <button
+                    onClick={() => navigate('/admin')}
+                    className="text-yellow-600 hover:text-yellow-700 transition-colors font-medium"
+                  >
+                    Admin
+                  </button>
+                )}
                 {user ? (
                   <UserMenu />
                 ) : (
