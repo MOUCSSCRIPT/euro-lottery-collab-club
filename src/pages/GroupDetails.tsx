@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Calendar, Euro, Settings, Copy } from 'lucide-react';
+import { Users, Calendar, Euro, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
@@ -62,13 +62,6 @@ const GroupDetails = () => {
 
   const isCreator = group.created_by === user?.id;
 
-  const copyTeamCode = () => {
-    navigator.clipboard.writeText(group.team_code || '');
-    toast({
-      title: "Code copié",
-      description: "Le code de la team a été copié dans le presse-papiers.",
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50">
@@ -91,16 +84,6 @@ const GroupDetails = () => {
                 {group.description && (
                   <p className="text-muted-foreground">{group.description}</p>
                 )}
-              </div>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  onClick={copyTeamCode}
-                  className="flex items-center gap-2"
-                >
-                  <Copy className="h-4 w-4" />
-                  Code: {group.team_code}
-                </Button>
               </div>
             </div>
             {isCreator && (
