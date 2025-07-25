@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useGenerateGrids } from '@/hooks/useGrids';
@@ -8,14 +9,15 @@ import { Tables } from '@/integrations/supabase/types';
 import { EuromillionsManualEntry } from './EuromillionsManualEntry';
 import { EuromillionsOptionsComponent } from './EuromillionsOptions';
 import { GridModeSelector } from './GridModeSelector';
-
+import { DeadlineCountdown } from '@/components/ui/DeadlineCountdown';
 import { GenerateButton } from './generator/GenerateButton';
 import { ValidationMessages } from './generator/ValidationMessages';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
-import { AlertCircle, TrendingDown } from 'lucide-react';
+import { AlertCircle, TrendingDown, AlertTriangle } from 'lucide-react';
 import { EuromillionsOptions } from '@/types/euromillions';
+import { isAfterDeadline } from '@/utils/playDeadlines';
 
 interface GridGeneratorProps {
   group: Tables<'groups'>;
@@ -116,6 +118,7 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
   const gridsLabel = 'grilles';
 
   const canGenerate = () => {
+    if (isAfterDeadline(group.play_deadline)) return false; // Vérifier la date limite
     if (hasInsufficientCoins) return false; // Vérifier les SuerteCoins
     
     if (gridMode === 'auto') {
@@ -137,8 +140,23 @@ export const GridGenerator = ({ group, memberCount }: GridGeneratorProps) => {
     ).length;
   };
 
+  const deadlineExpired = isAfterDeadline(group.play_deadline);
+
   return (
     <div className="space-y-6">
+      {/* Vérification de la date limite */}
+      {deadlineExpired ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            La date limite pour jouer est dépassée. Vous ne pouvez plus générer de grilles pour ce groupe.
+          </AlertDescription>
+        </Alert>
+      ) : group.play_deadline && (
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <DeadlineCountdown deadline={group.play_deadline} />
+        </div>
+      )}
 
       {/* Vérifier si le groupe est public */}
       {!isGroupPublic && (

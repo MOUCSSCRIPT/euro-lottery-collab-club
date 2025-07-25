@@ -292,6 +292,7 @@ export type Database = {
           mode: Database["public"]["Enums"]["group_mode"]
           name: string
           next_draw_date: string | null
+          play_deadline: string | null
           status: string
           team_code: string
           total_budget: number
@@ -308,6 +309,7 @@ export type Database = {
           mode?: Database["public"]["Enums"]["group_mode"]
           name: string
           next_draw_date?: string | null
+          play_deadline?: string | null
           status?: string
           team_code?: string
           total_budget?: number
@@ -324,6 +326,7 @@ export type Database = {
           mode?: Database["public"]["Enums"]["group_mode"]
           name?: string
           next_draw_date?: string | null
+          play_deadline?: string | null
           status?: string
           team_code?: string
           total_budget?: number

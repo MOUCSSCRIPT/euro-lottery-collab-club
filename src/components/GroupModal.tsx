@@ -8,8 +8,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Users, Dices, Gamepad2, Trophy } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Users, Dices, Gamepad2, Trophy, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
+import { getNextPlayDeadline, formatDeadline } from '@/utils/playDeadlines';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
 
 interface GroupModalProps {
@@ -38,6 +44,8 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
   const [gameType, setGameType] = useState<GameType>('euromillions');
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isPrivateGroup, setIsPrivateGroup] = useState(false);
+  const [playDeadline, setPlayDeadline] = useState<Date>(() => getNextPlayDeadline('euromillions'));
+  const [deadlineTime, setDeadlineTime] = useState('20:15');
   
   const { createGroup, isCreating } = useGroups();
 
@@ -69,6 +77,11 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
       grids_count: grids,
     });
 
+    // Combine date and time for deadline
+    const [hours, minutes] = deadlineTime.split(':').map(Number);
+    const deadline = new Date(playDeadline);
+    deadline.setHours(hours, minutes, 0, 0);
+
     createGroup({
       name: groupName,
       description: description || null,
@@ -78,6 +91,7 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
       total_budget: myContribution,
       grids_count: grids,
       status: isPrivateGroup ? 'private' : 'public',
+      play_deadline: deadline.toISOString(),
     });
     
     // Reset form
@@ -88,6 +102,8 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
     setGameType('euromillions');
     setIsDemoMode(false);
     setIsPrivateGroup(false);
+    setPlayDeadline(getNextPlayDeadline('euromillions'));
+    setDeadlineTime('20:15');
     onOpenChange(false);
   };
 
@@ -183,6 +199,48 @@ export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
                 min={2.5}
                 step={0.5}
               />
+            </div>
+          </div>
+
+          <div>
+            <Label>Date limite de jeu</Label>
+            <div className="space-y-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !playDeadline && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {playDeadline ? format(playDeadline, "PPP", { locale: fr }) : "Choisir une date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={playDeadline}
+                    onSelect={(date) => date && setPlayDeadline(date)}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="time"
+                  value={deadlineTime}
+                  onChange={(e) => setDeadlineTime(e.target.value)}
+                  className="w-32"
+                />
+                <span className="text-sm text-muted-foreground">
+                  (heure limite pour jouer)
+                </span>
+              </div>
             </div>
           </div>
 

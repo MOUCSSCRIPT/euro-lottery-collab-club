@@ -5,12 +5,14 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Users, Dices, Trophy, Gamepad2, UserPlus } from 'lucide-react';
+import { Users, Dices, Trophy, Gamepad2, UserPlus, Clock } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
 import { useGroupMembers } from '@/hooks/useGroupMembers';
 import { useGroupBudgetData } from '@/hooks/useGroupBudgetData';
 import { useAuth } from '@/contexts/AuthContext';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
+import { DeadlineCountdown } from '@/components/ui/DeadlineCountdown';
+import { formatDeadline, isAfterDeadline } from '@/utils/playDeadlines';
 import type { Database } from '@/integrations/supabase/types';
 
 type Group = Database['public']['Tables']['groups']['Row'];
@@ -149,6 +151,17 @@ export const GroupCard = ({ group }: GroupCardProps) => {
       </div>
 
       <div className="pt-4 border-t border-gray-100">
+        {group.play_deadline && (
+          <div className="mb-3">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-sm text-muted-foreground">Date limite</span>
+              <span className="text-xs text-muted-foreground">
+                {formatDeadline(group.play_deadline)}
+              </span>
+            </div>
+            <DeadlineCountdown deadline={group.play_deadline} variant="compact" />
+          </div>
+        )}
         {group.next_draw_date && (
           <div className="flex justify-between items-center mb-3">
             <span className="text-sm text-muted-foreground">Prochain tirage</span>
