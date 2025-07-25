@@ -10,6 +10,7 @@ import { useCoinPurchase } from "@/hooks/useCoinPurchase";
 import { MandatoryProfileSetup } from "@/components/profile/MandatoryProfileSetup";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import EmailConfirmation from "./pages/EmailConfirmation";
 import Games from "./pages/Games";
 import GroupDetails from "./pages/GroupDetails";
 import { Admin } from "./pages/Admin";
@@ -23,6 +24,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/email-confirmation" element={<EmailConfirmation />} />
         <Route path="/games" element={<Games />} />
         <Route path="/group/:id" element={<GroupDetails />} />
         <Route path="/admin" element={<Admin />} />
