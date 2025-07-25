@@ -47,6 +47,36 @@ export type Database = {
         }
         Relationships: []
       }
+      draw_results: {
+        Row: {
+          created_at: string
+          draw_date: string
+          id: string
+          jackpot_amount: number | null
+          updated_at: string
+          winning_numbers: number[]
+          winning_stars: number[]
+        }
+        Insert: {
+          created_at?: string
+          draw_date: string
+          id?: string
+          jackpot_amount?: number | null
+          updated_at?: string
+          winning_numbers: number[]
+          winning_stars: number[]
+        }
+        Update: {
+          created_at?: string
+          draw_date?: string
+          id?: string
+          jackpot_amount?: number | null
+          updated_at?: string
+          winning_numbers?: number[]
+          winning_stars?: number[]
+        }
+        Relationships: []
+      }
       draws: {
         Row: {
           created_at: string
@@ -79,6 +109,47 @@ export type Database = {
           winning_stars?: number[] | null
         }
         Relationships: []
+      }
+      grid_wins: {
+        Row: {
+          created_at: string
+          draw_result_id: string
+          grid_id: string
+          id: string
+          matched_numbers: number
+          matched_stars: number
+          prize_amount: number | null
+          prize_rank: number | null
+        }
+        Insert: {
+          created_at?: string
+          draw_result_id: string
+          grid_id: string
+          id?: string
+          matched_numbers?: number
+          matched_stars?: number
+          prize_amount?: number | null
+          prize_rank?: number | null
+        }
+        Update: {
+          created_at?: string
+          draw_result_id?: string
+          grid_id?: string
+          id?: string
+          matched_numbers?: number
+          matched_stars?: number
+          prize_amount?: number | null
+          prize_rank?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grid_wins_draw_result_id_fkey"
+            columns: ["draw_result_id"]
+            isOneToOne: false
+            referencedRelation: "draw_results"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       group_grids: {
         Row: {
@@ -385,6 +456,14 @@ export type Database = {
       add_coins_to_user: {
         Args: { _user_id: string; _amount: number }
         Returns: boolean
+      }
+      check_grid_wins: {
+        Args: {
+          p_draw_result_id: string
+          p_winning_numbers: number[]
+          p_winning_stars: number[]
+        }
+        Returns: undefined
       }
       generate_invitation_code: {
         Args: Record<PropertyKey, never>

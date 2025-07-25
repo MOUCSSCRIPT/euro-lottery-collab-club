@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
 import { TeamBadge } from '@/components/teams/TeamBadge';
+import { HistoryTab } from '@/components/groups/HistoryTab';
 import { useGroupCreator } from '@/hooks/useGroupCreator';
 import { GridGenerator } from '@/components/grids/GridGenerator';
 import { GridDisplay } from '@/components/grids/GridDisplay';
@@ -132,7 +133,7 @@ const GroupDetails = () => {
                 <Skeleton className="h-32" />
               </div>
             ) : (
-              <GridDisplay grids={grids || []} gameType={group.game_type} />
+              <GridDisplay grids={grids || []} gameType={group.game_type} groupId={group.id} />
             )}
           </TabsContent>
 
@@ -181,19 +182,7 @@ const GroupDetails = () => {
           </TabsContent>
 
           <TabsContent value="history">
-            <Card>
-              <CardHeader>
-                <CardTitle>Historique des tirages</CardTitle>
-                <CardDescription>
-                  Consultez les résultats des tirages précédents
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  Aucun historique disponible pour le moment
-                </div>
-              </CardContent>
-            </Card>
+            <HistoryTab groupId={group.id} />
           </TabsContent>
 
           {/* Seulement Euromillions maintenant */}

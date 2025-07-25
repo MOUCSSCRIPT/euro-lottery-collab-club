@@ -8,12 +8,15 @@ import { Database } from '@/integrations/supabase/types';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
+import { WinBadge } from './WinBadge';
+import { useGridWins } from '@/hooks/useDrawResults';
 
 type GameType = Database['public']['Enums']['game_type'];
 
 interface GridDisplayProps {
   grids: GridData[];
   gameType: GameType;
+  groupId?: string;
 }
 
 const PlayerDisplay = ({ createdBy, playerName }: { createdBy: string | null; playerName: string | null }) => {
@@ -54,7 +57,8 @@ const PlayerDisplay = ({ createdBy, playerName }: { createdBy: string | null; pl
   );
 };
 
-export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
+export const GridDisplay = ({ grids, gameType, groupId }: GridDisplayProps) => {
+  const { data: gridWins = [] } = useGridWins(groupId);
   if (!grids || grids.length === 0) {
     return (
       <Card>
@@ -167,11 +171,21 @@ export const GridDisplay = ({ grids, gameType }: GridDisplayProps) => {
                     playerName={grid.player_name}
                   />
                 </div>
-                {grid.draw_date && (
-                  <Badge variant="outline" className="text-xs">
-                    {new Date(grid.draw_date).toLocaleDateString('fr-FR')}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-2">
+                  {gridWins.find(win => win.grid_id === grid.id) && (
+                    <WinBadge 
+                      prizeRank={gridWins.find(win => win.grid_id === grid.id)!.prize_rank!}
+                      prizeAmount={gridWins.find(win => win.grid_id === grid.id)!.prize_amount}
+                      matchedNumbers={gridWins.find(win => win.grid_id === grid.id)!.matched_numbers}
+                      matchedStars={gridWins.find(win => win.grid_id === grid.id)!.matched_stars}
+                    />
+                  )}
+                  {grid.draw_date && (
+                    <Badge variant="outline" className="text-xs">
+                      {new Date(grid.draw_date).toLocaleDateString('fr-FR')}
+                    </Badge>
+                  )}
+                </div>
               </div>
               {renderGridContent(grid)}
             </Card>
