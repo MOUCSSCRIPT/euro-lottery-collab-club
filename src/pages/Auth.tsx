@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { SignUpForm } from '@/components/auth/SignUpForm';
-
+import { PhoneSignUpForm } from '@/components/auth/PhoneSignUpForm';
 import { Dices } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -53,9 +53,10 @@ const Auth = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="login">Connexion</TabsTrigger>
-                <TabsTrigger value="signup">Inscription</TabsTrigger>
+                <TabsTrigger value="signup">Email</TabsTrigger>
+                <TabsTrigger value="phone">Téléphone</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login" className="mt-6">
@@ -66,6 +67,9 @@ const Auth = () => {
                 <SignUpForm />
               </TabsContent>
               
+              <TabsContent value="phone" className="mt-6">
+                <PhoneSignUpForm />
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
