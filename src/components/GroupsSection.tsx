@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Users, UserPlus } from 'lucide-react';
 import { GroupModal } from './GroupModal';
@@ -9,11 +9,24 @@ import { GroupsLoadingState } from './groups/GroupsLoadingState';
 import { GroupsErrorState } from './groups/GroupsErrorState';
 import { GroupsEmptyState } from './groups/GroupsEmptyState';
 import { JoinTeamModal } from './invitations/JoinTeamModal';
+import { Database } from '@/integrations/supabase/types';
 
-export const GroupsSection = () => {
+type GameType = Database['public']['Enums']['game_type'];
+
+interface GroupsSectionProps {
+  selectedGameFilter?: GameType;
+}
+
+export const GroupsSection = ({ selectedGameFilter }: GroupsSectionProps) => {
   const [showModal, setShowModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const { groups, isLoading, error } = useGroups();
+
+  // Filter groups by selected game type
+  const filteredGroups = useMemo(() => {
+    if (!selectedGameFilter) return groups;
+    return groups.filter(group => group.game_type === selectedGameFilter);
+  }, [groups, selectedGameFilter]);
 
   console.log('GroupsSection render - isLoading:', isLoading, 'groups:', groups, 'error:', error, 'showModal:', showModal);
 
@@ -86,17 +99,21 @@ export const GroupsSection = () => {
           <p className="text-muted-foreground">Gérez vos équipes de jeu</p>
         </div>
 
-        {groups.length === 0 ? (
+        {filteredGroups.length === 0 ? (
           <GroupsEmptyState onNewGroupClick={handleNewGroupClick} />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {groups.map((group) => (
+            {filteredGroups.map((group) => (
               <GroupCard key={group.id} group={group} />
             ))}
           </div>
         )}
 
-        <GroupModal open={showModal} onOpenChange={handleModalOpenChange} />
+        <GroupModal 
+          open={showModal} 
+          onOpenChange={handleModalOpenChange}
+          defaultGameType={selectedGameFilter}
+        />
         <JoinTeamModal open={showJoinModal} onOpenChange={handleJoinModalOpenChange} />
       </div>
     </section>

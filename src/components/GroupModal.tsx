@@ -21,27 +21,30 @@ import type { Database } from '@/integrations/supabase/types';
 interface GroupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultGameType?: GameType;
 }
 
 type GameType = Database['public']['Enums']['game_type'];
 type GroupMode = Database['public']['Enums']['group_mode'];
 
 const gameTypeLabels = {
-  'euromillions': 'EuroMillions'
+  'euromillions': 'EuroMillions',
+  'loto_foot': 'Loto Foot 15'
 };
 
 const gameTypeIcons = {
-  'euromillions': <Trophy className="h-4 w-4" />
+  'euromillions': <Trophy className="h-4 w-4" />,
+  'loto_foot': <Gamepad2 className="h-4 w-4" />
 };
 
-export const GroupModal = ({ open, onOpenChange }: GroupModalProps) => {
+export const GroupModal = ({ open, onOpenChange, defaultGameType }: GroupModalProps) => {
   console.log('GroupModal render - open:', open);
   
   const [groupName, setGroupName] = useState('');
   const [maxMembers, setMaxMembers] = useState(10);
   const [myContribution, setMyContribution] = useState(25);
   const [description, setDescription] = useState('');
-  const [gameType, setGameType] = useState<GameType>('euromillions');
+  const [gameType, setGameType] = useState<GameType>(defaultGameType || 'euromillions');
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isPrivateGroup, setIsPrivateGroup] = useState(false);
   const [playDeadline, setPlayDeadline] = useState<Date>(() => getNextPlayDeadline('euromillions'));
