@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GameSelector } from './GameSelector';
 import { GridGenerator } from './GridGenerator';
 import { LotoFootGenerator } from '../loto-foot/LotoFootGenerator';
-import { LotoFootGridDisplay } from '../loto-foot/LotoFootGridDisplay';
+import { LotoFootOptimizedDisplay } from '../loto-foot/LotoFootOptimizedDisplay';
 import { Tables } from '@/integrations/supabase/types';
 import { Database } from '@/integrations/supabase/types';
 
@@ -28,7 +28,7 @@ export const GridGeneratorWithGameSelector = ({
     return (
       <div className="space-y-6">
         <LotoFootGenerator group={group} memberCount={memberCount} />
-        <LotoFootGridDisplay groupId={group.id} />
+        <LotoFootOptimizedDisplay groupId={group.id} />
       </div>
     );
   }
@@ -52,7 +52,7 @@ export const GridGeneratorWithGameSelector = ({
       {selectedGame === 'loto_foot' && (
         <div className="space-y-6">
           <LotoFootGenerator group={group} memberCount={memberCount} />
-          <LotoFootGridDisplay groupId={group.id} />
+          <LotoFootOptimizedDisplay groupId={group.id} />
         </div>
       )}
     </div>

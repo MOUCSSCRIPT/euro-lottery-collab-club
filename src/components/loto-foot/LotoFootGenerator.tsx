@@ -10,6 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { isValidGrid, calculateGridCosts } from '@/utils/lotoFootCosts';
 import { generateSampleMatches } from '@/utils/lotoFootAlgorithms';
 import { Badge } from '@/components/ui/badge';
+import { useProfile } from '@/hooks/useProfile';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LotoFootGeneratorProps {
   group: Tables<'groups'>;
@@ -22,6 +24,8 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { profile } = useProfile();
+  const queryClient = useQueryClient();
 
   // Get next Friday for Loto Foot draw
   const getNextDrawDate = () => {
@@ -107,10 +111,29 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
       return;
     }
 
+    if (!profile) {
+      toast({
+        title: "Erreur",
+        description: "Profil utilisateur non trouvé",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const calculation = calculateGridCosts(predictions);
+
+    // Check coin balance optimistically
+    if (profile.coins < calculation.totalCost) {
+      toast({
+        title: "Coins insuffisants",
+        description: `Vous avez ${profile.coins} coins, il en faut ${calculation.totalCost}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setIsGenerating(true);
-      
-      const calculation = calculateGridCosts(predictions);
 
       // Get current user
       const { data: user } = await supabase.auth.getUser();
@@ -118,20 +141,35 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
         throw new Error('Utilisateur non authentifié');
       }
 
-      // Check for duplicate grids
-      const { data: existingGrids } = await supabase
-        .from('loto_foot_grids')
-        .select('predictions')
-        .eq('group_id', group.id)
-        .eq('is_active', true);
+      // Optimistic update: immediately deduct coins from UI
+      const optimisticProfile = { ...profile, coins: profile.coins - calculation.totalCost };
+      queryClient.setQueryData(['profile', user.user.id], optimisticProfile);
 
+      // Parallel requests for better performance
+      const [existingGridsResult, gridNumbersResult] = await Promise.all([
+        supabase
+          .from('loto_foot_grids')
+          .select('predictions')
+          .eq('group_id', group.id)
+          .eq('is_active', true),
+        supabase
+          .from('loto_foot_grids')
+          .select('grid_number')
+          .eq('group_id', group.id)
+          .order('grid_number', { ascending: false })
+          .limit(1)
+      ]);
+
+      // Check for duplicates
       const predictionsKey = JSON.stringify(predictions.sort((a, b) => a.match_position - b.match_position));
-      const isDuplicate = existingGrids?.some(grid => {
+      const isDuplicate = existingGridsResult.data?.some(grid => {
         const gridKey = JSON.stringify((grid.predictions as any[]).sort((a, b) => a.match_position - b.match_position));
         return gridKey === predictionsKey;
       });
 
       if (isDuplicate) {
+        // Rollback optimistic update
+        queryClient.setQueryData(['profile', user.user.id], profile);
         toast({
           title: "Grille dupliquée",
           description: "Cette combinaison de pronostics existe déjà",
@@ -140,68 +178,43 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
         return;
       }
 
-      // Check user's coin balance
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('coins')
-        .eq('user_id', user.user.id)
-        .single();
-
-      if (profileError) {
-        throw new Error('Erreur lors de la récupération du profil');
-      }
-
-      if (!profile || profile.coins < calculation.totalCost) {
-        toast({
-          title: "Coins insuffisants",
-          description: `Vous avez ${profile?.coins || 0} coins, il en faut ${calculation.totalCost}`,
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Deduct coins from user
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ coins: profile.coins - calculation.totalCost })
-        .eq('user_id', user.user.id);
-
-      if (updateError) {
-        throw new Error('Erreur lors de la déduction des coins');
-      }
-      
-      // Get next grid number for the group
-      const { data: gridNumbers } = await supabase
-        .from('loto_foot_grids')
-        .select('grid_number')
-        .eq('group_id', group.id)
-        .order('grid_number', { ascending: false })
-        .limit(1);
-
-      const nextGridNumber = gridNumbers && gridNumbers.length > 0 
-        ? gridNumbers[0].grid_number + 1 
+      const nextGridNumber = gridNumbersResult.data && gridNumbersResult.data.length > 0 
+        ? gridNumbersResult.data[0].grid_number + 1 
         : 1;
 
-      const { error } = await supabase
-        .from('loto_foot_grids')
-        .insert({
-          group_id: group.id,
-          grid_number: nextGridNumber,
-          predictions: predictions as any,
-          stake: calculation.minStake,
-          potential_winnings: calculation.potentialWinnings,
-          cost: calculation.totalCost,
-          draw_date: drawDate,
-          created_by: user.user.id
-        });
-
-      if (error) {
-        // Restore coins if grid creation fails
-        await supabase
+      // Transaction: deduct coins and create grid
+      const [coinUpdateResult, gridInsertResult] = await Promise.all([
+        supabase
           .from('profiles')
-          .update({ coins: profile.coins })
-          .eq('user_id', user.user.id);
-        throw error;
+          .update({ coins: profile.coins - calculation.totalCost })
+          .eq('user_id', user.user.id),
+        supabase
+          .from('loto_foot_grids')
+          .insert({
+            group_id: group.id,
+            grid_number: nextGridNumber,
+            predictions: predictions as any,
+            stake: calculation.minStake,
+            potential_winnings: calculation.potentialWinnings,
+            cost: calculation.totalCost,
+            draw_date: drawDate,
+            created_by: user.user.id
+          })
+          .select()
+      ]);
+
+      if (coinUpdateResult.error || gridInsertResult.error) {
+        // Rollback optimistic update
+        queryClient.setQueryData(['profile', user.user.id], profile);
+        throw coinUpdateResult.error || gridInsertResult.error;
+      }
+
+      // Optimistic grid update: add new grid to display immediately
+      const newGrid = gridInsertResult.data?.[0];
+      if (newGrid) {
+        queryClient.setQueryData(['loto-foot-grids-display', group.id], (oldData: any) => {
+          return oldData ? [newGrid, ...oldData] : [newGrid];
+        });
       }
 
       toast({
@@ -212,7 +225,17 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
       // Reset predictions
       setPredictions([]);
       
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['profile', user.user.id] });
+      queryClient.invalidateQueries({ queryKey: ['loto-foot-grids-display', group.id] });
+      
     } catch (error) {
+      // Rollback optimistic update on error
+      const { data: currentUser } = await supabase.auth.getUser();
+      if (currentUser.user) {
+        queryClient.setQueryData(['profile', currentUser.user.id], profile);
+      }
+      
       console.error('Error generating grid:', error);
       toast({
         title: "Erreur",
