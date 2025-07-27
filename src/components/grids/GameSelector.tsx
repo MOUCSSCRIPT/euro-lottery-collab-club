@@ -23,7 +23,7 @@ const gameConfig = {
     icon: Trophy,
     title: 'Loto Foot 15',
     description: 'Pronostiquez les résultats de 15 matchs',
-    cost: '2€',
+    cost: '1€',
     color: 'green'
   }
 };
