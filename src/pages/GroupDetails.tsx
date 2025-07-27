@@ -17,8 +17,8 @@ import { TeamBadge } from '@/components/teams/TeamBadge';
 import { HistoryTab } from '@/components/groups/HistoryTab';
 import { useGroupCreator } from '@/hooks/useGroupCreator';
 import { GridGenerator } from '@/components/grids/GridGenerator';
+import { GridGeneratorWithGameSelector } from '@/components/grids/GridGeneratorWithGameSelector';
 import { GridDisplay } from '@/components/grids/GridDisplay';
-// LotoFoot removed - only EuroMillions supported
 import { useState } from 'react';
 import { useTeamRequests } from '@/hooks/useTeamRequests';
 import { useToast } from '@/hooks/use-toast';
@@ -125,7 +125,7 @@ const GroupDetails = () => {
           </TabsList>
 
           <TabsContent value="grids" className="space-y-6">
-            <GridGenerator group={group} memberCount={memberCount} />
+            <GridGeneratorWithGameSelector group={group} memberCount={memberCount} />
             
             {gridsLoading ? (
               <div className="space-y-4">

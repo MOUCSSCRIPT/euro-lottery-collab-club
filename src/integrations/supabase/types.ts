@@ -334,6 +334,145 @@ export type Database = {
         }
         Relationships: []
       }
+      loto_foot_grids: {
+        Row: {
+          cost: number
+          created_at: string
+          created_by: string | null
+          draw_date: string
+          grid_number: number
+          group_id: string
+          id: string
+          is_active: boolean | null
+          player_name: string | null
+          potential_winnings: number
+          predictions: Json
+          stake: number
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          created_by?: string | null
+          draw_date: string
+          grid_number: number
+          group_id: string
+          id?: string
+          is_active?: boolean | null
+          player_name?: string | null
+          potential_winnings?: number
+          predictions: Json
+          stake?: number
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          created_by?: string | null
+          draw_date?: string
+          grid_number?: number
+          group_id?: string
+          id?: string
+          is_active?: boolean | null
+          player_name?: string | null
+          potential_winnings?: number
+          predictions?: Json
+          stake?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loto_foot_grids_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loto_foot_matches: {
+        Row: {
+          away_odds: number
+          away_team: string
+          created_at: string
+          draw_date: string
+          draw_odds: number
+          home_odds: number
+          home_team: string
+          id: string
+          match_datetime: string
+          match_position: number
+          result: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          away_odds?: number
+          away_team: string
+          created_at?: string
+          draw_date: string
+          draw_odds?: number
+          home_odds?: number
+          home_team: string
+          id?: string
+          match_datetime: string
+          match_position: number
+          result?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          away_odds?: number
+          away_team?: string
+          created_at?: string
+          draw_date?: string
+          draw_odds?: number
+          home_odds?: number
+          home_team?: string
+          id?: string
+          match_datetime?: string
+          match_position?: number
+          result?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      loto_foot_wins: {
+        Row: {
+          correct_predictions: number
+          created_at: string
+          draw_date: string
+          grid_id: string
+          id: string
+          prize_amount: number | null
+          prize_rank: number | null
+        }
+        Insert: {
+          correct_predictions: number
+          created_at?: string
+          draw_date: string
+          grid_id: string
+          id?: string
+          prize_amount?: number | null
+          prize_rank?: number | null
+        }
+        Update: {
+          correct_predictions?: number
+          created_at?: string
+          draw_date?: string
+          grid_id?: string
+          id?: string
+          prize_amount?: number | null
+          prize_rank?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loto_foot_wins_grid_id_fkey"
+            columns: ["grid_id"]
+            isOneToOne: false
+            referencedRelation: "loto_foot_grids"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           coins: number
@@ -502,7 +641,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
-      game_type: "euromillions"
+      game_type: "euromillions" | "loto_foot"
       group_mode: "demo" | "real"
     }
     CompositeTypes: {
@@ -632,7 +771,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
-      game_type: ["euromillions"],
+      game_type: ["euromillions", "loto_foot"],
       group_mode: ["demo", "real"],
     },
   },

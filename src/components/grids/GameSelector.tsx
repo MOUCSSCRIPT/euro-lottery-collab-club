@@ -19,19 +19,12 @@ const gameConfig = {
     cost: '2,50€',
     color: 'blue'
   },
-  lotto: {
-    icon: Zap,
-    title: 'Loto',
-    description: 'Le jeu français traditionnel',
-    cost: '2,20€',
-    color: 'green'
-  },
-  lotto_foot_15: {
+  loto_foot: {
     icon: Trophy,
     title: 'Loto Foot 15',
     description: 'Pronostiquez les résultats de 15 matchs',
-    cost: '1€',
-    color: 'orange'
+    cost: '2€',
+    color: 'green'
   }
 };
 
