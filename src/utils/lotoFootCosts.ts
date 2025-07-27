@@ -1,10 +1,10 @@
 import { LotoFootPrediction, GridCalculation } from '@/types/loto-foot';
 
 // Base stake per grid in euros
-export const LOTO_FOOT_BASE_STAKE = 2;
+export const LOTO_FOOT_BASE_STAKE = 1;
 
 // Cost per grid in SuerteCoins (equivalent to base stake)
-export const LOTO_FOOT_GRID_COST = 50; // 50 SuerteCoins = 2€
+export const LOTO_FOOT_GRID_COST = 25; // 25 SuerteCoins = 1€
 
 // Prize distribution percentages (based on FDJ Loto Foot)
 export const PRIZE_DISTRIBUTION = {
