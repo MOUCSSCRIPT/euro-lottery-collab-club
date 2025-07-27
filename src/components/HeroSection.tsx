@@ -17,7 +17,7 @@ export const HeroSection = () => {
       <div className="container mx-auto text-center">
         <div className="max-w-4xl mx-auto mb-16">
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-yellow-500 bg-clip-text text-transparent">
-            Le destin Bat Les Cartes 
+            Le Destin Bat Les Cartes 
             <br />
             Et Nous Jouons
           </h2>
