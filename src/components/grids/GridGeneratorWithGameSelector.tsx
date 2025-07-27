@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GameSelector } from './GameSelector';
 import { GridGenerator } from './GridGenerator';
 import { LotoFootGenerator } from '../loto-foot/LotoFootGenerator';
+import { LotoFootGridDisplay } from '../loto-foot/LotoFootGridDisplay';
 import { Tables } from '@/integrations/supabase/types';
 import { Database } from '@/integrations/supabase/types';
 
@@ -24,7 +25,12 @@ export const GridGeneratorWithGameSelector = ({
 
   // If the group already has a game type set, use that specific generator
   if (group.game_type === 'loto_foot') {
-    return <LotoFootGenerator group={group} memberCount={memberCount} />;
+    return (
+      <div className="space-y-6">
+        <LotoFootGenerator group={group} memberCount={memberCount} />
+        <LotoFootGridDisplay groupId={group.id} />
+      </div>
+    );
   }
 
   if (group.game_type === 'euromillions') {
@@ -44,7 +50,10 @@ export const GridGeneratorWithGameSelector = ({
       )}
 
       {selectedGame === 'loto_foot' && (
-        <LotoFootGenerator group={group} memberCount={memberCount} />
+        <div className="space-y-6">
+          <LotoFootGenerator group={group} memberCount={memberCount} />
+          <LotoFootGridDisplay groupId={group.id} />
+        </div>
       )}
     </div>
   );

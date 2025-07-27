@@ -7,7 +7,7 @@ import { getNextDrawDate } from '@/utils/drawDates';
 import { generateOptimizedGrids } from '@/utils/gridGenerator';
 import { useEffect, useRef } from 'react';
 
-export const useGrids = (groupId: string) => {
+export const useGrids = (groupId: string, gameType?: string) => {
   const queryClient = useQueryClient();
   const channelRef = useRef<any>(null);
 
@@ -43,17 +43,30 @@ export const useGrids = (groupId: string) => {
             console.log('Group grids changed:', payload);
             queryClient.invalidateQueries({ queryKey: ['grids', groupId] });
           }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'loto_foot_grids',
+            filter: `group_id=eq.${groupId}`
+          },
+          (payload) => {
+            console.log('Loto foot grids changed:', payload);
+            queryClient.invalidateQueries({ queryKey: ['grids', groupId] });
+          }
         );
 
       // Only subscribe if channel was created successfully
       if (channel) {
         channel.subscribe((status) => {
-          console.log('Group grids subscription status:', status);
+          console.log('Grids subscription status:', status);
         });
         channelRef.current = channel;
       }
     } catch (error) {
-      console.log('Error creating group grids subscription:', error);
+      console.log('Error creating grids subscription:', error);
     }
 
     return () => {
@@ -71,21 +84,47 @@ export const useGrids = (groupId: string) => {
   return useQuery({
     queryKey: ['grids', groupId],
     queryFn: async () => {
-      console.log('Fetching grids for group:', groupId);
-      const { data, error } = await supabase
-        .from('group_grids')
-        .select('*')
-        .eq('group_id', groupId)
-        .eq('is_active', true)
-        .order('grid_number');
+      console.log('Fetching grids for group:', groupId, 'gameType:', gameType);
+      
+      if (gameType === 'loto_foot') {
+        // Fetch Loto Foot grids
+        const { data, error } = await supabase
+          .from('loto_foot_grids')
+          .select('*')
+          .eq('group_id', groupId)
+          .eq('is_active', true)
+          .order('grid_number');
 
-      if (error) {
-        console.error('Error fetching grids:', error);
-        throw error;
+        if (error) {
+          console.error('Error fetching loto foot grids:', error);
+          throw error;
+        }
+
+        console.log('Loto Foot grids fetched:', data);
+        // Transform loto foot grids to match GridData interface
+        return (data || []).map(grid => ({
+          ...grid,
+          numbers: [], // Loto Foot doesn't use numbers
+          stars: [], // Loto Foot doesn't use stars
+          predictions: grid.predictions // Keep predictions for display
+        })) as GridData[];
+      } else {
+        // Fetch EuroMillions grids
+        const { data, error } = await supabase
+          .from('group_grids')
+          .select('*')
+          .eq('group_id', groupId)
+          .eq('is_active', true)
+          .order('grid_number');
+
+        if (error) {
+          console.error('Error fetching grids:', error);
+          throw error;
+        }
+
+        console.log('EuroMillions grids fetched:', data);
+        return data as GridData[];
       }
-
-      console.log('Grids fetched:', data);
-      return data as GridData[];
     },
     enabled: !!groupId,
   });

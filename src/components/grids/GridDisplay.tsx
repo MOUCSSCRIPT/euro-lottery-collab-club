@@ -117,6 +117,44 @@ export const GridDisplay = ({ grids, gameType, groupId }: GridDisplayProps) => {
           </div>
         );
       
+      case 'loto_foot':
+        return (
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="text-xs text-muted-foreground">Pronostics sélectionnés :</div>
+              <div className="grid grid-cols-5 gap-2">
+                {(grid as any).predictions?.map((pred: any, idx: number) => (
+                  <div key={idx} className="text-center">
+                    <div className="text-xs font-medium text-muted-foreground mb-1">
+                      Match {pred.match_position}
+                    </div>
+                    <div className="flex gap-1 justify-center">
+                      {pred.predictions.map((p: string, pIdx: number) => (
+                        <Badge 
+                          key={pIdx} 
+                          variant="outline" 
+                          className={`text-xs ${
+                            p === '1' ? 'bg-green-50 text-green-700 border-green-200' :
+                            p === 'X' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                            'bg-red-50 text-red-700 border-red-200'
+                          }`}
+                        >
+                          {p}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )) || <div className="text-sm text-muted-foreground">Aucun pronostic</div>}
+              </div>
+            </div>
+            <SuerteCoinsDisplay 
+              amount={grid.cost} 
+              size="sm" 
+              variant="default"
+            />
+          </div>
+        );
+      
       default:
         return (
           <div className="flex items-center justify-between">
