@@ -302,7 +302,7 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
           <Button
             onClick={handleGenerateGrid}
             disabled={!isGridValid || isGenerating}
-            className="w-full bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600"
+            className="w-full h-12 text-base font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:animate-none disabled:hover:scale-100"
             size="lg"
           >
             {isGenerating ? (

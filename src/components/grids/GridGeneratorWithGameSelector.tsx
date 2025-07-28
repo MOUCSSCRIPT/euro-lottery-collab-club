@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GameSelector } from './GameSelector';
 import { GridGenerator } from './GridGenerator';
 import { LotoFootGenerator } from '../loto-foot/LotoFootGenerator';
-import { LotoFootOptimizedDisplay } from '../loto-foot/LotoFootOptimizedDisplay';
+import { LotoFootCollapsibleDisplay } from '../loto-foot/LotoFootCollapsibleDisplay';
 import { Tables } from '@/integrations/supabase/types';
 import { Database } from '@/integrations/supabase/types';
 
@@ -18,6 +18,7 @@ export const GridGeneratorWithGameSelector = ({
   memberCount 
 }: GridGeneratorWithGameSelectorProps) => {
   const [selectedGame, setSelectedGame] = useState<GameType>(group.game_type || 'euromillions');
+  const [showGrids, setShowGrids] = useState(false);
 
   const handleGameSelect = (gameType: GameType) => {
     setSelectedGame(gameType);
@@ -28,7 +29,11 @@ export const GridGeneratorWithGameSelector = ({
     return (
       <div className="space-y-6">
         <LotoFootGenerator group={group} memberCount={memberCount} />
-        <LotoFootOptimizedDisplay groupId={group.id} />
+        <LotoFootCollapsibleDisplay 
+          groupId={group.id} 
+          isOpen={showGrids}
+          onToggle={() => setShowGrids(!showGrids)}
+        />
       </div>
     );
   }
@@ -52,7 +57,11 @@ export const GridGeneratorWithGameSelector = ({
       {selectedGame === 'loto_foot' && (
         <div className="space-y-6">
           <LotoFootGenerator group={group} memberCount={memberCount} />
-          <LotoFootOptimizedDisplay groupId={group.id} />
+          <LotoFootCollapsibleDisplay 
+            groupId={group.id} 
+            isOpen={showGrids}
+            onToggle={() => setShowGrids(!showGrids)}
+          />
         </div>
       )}
     </div>
