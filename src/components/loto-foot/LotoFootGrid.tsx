@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { LotoFootMatch, LotoFootPrediction, PredictionType } from '@/types/loto-foot';
 import { LotoFootMatchCard } from './LotoFootMatchCard';
-import { LotoFootSummary } from './LotoFootSummary';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { calculateGridCosts, isValidGrid, MIN_PREDICTIONS } from '@/utils/lotoFootCosts';
@@ -110,12 +110,6 @@ export const LotoFootGrid = ({
           ))}
       </div>
 
-      {/* Summary */}
-      <LotoFootSummary
-        predictions={predictions}
-        calculation={gridCalculation}
-        isValid={isGridValid}
-      />
     </div>
   );
 };
