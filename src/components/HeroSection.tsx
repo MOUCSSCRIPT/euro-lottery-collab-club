@@ -18,8 +18,6 @@ export const HeroSection = () => {
         <div className="max-w-4xl mx-auto mb-16">
           <h2 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-yellow-500 bg-clip-text text-transparent">
             Le Destin Bat Les Cartes 
-            <br />
-            Et Nous Jouons
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Augmentez vos chances de gagner en créant des groupes collaboratifs. 
