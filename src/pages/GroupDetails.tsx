@@ -34,6 +34,10 @@ const GroupDetails = () => {
   const [showRequestsModal, setShowRequestsModal] = useState(false);
   const { pendingRequests } = useTeamRequests(id);
 
+  // Always call hooks before any conditional returns
+  const group = groups?.find(g => g.id === id);
+  const { data: creatorName } = useGroupCreator(group?.created_by);
+
   if (!id) {
     return <Navigate to="/" replace />;
   }
@@ -55,9 +59,6 @@ const GroupDetails = () => {
       </div>
     );
   }
-
-  const group = groups?.find(g => g.id === id);
-  const { data: creatorName } = useGroupCreator(group?.created_by);
 
   if (!group) {
     return <Navigate to="/" replace />;
