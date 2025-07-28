@@ -57,25 +57,6 @@ const PlayerDisplay = ({ createdBy, playerName }: { createdBy: string | null; pl
   );
 };
 
-export const GridDisplay = ({ grids, gameType, groupId }: GridDisplayProps) => {
-  const { data: gridWins = [] } = useGridWins(groupId);
-  if (!grids || grids.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Grilles générées</CardTitle>
-          <CardDescription>
-            Aucune grille n'a encore été générée pour ce groupe
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            Utilisez le générateur ci-dessus pour créer vos grilles
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const gridLabel = 'Grilles';
   const totalCost = grids.reduce((sum, grid) => sum + grid.cost, 0);
