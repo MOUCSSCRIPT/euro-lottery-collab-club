@@ -13,10 +13,10 @@ interface CoinPurchaseModalProps {
 }
 
 const coinPackages = [
-  { coins: 100, price: 10, popular: false },
-  { coins: 250, price: 25, popular: true },
-  { coins: 500, price: 50, popular: false },
-  { coins: 1000, price: 100, popular: false },
+  { coins: 100, price: 5, popular: false },
+  { coins: 200, price: 10, popular: true },
+  { coins: 1000, price: 50, popular: false },
+  { coins: 2000, price: 100, popular: false },
 ];
 
 export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps) => {
