@@ -53,12 +53,19 @@ serve(async (req) => {
     }
 
     // Validate coins amount (must be one of our packages)
-    const validPackages = [100, 250, 500, 1000];
+    const validPackages = [100, 200, 1000, 2000];
     if (!validPackages.includes(coins)) {
       throw new Error("Invalid coins package");
     }
 
-    const amount = (coins / 10) * 100; // Convert to cents (1€ = 10 coins)
+    // Calculate amount based on package pricing
+    const priceMap: Record<number, number> = {
+      100: 500,   // 5€ in cents
+      200: 1000,  // 10€ in cents  
+      1000: 5000, // 50€ in cents
+      2000: 10000 // 100€ in cents
+    };
+    const amount = priceMap[coins];
     logStep("Package validated", { coins, amount });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -80,7 +87,7 @@ serve(async (req) => {
             currency: "eur",
             product_data: {
               name: `${coins} SuerteCoins`,
-              description: `Achat de ${coins} SuerteCoins (1€ = 10 coins)`,
+              description: `Achat de ${coins} SuerteCoins`,
             },
             unit_amount: amount,
           },

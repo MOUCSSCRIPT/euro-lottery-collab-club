@@ -66,7 +66,7 @@ export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps
         
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground text-center">
-            1€ = 10 SuerteCoins
+            Pack SuerteCoins disponibles
           </div>
           
           <div className="grid gap-3">
