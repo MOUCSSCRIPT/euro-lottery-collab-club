@@ -150,7 +150,19 @@ export const GroupModal = ({ open, onOpenChange, defaultGameType }: GroupModalPr
             </Select>
           </div>
 
-        
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
+              <div className="space-y-1">
+                <Label className="text-sm font-medium">Mode Démo</Label>
+                <p className="text-xs text-muted-foreground">
+                  Testez sans mise d'argent réel
+                </p>
+              </div>
+              <Switch
+                checked={isDemoMode}
+                onCheckedChange={setIsDemoMode}
+              />
+            </div>
 
             <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
               <div className="space-y-1">
