@@ -21,7 +21,7 @@ const Games = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 pb-20">
       <Header />
       <div className="py-8">
         <div className="container mx-auto px-4">
