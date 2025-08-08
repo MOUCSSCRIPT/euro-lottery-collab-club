@@ -69,11 +69,11 @@ export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps
             Pack SuerteCoins disponibles
           </div>
           
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             {coinPackages.map((pack) => (
               <Card 
                 key={pack.coins} 
-                className={`relative transition-all hover:shadow-md ${
+                className={`relative transition-all hover:shadow-md rounded-xl ${
                   pack.popular ? 'ring-2 ring-primary' : ''
                 }`}
               >
@@ -85,21 +85,21 @@ export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps
                   </div>
                 )}
                 
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center justify-between">
+                <CardHeader className="pt-6 pb-2">
+                  <CardTitle className="flex flex-col items-center gap-1 text-center">
                     <SuerteCoinsDisplay amount={pack.coins} size="lg" />
-                    <span className="text-2xl font-bold">{pack.price}€</span>
+                    <span className="text-3xl font-extrabold tracking-tight">{pack.price}€</span>
                   </CardTitle>
-                  <CardDescription>
-                    {pack.coins} SuerteCoins pour {pack.price}€
+                  <CardDescription className="mt-1">
+                    Pack de {pack.coins} SuerteCoins
                   </CardDescription>
                 </CardHeader>
                 
-                <CardContent>
+                <CardContent className="pt-0">
                   <Button 
                     onClick={() => handlePurchase(pack.coins)}
                     disabled={loading !== null}
-                    className="w-full"
+                    className="w-full h-11"
                     variant={pack.popular ? "default" : "outline"}
                   >
                     {loading === pack.coins ? (
