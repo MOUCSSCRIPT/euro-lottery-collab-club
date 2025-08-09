@@ -12,7 +12,7 @@ import { User, Edit, Plus, History, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-
+import { MobileHeader } from '@/components/layout/MobileHeader';
 const Profile = () => {
   const { user, signOut } = useAuth();
   const { profile, updateProfile, createProfile } = useProfile();
@@ -54,7 +54,8 @@ const Profile = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-        <Header />
+        <div className="hidden md:block"><Header /></div>
+        <div className="md:hidden"><MobileHeader title="Profil" /></div>
         <div className="container mx-auto px-4 pt-8 pb-20">
           <div className="max-w-2xl mx-auto text-center">
             <p className="text-muted-foreground">Vous devez être connecté pour voir votre profil.</p>
@@ -66,7 +67,8 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
-      <Header />
+      <div className="hidden md:block"><Header /></div>
+      <div className="md:hidden"><MobileHeader title="Profil" /></div>
       <div className="container mx-auto px-4 pt-8 pb-20">
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center">

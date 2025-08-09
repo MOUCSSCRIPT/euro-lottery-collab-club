@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User, ShoppingCart, Gamepad2 } from 'lucide-react';
+import { User, ShoppingCart, Gamepad2, Home, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const MobileNavBar = () => {
@@ -8,10 +8,22 @@ export const MobileNavBar = () => {
   
   const navItems = [
     {
+      href: '/',
+      icon: Home,
+      label: 'Accueil',
+      isActive: location.pathname === '/'
+    },
+    {
       href: '/games',
       icon: Gamepad2,
-      label: 'Mes Jeux',
+      label: 'Jeux',
       isActive: location.pathname === '/games'
+    },
+    {
+      href: '/groups',
+      icon: Users,
+      label: 'Groupes',
+      isActive: location.pathname === '/groups'
     },
     {
       href: '/panier',
@@ -29,7 +41,7 @@ export const MobileNavBar = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 md:hidden">
-      <div className="flex items-center justify-around h-16 px-4">
+      <div className="flex gap-2 px-4 pt-2 pb-3 pb-[env(safe-area-inset-bottom)]">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -37,15 +49,12 @@ export const MobileNavBar = () => {
               key={item.href}
               to={item.href}
               className={cn(
-                "flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-colors",
-                "min-w-0 flex-1",
-                item.isActive
-                  ? "text-primary bg-primary/10"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                "just flex flex-1 flex-col items-center justify-end gap-1 rounded-full",
+                item.isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Icon size={20} className="mb-1" />
-              <span className="text-xs font-medium truncate">{item.label}</span>
+              <Icon size={24} className="h-6 w-6" />
+              <span className="text-xs font-medium tracking-[0.015em]">{item.label}</span>
             </Link>
           );
         })}

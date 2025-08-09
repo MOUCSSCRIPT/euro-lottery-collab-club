@@ -3,7 +3,8 @@ import { Header } from '@/components/Header';
 import { GroupsSection } from '@/components/GroupsSection';
 import { GameSelector } from '@/components/grids/GameSelector';
 import { Database } from '@/integrations/supabase/types';
-
+import { MobileHeader } from '@/components/layout/MobileHeader';
+import { Settings } from 'lucide-react';
 type GameType = Database['public']['Enums']['game_type'];
 
 const Games = () => {
@@ -22,7 +23,8 @@ const Games = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 pb-20">
-      <Header />
+      <div className="hidden md:block"><Header /></div>
+      <div className="md:hidden"><MobileHeader title="Jeux" rightIcon={Settings} /></div>
       <div className="py-8">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">

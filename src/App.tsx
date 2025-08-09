@@ -16,6 +16,7 @@ import Games from "./pages/Games";
 import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import GroupDetails from "./pages/GroupDetails";
+import Groups from "./pages/Groups";
 import { Admin } from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const AppContent = () => {
           <Route path="/auth" element={<Auth />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
           <Route path="/games" element={<Games />} />
+          <Route path="/groups" element={<Groups />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/panier" element={<Cart />} />
           <Route path="/group/:id" element={<GroupDetails />} />

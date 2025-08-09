@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Calendar, Euro, Settings } from 'lucide-react';
+import { MobileHeader } from '@/components/layout/MobileHeader';
 import { useAuth } from '@/contexts/AuthContext';
 
 import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
@@ -45,7 +46,8 @@ const GroupDetails = () => {
   if (groupsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50">
-        <Header />
+        <div className="hidden md:block"><Header /></div>
+        <div className="md:hidden"><MobileHeader title="Détails du groupe" showBack /></div>
         <div className="container mx-auto px-4 py-8">
           <div className="space-y-6">
             <Skeleton className="h-8 w-64" />
@@ -69,7 +71,8 @@ const GroupDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50">
-      <Header />
+      <div className="hidden md:block"><Header /></div>
+      <div className="md:hidden"><MobileHeader title={group.name || 'Groupe'} showBack /></div>
       
       <div className="container mx-auto px-4 py-8">
         {/* Group Header */}
