@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User, ShoppingCart, Gamepad2, Home, Users } from 'lucide-react';
+import { User, ShoppingCart, Dice5, Home, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const MobileNavBar = () => {
@@ -15,7 +15,7 @@ export const MobileNavBar = () => {
     },
     {
       href: '/games',
-      icon: Gamepad2,
+      icon: Dice5,
       label: 'Jeux',
       isActive: location.pathname === '/games'
     },

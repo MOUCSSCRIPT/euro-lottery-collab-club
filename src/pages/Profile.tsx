@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { CoinPurchaseModal } from '@/components/coins/CoinPurchaseModal';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Edit, Plus, History, LogOut } from 'lucide-react';
+import { User, Edit, Plus, History, LogOut, Mail, Phone, MapPin, Lock, Bell, Shield, HelpCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +18,8 @@ const Profile = () => {
   const { user, signOut } = useAuth();
   const { profile, updateProfile, createProfile } = useProfile();
   const navigate = useNavigate();
+  const displayName = (profile?.username || (user?.email?.split('@')[0] ?? 'Utilisateur')) as string;
+  const memberYear = new Date(profile?.created_at ?? (user?.created_at ?? new Date().toISOString())).getFullYear();
   
   const [isEditing, setIsEditing] = useState(false);
   const [showCoinPurchase, setShowCoinPurchase] = useState(false);
@@ -69,7 +72,80 @@ const Profile = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       <div className="hidden md:block"><Header /></div>
       <div className="md:hidden"><MobileHeader title="Profil" /></div>
-      <div className="container mx-auto px-4 pt-8 pb-20">
+      {/* Mobile profile layout */}
+      <div className="md:hidden">
+        <div className="flex p-4">
+          <div className="flex w-full flex-col gap-4 items-center">
+            <div className="flex gap-4 flex-col items-center">
+              <Avatar className="h-32 w-32">
+                <AvatarImage src={(user as any)?.user_metadata?.avatar_url} alt={`Avatar de ${displayName}`} />
+                <AvatarFallback>{displayName.substring(0,2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-foreground text-[22px] font-bold leading-tight tracking-[-0.015em] text-center">{displayName}</p>
+                <p className="text-muted-foreground text-base leading-normal text-center">Membre depuis {memberYear}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <h3 className="text-foreground text-lg font-bold tracking-[-0.015em] px-4 pb-2 pt-4">Informations personnelles</h3>
+        <div className="flex items-center gap-4 bg-background px-4 min-h-[72px] py-2">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-12">
+            <Mail className="h-6 w-6" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Adresse e-mail</p>
+            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">{user?.email}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 bg-background px-4 min-h-[72px] py-2">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-12">
+            <Phone className="h-6 w-6" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Numéro de téléphone</p>
+            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">{user?.phone || 'Non renseigné'}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 bg-background px-4 min-h-[72px] py-2">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-12">
+            <MapPin className="h-6 w-6" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Adresse postale</p>
+            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">{profile?.country || 'Non renseignée'}</p>
+          </div>
+        </div>
+
+        <h3 className="text-foreground text-lg font-bold tracking-[-0.015em] px-4 pb-2 pt-4">Paramètres du compte</h3>
+        <button type="button" onClick={() => toast({ title: 'Bientôt disponible', description: 'La modification du mot de passe arrive bientôt.' })} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
+            <Lock className="h-6 w-6" />
+          </div>
+          <p className="text-foreground text-base leading-normal flex-1 truncate">Modifier le mot de passe</p>
+        </button>
+        <button type="button" onClick={() => toast({ title: 'Bientôt disponible', description: 'Les notifications seront bientôt configurables.' })} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
+            <Bell className="h-6 w-6" />
+          </div>
+          <p className="text-foreground text-base leading-normal flex-1 truncate">Notifications</p>
+        </button>
+        <button type="button" onClick={() => toast({ title: 'Bientôt disponible', description: 'Paramètres de confidentialité à venir.' })} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
+            <Shield className="h-6 w-6" />
+          </div>
+          <p className="text-foreground text-base leading-normal flex-1 truncate">Confidentialité</p>
+        </button>
+        <button type="button" onClick={() => toast({ title: 'Aide', description: 'Contactez-nous si besoin.' })} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
+            <HelpCircle className="h-6 w-6" />
+          </div>
+          <p className="text-foreground text-base leading-normal flex-1 truncate">Aide et assistance</p>
+        </button>
+      </div>
+
+      <div className="container mx-auto px-4 pt-8 pb-20 hidden md:block">
         <div className="max-w-2xl mx-auto space-y-6">
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
