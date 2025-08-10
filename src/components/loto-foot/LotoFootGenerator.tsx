@@ -262,7 +262,7 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-28 md:pb-0">
       {/* Header */}
       <Card>
         <CardHeader>
@@ -296,8 +296,8 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
         disabled={isGenerating}
       />
 
-      {/* Generate Button */}
-      <Card>
+      {/* Generate Button (desktop) */}
+      <Card className="hidden md:block">
         <CardContent className="pt-6">
           <Button
             onClick={handleGenerateGrid}
@@ -316,6 +316,25 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
           </Button>
         </CardContent>
       </Card>
+
+      {/* Fixed bottom CTA (mobile) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background border-t border-border p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+        <Button
+          onClick={handleGenerateGrid}
+          disabled={!isGridValid || isGenerating}
+          className="w-full h-12 text-base font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Génération en cours...
+            </>
+          ) : (
+            `Créer ma grille (${calculation.totalCost} SuerteCoins)`
+          )}
+        </Button>
+      </div>
     </div>
   );
 };

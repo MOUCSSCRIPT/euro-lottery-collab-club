@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { LotoFootMatch, LotoFootPrediction, PredictionType } from '@/types/loto-foot';
 import { LotoFootMatchCard } from './LotoFootMatchCard';
+import { LotoFootMatchRow } from './LotoFootMatchRow';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -93,8 +94,25 @@ export const LotoFootGrid = ({
         </CardContent>
       </Card>
 
-      {/* Matches Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+      {/* Matches List (mobile) */}
+      <div className="space-y-2 md:hidden">
+        {matches
+          .sort((a, b) => a.match_position - b.match_position)
+          .map((match) => (
+            <LotoFootMatchRow
+              key={match.id}
+              match={match}
+              selectedPredictions={getPredictionsForMatch(match.match_position)}
+              onPredictionToggle={(prediction) =>
+                handlePredictionToggle(match.match_position, prediction)
+              }
+              disabled={disabled}
+            />
+          ))}
+      </div>
+
+      {/* Matches Grid (desktop) */}
+      <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
         {matches
           .sort((a, b) => a.match_position - b.match_position)
           .map(match => (
