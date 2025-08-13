@@ -21,8 +21,8 @@ export const HeroSection = () => {
         
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Augmentez vos chances de gagner ensemble. 
-            Évitez les doublons..
+            Augmentez vos chances de gagner en créant des groupes collaboratifs. 
+            Évitez les doublons, partagez les coûts et les gains proportionnellement.
           </p>
           <div className="flex justify-center">
             <Button 
@@ -36,7 +36,12 @@ export const HeroSection = () => {
           </div>
         </div>
 
-    
+      
+
+     
+
+        </div>
+      </div>
     </section>
   );
 };
