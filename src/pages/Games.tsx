@@ -13,9 +13,11 @@ const Games = () => {
   const gameInfo = {
     euromillions: {
       title: "Bienvenue dans l'univers EuroMillions",
+      description: "Jouez et tentez de gagner les plus gros jackpots"
     },
     loto_foot: {
       title: "Découvrez le Loto Foot 15",
+      description: "Pronostiquez les résultats de 15 matchs"
     }
   };
 

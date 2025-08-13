@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Star, Zap, Trophy } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { useNavigate } from 'react-router-dom';
 
 type GameType = Database['public']['Enums']['game_type'];
 
@@ -29,6 +30,16 @@ const gameConfig = {
 };
 
 export const GameSelector = ({ selectedGame, onGameSelect }: GameSelectorProps) => {
+  const navigate = useNavigate();
+
+  const handlePlayNow = (gameType: GameType) => {
+    if (gameType === 'euromillions') {
+      navigate('/');
+    } else if (gameType === 'loto_foot') {
+      navigate('/');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-center">
@@ -62,13 +73,20 @@ export const GameSelector = ({ selectedGame, onGameSelect }: GameSelectorProps) 
                 
                 <h3 className="font-semibold text-lg mb-2">{config.title}</h3>
                 <p className="text-sm text-muted-foreground mb-3">{config.description}</p>
-                <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  isSelected 
-                    ? `bg-${config.color}-500 text-white` 
-                    : `bg-${config.color}-100 text-${config.color}-700`
-                }`}>
-                  À partir de {config.cost}
-                </div>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayNow(gameType as GameType);
+                  }}
+                  className={`w-full text-sm ${
+                    isSelected 
+                      ? `bg-${config.color}-500 hover:bg-${config.color}-600 text-white` 
+                      : `bg-${config.color}-100 hover:bg-${config.color}-200 text-${config.color}-700`
+                  }`}
+                  variant={isSelected ? "default" : "secondary"}
+                >
+                  Jouer - À partir de {config.cost}
+                </Button>
               </CardContent>
             </Card>
           );
