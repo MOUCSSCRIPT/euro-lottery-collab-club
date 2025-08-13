@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Header } from '@/components/Header';
+import { GroupsSection } from '@/components/GroupsSection';
 import { GameSelector } from '@/components/grids/GameSelector';
 import { Database } from '@/integrations/supabase/types';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -12,11 +13,9 @@ const Games = () => {
   const gameInfo = {
     euromillions: {
       title: "Bienvenue dans l'univers EuroMillions",
-      description: "Créez vos grilles et tentez de remporter le jackpot !"
     },
     loto_foot: {
       title: "Découvrez le Loto Foot 15",
-      description: "Pronostiquez les résultats de 15 matchs et tentez de remporter le jackpot !"
     }
   };
 
@@ -43,6 +42,7 @@ const Games = () => {
           </div>
         </div>
       </div>
+      <GroupsSection selectedGameFilter={selectedGame} />
     </div>
   );
 };
