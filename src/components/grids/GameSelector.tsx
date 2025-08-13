@@ -44,7 +44,6 @@ export const GameSelector = ({ selectedGame, onGameSelect }: GameSelectorProps) 
     <div className="space-y-4">
       <div className="text-center">
         <h2 className="text-2xl font-bold mb-2">Choisissez votre jeu</h2>
-        <p className="text-muted-foreground">Sélectionnez le type de jeu pour votre groupe</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
