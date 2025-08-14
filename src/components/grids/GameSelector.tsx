@@ -33,11 +33,8 @@ export const GameSelector = ({ selectedGame, onGameSelect }: GameSelectorProps) 
   const navigate = useNavigate();
 
   const handlePlayNow = (gameType: GameType) => {
-    if (gameType === 'euromillions') {
-      navigate('/');
-    } else if (gameType === 'loto_foot') {
-      navigate('/');
-    }
+    // Navigate directly to grids with selected game type
+    navigate(`/?game=${gameType}`);
   };
 
   return (
