@@ -44,7 +44,6 @@ const Games = () => {
           </div>
         </div>
       </div>
-      <GroupsSection selectedGameFilter={selectedGame} />
     </div>
   );
 };

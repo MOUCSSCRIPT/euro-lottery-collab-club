@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dices, Users, Menu } from 'lucide-react';
+import { Dices, Users, Menu, BarChart3 } from 'lucide-react';
 import { useMobile } from '@/hooks/useMobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserMenu } from '@/components/auth/UserMenu';
@@ -86,9 +86,16 @@ export const Header = () => {
                 <Link to="/games" className="text-foreground hover:text-blue-600 transition-colors">
                   Jeux
                 </Link>
-                <Link to="/groups" className="text-foreground hover:text-blue-600 transition-colors">
-                  Groupes
-                </Link>
+                {userRole === 'admin' ? (
+                  <Link to="/groups" className="text-foreground hover:text-blue-600 transition-colors">
+                    Groupes
+                  </Link>
+                ) : (
+                  <Link to="/profile" className="text-foreground hover:text-blue-600 transition-colors flex items-center gap-1">
+                    <BarChart3 className="h-4 w-4" />
+                    Statistiques
+                  </Link>
+                )}
                 {userRole === 'admin' && (
                   <button
                     onClick={() => navigate('/admin')}
