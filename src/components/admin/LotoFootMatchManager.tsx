@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Clock, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -56,6 +56,26 @@ export const LotoFootMatchManager = () => {
   });
 
   const queryClient = useQueryClient();
+
+  // Fetch ParionsSport matches mutation
+  const fetchParionsSportMutation = useMutation({
+    mutationFn: async (drawDate: string) => {
+      const { data, error } = await supabase.functions.invoke('fetch-parionssport-matches', {
+        body: { drawDate }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
+      toast.success(data.message || 'Matchs récupérés avec succès');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de la récupération des matchs ParionsSport');
+      console.error(error);
+    },
+  });
 
   // Fetch matches for selected date
   const { data: matches, isLoading } = useQuery({
@@ -197,29 +217,39 @@ export const LotoFootMatchManager = () => {
                 Créez et gérez les grilles de matchs pour le Loto Foot
               </CardDescription>
             </div>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={resetForm}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un match
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Ajouter un nouveau match</DialogTitle>
-                  <DialogDescription>
-                    Renseignez les informations du match
-                  </DialogDescription>
-                </DialogHeader>
-                <MatchForm
-                  formData={formData}
-                  setFormData={setFormData}
-                  onSubmit={handleSubmit}
-                  isLoading={addMatchMutation.isPending}
-                  isEditing={false}
-                />
-              </DialogContent>
-            </Dialog>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => fetchParionsSportMutation.mutate(selectedDate)}
+                disabled={fetchParionsSportMutation.isPending}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {fetchParionsSportMutation.isPending ? 'Récupération...' : 'Récupérer ParionsSport'}
+              </Button>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={resetForm}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter manuellement
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Ajouter un nouveau match</DialogTitle>
+                    <DialogDescription>
+                      Renseignez les informations du match
+                    </DialogDescription>
+                  </DialogHeader>
+                  <MatchForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    onSubmit={handleSubmit}
+                    isLoading={addMatchMutation.isPending}
+                    isEditing={false}
+                  />
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
