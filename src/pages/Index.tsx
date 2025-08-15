@@ -19,23 +19,20 @@ const Index = () => {
   const defaultGroup = {
     id: 'public-group',
     name: 'Groupe Public',
-    game_type: gameParam || 'euromillions' as GameType,
-    created_by: 'system',
+    description: 'Groupe ouvert à tous les joueurs',
+    game_type: gameParam || ('euromillions' as GameType),
+    mode: 'real' as const,
+    max_members: 100,
+    total_budget: 0,
+    grids_count: 0,
+    status: 'public' as const,
+    next_draw_date: null,
+    created_by: user?.id || 'system',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    description: 'Groupe ouvert à tous les joueurs',
-    budget: 0,
-    max_members: 100,
-    is_active: true,
-    grids_count: 0,
-    mode: 'real' as const,
-    next_draw_date: null,
-    status: 'active' as const,
-    total_cost: 0,
-    play_deadline: null,
     team_code: null,
-    total_budget: 0
-  };
+    play_deadline: null
+  } as const;
 
   if (!user) {
     return (
