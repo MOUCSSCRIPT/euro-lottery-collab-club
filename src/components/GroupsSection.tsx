@@ -22,12 +22,7 @@ export const GroupsSection = ({ selectedGameFilter }: GroupsSectionProps) => {
 
   const isAdmin = userRole === 'admin';
 
-  // Rediriger les joueurs vers les grilles de jeux
-  useEffect(() => {
-    if (userRole !== undefined && !isAdmin) {
-      navigate('/');
-    }
-  }, [userRole, isAdmin, navigate]);
+  // Accès ouvert: les joueurs peuvent voir les groupes (pas de redirection)
 
   // Filter groups based on game type if filter is provided
   const filteredGroups = selectedGameFilter && groups
@@ -82,6 +77,32 @@ export const GroupsSection = ({ selectedGameFilter }: GroupsSectionProps) => {
     );
   }
 
-  // Les joueurs sont redirigés automatiquement vers les grilles de jeux
-  return null;
+  return (
+    <div className="container mx-auto px-4 pb-8">
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold">Groupes publics</h2>
+        <p className="text-muted-foreground">Rejoignez un groupe ouvert ou jouez directement</p>
+      </div>
+
+      {filteredGroups && filteredGroups.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredGroups.map((group) => (
+            <GroupCard key={group.id} group={group} />
+          ))}
+        </div>
+      ) : (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">
+              {selectedGameFilter ? `Aucun groupe ${selectedGameFilter}` : 'Aucun groupe'}
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Aucun groupe disponible pour le moment.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
 };

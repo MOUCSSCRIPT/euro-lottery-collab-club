@@ -5,7 +5,7 @@ import { Dices, Users, Menu } from 'lucide-react';
 import { useMobile } from '@/hooks/useMobile';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserRole } from '@/hooks/useAdminActions';
@@ -80,12 +80,15 @@ export const Header = () => {
           ) : (
             <div className="flex flex-col items-end space-y-2">
               <nav className="flex items-center space-x-6">
-                <a href="#groups" className="text-foreground hover:text-blue-600 transition-colors">
-                  Mes Groupes
-                </a>
-                <a href="#stats" className="text-foreground hover:text-blue-600 transition-colors">
-                  Statistiques
-                </a>
+                <Link to="/" className="text-foreground hover:text-blue-600 transition-colors">
+                  Accueil
+                </Link>
+                <Link to="/games" className="text-foreground hover:text-blue-600 transition-colors">
+                  Jeux
+                </Link>
+                <Link to="/groups" className="text-foreground hover:text-blue-600 transition-colors">
+                  Groupes
+                </Link>
                 {userRole === 'admin' && (
                   <button
                     onClick={() => navigate('/admin')}
