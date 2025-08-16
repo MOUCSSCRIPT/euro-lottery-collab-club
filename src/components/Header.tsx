@@ -91,7 +91,7 @@ export const Header = () => {
                     Groupes
                   </Link>
                 ) : (
-                  <Link to="/profile" className="text-foreground hover:text-blue-600 transition-colors flex items-center gap-1">
+                  <Link to="/stats" className="text-foreground hover:text-blue-600 transition-colors flex items-center gap-1">
                     <BarChart3 className="h-4 w-4" />
                     Statistiques
                   </Link>

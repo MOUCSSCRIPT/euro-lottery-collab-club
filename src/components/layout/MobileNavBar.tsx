@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { User, ShoppingCart, Dice5, Home, Users } from 'lucide-react';
+import { User, ShoppingCart, Dice5, Home, Users, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUserRole } from '@/hooks/useAdminActions';
 
 export const MobileNavBar = () => {
   const location = useLocation();
+  const { data: userRole } = useUserRole();
   
   const navItems = [
     {
@@ -19,11 +21,16 @@ export const MobileNavBar = () => {
       label: 'Jeux',
       isActive: location.pathname === '/games',
     },
-    {
+    userRole === 'admin' ? {
       href: '/groups',
       icon: Users,
       label: 'Groupes',
       isActive: location.pathname === '/groups',
+    } : {
+      href: '/stats',
+      icon: BarChart3,
+      label: 'Stats',
+      isActive: location.pathname === '/stats',
     },
     {
       href: '/panier',
