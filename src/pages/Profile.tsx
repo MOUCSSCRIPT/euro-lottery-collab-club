@@ -294,10 +294,11 @@ const Profile = () => {
           {profile && (
             <Card>
               <CardHeader>
-                <CardTitle>Statistiques</CardTitle>
+                <CardTitle>Statistiques détaillées</CardTitle>
+                <CardDescription>Votre activité sur la plateforme</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-4 text-center mb-6">
                   <div className="p-4 bg-muted/50 rounded-lg">
                     <p className="text-2xl font-bold text-primary">{profile.coins}</p>
                     <p className="text-sm text-muted-foreground">SuerteCoins</p>
@@ -309,9 +310,103 @@ const Profile = () => {
                     <p className="text-sm text-muted-foreground">Membre depuis</p>
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-lg">
+                    <p className="text-2xl font-bold text-blue-600">0</p>
+                    <p className="text-sm text-muted-foreground">Groupes rejoints</p>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">0</p>
+                    <p className="text-sm text-muted-foreground">Gains totaux</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
+
+          {/* Preferences Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Préférences de jeu</CardTitle>
+              <CardDescription>Configurez vos préférences par défaut</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Notifications de gains</Label>
+                  <p className="text-sm text-muted-foreground">Recevoir les notifications de gains</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => toast({ title: 'Bientôt disponible', description: 'Cette fonctionnalité arrive bientôt.' })}>
+                  Activer
+                </Button>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Rappels de tirage</Label>
+                  <p className="text-sm text-muted-foreground">Être averti avant les tirages</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => toast({ title: 'Bientôt disponible', description: 'Cette fonctionnalité arrive bientôt.' })}>
+                  Configurer
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Activity History Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Historique d'activité</CardTitle>
+              <CardDescription>Vos dernières actions sur la plateforme</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Création du profil</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(profile?.created_at || '').toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-center py-4">
+                  <p className="text-sm text-muted-foreground">Plus d'activités à venir...</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Support & Help Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Support & Aide</CardTitle>
+              <CardDescription>Besoin d'assistance ? Nous sommes là pour vous</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => toast({ title: 'Support', description: 'Notre équipe vous contactera bientôt.' })}
+              >
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Centre d'aide
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start"
+                onClick={() => toast({ title: 'Contact', description: 'Vous pouvez nous contacter à support@suerte.com' })}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Contacter le support
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
