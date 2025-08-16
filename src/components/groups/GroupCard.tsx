@@ -58,6 +58,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
       case 'active': return 'bg-green-500';
       case 'complete': return 'bg-blue-500';
       case 'pending': return 'bg-yellow-500';
+      case 'closed': return 'bg-orange-500';
       default: return 'bg-gray-500';
     }
   };
@@ -67,6 +68,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
       case 'active': return 'Actif';
       case 'complete': return 'Complet';
       case 'pending': return 'En attente';
+      case 'closed': return 'Fermé';
       default: return status;
     }
   };
@@ -171,7 +173,12 @@ export const GroupCard = ({ group }: GroupCardProps) => {
           </div>
         )}
         <div className="flex space-x-2">
-          {!isMember ? (
+          {group.status === 'closed' ? (
+            <div className="flex-1 text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <div className="text-orange-700 font-medium">Bientôt disponible</div>
+              <div className="text-xs text-orange-600">Ce groupe ouvrira prochainement</div>
+            </div>
+          ) : !isMember ? (
             <Button 
               variant="outline" 
               className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"

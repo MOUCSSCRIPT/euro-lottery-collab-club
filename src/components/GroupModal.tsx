@@ -93,7 +93,7 @@ export const GroupModal = ({ open, onOpenChange, defaultGameType }: GroupModalPr
       max_members: maxMembers,
       total_budget: myContribution,
       grids_count: grids,
-      status: isPrivateGroup ? 'private' : 'public',
+      status: 'closed', // Set as closed initially
       play_deadline: deadline.toISOString(),
     });
     

@@ -110,6 +110,30 @@ export const useGroups = () => {
       console.log('Creating group:', groupData);
       if (!user) throw new Error('User not authenticated');
 
+      // Check if user is admin and already has a group of this game type
+      const { data: userRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userRole?.role === 'admin') {
+        const { data: existingGroups, error: existingError } = await supabase
+          .from('groups')
+          .select('id')
+          .eq('created_by', user.id)
+          .eq('game_type', groupData.game_type);
+
+        if (existingError) {
+          console.error('Error checking existing groups:', existingError);
+          throw existingError;
+        }
+
+        if (existingGroups && existingGroups.length > 0) {
+          throw new Error(`Vous avez déjà créé un groupe pour ${groupData.game_type === 'euromillions' ? 'EuroMillions' : 'Loto Foot 15'}`);
+        }
+      }
+
       const { data, error } = await supabase
         .from('groups')
         .insert({
