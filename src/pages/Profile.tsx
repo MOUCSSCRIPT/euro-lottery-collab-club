@@ -90,6 +90,59 @@ const Profile = () => {
         </div>
 
         <h3 className="text-foreground text-lg font-bold tracking-[-0.015em] px-4 pb-2 pt-4">Informations personnelles</h3>
+        <button type="button" onClick={() => setIsEditing(!isEditing)} className="flex items-center gap-4 bg-background px-4 min-h-[72px] py-2 w-full text-left">
+          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-12">
+            <Edit className="h-6 w-6" />
+          </div>
+          <div className="flex flex-col justify-center">
+            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Modifier le profil</p>
+            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">Nom d'utilisateur, pays</p>
+          </div>
+        </button>
+        
+        {isEditing && (
+          <div className="px-4 py-6 bg-muted/30 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mobile-username" className="text-sm font-medium">Nom d'utilisateur</Label>
+              <Input 
+                id="mobile-username"
+                value={formData.username}
+                onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                placeholder="Votre nom d'utilisateur"
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="mobile-country" className="text-sm font-medium">Pays</Label>
+              <Input 
+                id="mobile-country"
+                value={formData.country}
+                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                placeholder="Votre pays"
+                className="bg-background"
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button 
+                onClick={handleSave}
+                disabled={updateProfile.isPending || createProfile.isPending}
+                className="flex-1"
+                size="sm"
+              >
+                Sauvegarder
+              </Button>
+              <Button 
+                onClick={() => setIsEditing(false)}
+                variant="outline"
+                className="flex-1"
+                size="sm"
+              >
+                Annuler
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <div className="flex items-center gap-4 bg-background px-4 min-h-[72px] py-2">
           <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-12">
             <Mail className="h-6 w-6" />
@@ -101,11 +154,11 @@ const Profile = () => {
         </div>
         <div className="flex items-center gap-4 bg-background px-4 min-h-[72px] py-2">
           <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-12">
-            <Phone className="h-6 w-6" />
+            <User className="h-6 w-6" />
           </div>
           <div className="flex flex-col justify-center">
-            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Numéro de téléphone</p>
-            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">{user?.phone || 'Non renseigné'}</p>
+            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Nom d'utilisateur</p>
+            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">{profile?.username || 'Non renseigné'}</p>
           </div>
         </div>
         <div className="flex items-center gap-4 bg-background px-4 min-h-[72px] py-2">
@@ -113,8 +166,8 @@ const Profile = () => {
             <MapPin className="h-6 w-6" />
           </div>
           <div className="flex flex-col justify-center">
-            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Adresse postale</p>
-            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">{profile?.country || 'Non renseignée'}</p>
+            <p className="text-foreground text-base font-medium leading-normal line-clamp-1">Pays</p>
+            <p className="text-muted-foreground text-sm leading-normal line-clamp-2">{profile?.country || 'Non renseigné'}</p>
           </div>
         </div>
 
