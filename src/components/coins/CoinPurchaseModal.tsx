@@ -26,20 +26,20 @@ export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps
     try {
       setLoading(coins);
       
-      const { data, error } = await supabase.functions.invoke('purchase-coins', {
+      const { data, error } = await supabase.functions.invoke('purchase-coins-paypal', {
         body: { coins }
       });
 
       if (error) throw error;
 
       if (data?.url) {
-        // Open Stripe checkout in a new tab
+        // Open PayPal checkout in a new tab
         window.open(data.url, '_blank');
         onOpenChange(false);
         
         toast({
           title: "Redirection vers le paiement",
-          description: "Vous allez être redirigé vers Stripe pour finaliser votre achat.",
+          description: "Vous allez être redirigé vers PayPal pour finaliser votre achat.",
         });
       }
     } catch (error) {
@@ -113,7 +113,7 @@ export const CoinPurchaseModal = ({ open, onOpenChange }: CoinPurchaseModalProps
           </div>
           
           <div className="text-xs text-muted-foreground text-center">
-            Paiement sécurisé via Stripe
+            Paiement sécurisé via PayPal
           </div>
         </div>
       </DialogContent>

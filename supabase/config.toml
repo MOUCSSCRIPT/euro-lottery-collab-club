@@ -59,3 +59,9 @@ verify_jwt = true
 
 [functions.verify-coin-purchase]
 verify_jwt = true
+
+[functions.purchase-coins-paypal]
+verify_jwt = true
+
+[functions.verify-coin-purchase-paypal]
+verify_jwt = true

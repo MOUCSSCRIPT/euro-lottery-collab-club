@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
@@ -6,43 +6,39 @@ import { useQueryClient } from '@tanstack/react-query';
 export const useCoinPurchase = () => {
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // Check for purchase result in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const purchaseStatus = urlParams.get('purchase');
-    
-    if (purchaseStatus === 'success') {
-      // Get session ID from URL if available
-      const sessionId = urlParams.get('session_id');
-      
-      if (sessionId) {
-        verifyPurchase(sessionId);
-      } else {
+  const verifyPayPalPurchase = useCallback(async (paypalToken: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-coin-purchase-paypal', {
+        body: { orderId: paypalToken }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
         toast({
-          title: "Achat réussi !",
-          description: "Vos SuerteCoins ont été ajoutés à votre compte.",
+          title: "Achat confirmé !",
+          description: data.message,
         });
         // Refresh profile data
         queryClient.invalidateQueries({ queryKey: ['profile'] });
+      } else {
+        toast({
+          title: "Vérification échouée",
+          description: data?.message || "Impossible de vérifier le paiement PayPal.",
+          variant: "destructive",
+        });
       }
-      
-      // Clean URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
-    } else if (purchaseStatus === 'cancelled') {
+    } catch (error) {
+      console.error('Error verifying PayPal purchase:', error);
       toast({
-        title: "Achat annulé",
-        description: "Votre achat a été annulé.",
+        title: "Erreur de vérification",
+        description: "Impossible de vérifier le paiement PayPal.",
         variant: "destructive",
       });
-      
-      // Clean URL
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
     }
   }, [queryClient]);
 
-  const verifyPurchase = async (sessionId: string) => {
+  const verifyPurchase = useCallback(async (sessionId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('verify-coin-purchase', {
         body: { sessionId }
@@ -72,7 +68,44 @@ export const useCoinPurchase = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [queryClient]);
 
-  return { verifyPurchase };
+  useEffect(() => {
+    // Check for purchase result in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const purchaseStatus = urlParams.get('purchase');
+    const provider = urlParams.get('provider');
+    
+    if (purchaseStatus === 'success' && provider === 'paypal') {
+      // Get PayPal token from URL if available
+      const paypalToken = urlParams.get('token');
+      
+      if (paypalToken) {
+        verifyPayPalPurchase(paypalToken);
+      } else {
+        toast({
+          title: "Achat réussi !",
+          description: "Vos SuerteCoins ont été ajoutés à votre compte.",
+        });
+        // Refresh profile data
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+      }
+      
+      // Clean URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    } else if (purchaseStatus === 'cancelled' && provider === 'paypal') {
+      toast({
+        title: "Achat annulé",
+        description: "Votre achat PayPal a été annulé.",
+        variant: "destructive",
+      });
+      
+      // Clean URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [queryClient, verifyPayPalPurchase]);
+
+  return { verifyPurchase, verifyPayPalPurchase };
 };
