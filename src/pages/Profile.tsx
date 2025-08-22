@@ -290,6 +290,46 @@ const Profile = () => {
             </CardContent>
           </Card>
 
+          {/* Achievement System */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                  <span className="text-yellow-600 text-lg">🏆</span>
+                </div>
+                Mes Récompenses
+              </CardTitle>
+              <CardDescription>Débloquez des badges en jouant</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20 rounded-lg border-2 border-yellow-200 dark:border-yellow-800">
+                  <div className="text-3xl mb-2">🎯</div>
+                  <p className="font-semibold text-sm">Premier Pas</p>
+                  <p className="text-xs text-muted-foreground">Compte créé</p>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                  <div className="text-3xl mb-2 opacity-30">🎲</div>
+                  <p className="font-semibold text-sm opacity-50">Premier Jeu</p>
+                  <p className="text-xs text-muted-foreground opacity-50">Jouez votre première grille</p>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                  <div className="text-3xl mb-2 opacity-30">💰</div>
+                  <p className="font-semibold text-sm opacity-50">Premier Gain</p>
+                  <p className="text-xs text-muted-foreground opacity-50">Gagnez votre premier lot</p>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20">
+                  <div className="text-3xl mb-2 opacity-30">👥</div>
+                  <p className="font-semibold text-sm opacity-50">Social</p>
+                  <p className="text-xs text-muted-foreground opacity-50">Rejoignez un groupe</p>
+                </div>
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">🎉 Prochain objectif: Jouez votre première grille pour débloquer le badge "Premier Jeu"</p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Profile Stats */}
           {profile && (
             <Card>
@@ -310,7 +350,7 @@ const Profile = () => {
                     <p className="text-sm text-muted-foreground">Membre depuis</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-4 text-center mb-6">
                   <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 rounded-lg">
                     <p className="text-2xl font-bold text-blue-600">0</p>
                     <p className="text-sm text-muted-foreground">Groupes rejoints</p>
@@ -320,9 +360,117 @@ const Profile = () => {
                     <p className="text-sm text-muted-foreground">Gains totaux</p>
                   </div>
                 </div>
+                
+                {/* Extended Statistics */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Statistiques de jeu</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="text-center p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+                      <p className="text-xl font-bold text-purple-600">0</p>
+                      <p className="text-xs text-muted-foreground">Grilles jouées</p>
+                    </div>
+                    <div className="text-center p-3 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg">
+                      <p className="text-xl font-bold text-indigo-600">0</p>
+                      <p className="text-xs text-muted-foreground">Tirages participés</p>
+                    </div>
+                    <div className="text-center p-3 bg-pink-50 dark:bg-pink-950/20 rounded-lg">
+                      <p className="text-xl font-bold text-pink-600">0%</p>
+                      <p className="text-xs text-muted-foreground">Taux de gain</p>
+                    </div>
+                    <div className="text-center p-3 bg-teal-50 dark:bg-teal-950/20 rounded-lg">
+                      <p className="text-xl font-bold text-teal-600">0</p>
+                      <p className="text-xs text-muted-foreground">Numéros favoris</p>
+                    </div>
+                    <div className="text-center p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                      <p className="text-xl font-bold text-orange-600">0h</p>
+                      <p className="text-xs text-muted-foreground">Temps total</p>
+                    </div>
+                    <div className="text-center p-3 bg-cyan-50 dark:bg-cyan-950/20 rounded-lg">
+                      <p className="text-xl font-bold text-cyan-600">0</p>
+                      <p className="text-xs text-muted-foreground">Série actuelle</p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
+
+          {/* Personal Analytics */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Mes Analyses</CardTitle>
+              <CardDescription>Analyses détaillées de vos habitudes de jeu</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-lg">
+                  <h4 className="font-semibold mb-2 flex items-center gap-2">
+                    <span className="text-blue-600">📊</span>
+                    Jeu de la semaine
+                  </h4>
+                  <p className="text-sm text-muted-foreground mb-2">Aucune activité cette semaine</p>
+                  <div className="w-full bg-muted/50 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{width: '0%'}}></div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg">
+                    <h4 className="font-semibold mb-2 text-green-700 dark:text-green-300">Meilleur mois</h4>
+                    <p className="text-2xl font-bold text-green-600">-</p>
+                    <p className="text-xs text-muted-foreground">Aucune donnée</p>
+                  </div>
+                  <div className="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 rounded-lg">
+                    <h4 className="font-semibold mb-2 text-yellow-700 dark:text-yellow-300">Numéros chanceux</h4>
+                    <p className="text-2xl font-bold text-yellow-600">-</p>
+                    <p className="text-xs text-muted-foreground">Pas encore de données</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Social Features */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                  <span className="text-blue-600 text-lg">👥</span>
+                </div>
+                Réseau Social
+              </CardTitle>
+              <CardDescription>Connectez-vous avec d'autres joueurs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xl font-bold">0</p>
+                    <p className="text-xs text-muted-foreground">Amis</p>
+                  </div>
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xl font-bold">0</p>
+                    <p className="text-xs text-muted-foreground">Invitations</p>
+                  </div>
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <p className="text-xl font-bold">0</p>
+                    <p className="text-xs text-muted-foreground">Parrainage</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start" onClick={() => toast({ title: 'Bientôt disponible', description: 'Le système d\'amis arrive bientôt.' })}>
+                    <User className="w-4 h-4 mr-2" />
+                    Trouver des amis
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start" onClick={() => toast({ title: 'Parrainage', description: 'Invitez vos amis et gagnez des coins !' })}>
+                    <span className="w-4 h-4 mr-2">🎁</span>
+                    Programme de parrainage
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Preferences Card */}
           <Card>
