@@ -196,6 +196,14 @@ const Profile = () => {
           </div>
           <p className="text-foreground text-base leading-normal flex-1 truncate">Aide et assistance</p>
         </button>
+        
+        <h3 className="text-foreground text-lg font-bold tracking-[-0.015em] px-4 pb-2 pt-4">Déconnexion</h3>
+        <button type="button" onClick={handleSignOut} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
+          <div className="text-destructive flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
+            <LogOut className="h-6 w-6" />
+          </div>
+          <p className="text-destructive text-base leading-normal flex-1 truncate">Se déconnecter</p>
+        </button>
       </div>
 
       <div className="container mx-auto px-4 pt-8 pb-20 hidden md:block">
