@@ -308,6 +308,57 @@ export const useGroups = () => {
     },
   });
 
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (groupId: string) => {
+      console.log('Deleting group:', groupId);
+      if (!user) throw new Error('User not authenticated');
+
+      // Check if user is admin
+      const { data: userRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userRole?.role !== 'admin') {
+        throw new Error('Seuls les administrateurs peuvent supprimer des groupes');
+      }
+
+      const { error } = await supabase
+        .from('groups')
+        .delete()
+        .eq('id', groupId);
+
+      if (error) {
+        console.error('Error deleting group:', error);
+        throw error;
+      }
+
+      console.log('Group deleted successfully');
+      return groupId;
+    },
+    onSuccess: (deletedGroupId) => {
+      // Remove group from cache
+      queryClient.setQueryData(['groups', user?.id], (old: Group[] | undefined) => {
+        return (old || []).filter(group => group.id !== deletedGroupId);
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      toast({
+        title: "Groupe supprimé",
+        description: "Le groupe a été supprimé avec succès !",
+      });
+    },
+    onError: (error) => {
+      console.error('Group deletion failed:', error);
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     groups: groups || [],
     isLoading,
@@ -316,5 +367,7 @@ export const useGroups = () => {
     isCreating: createGroupMutation.isPending,
     joinGroup: joinGroupMutation.mutate,
     isJoining: joinGroupMutation.isPending,
+    deleteGroup: deleteGroupMutation.mutate,
+    isDeleting: deleteGroupMutation.isPending,
   };
 };

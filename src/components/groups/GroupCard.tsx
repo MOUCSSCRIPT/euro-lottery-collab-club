@@ -5,11 +5,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Users, Dices, Trophy, Gamepad2, UserPlus, Clock } from 'lucide-react';
+import { Users, Dices, Trophy, Gamepad2, UserPlus, Clock, Trash2 } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
 import { useGroupMembers } from '@/hooks/useGroupMembers';
 import { useGroupBudgetData } from '@/hooks/useGroupBudgetData';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useAdminActions';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { DeadlineCountdown } from '@/components/ui/DeadlineCountdown';
 import { formatDeadline, isAfterDeadline } from '@/utils/playDeadlines';
@@ -33,8 +34,9 @@ const gameTypeIcons = {
 
 export const GroupCard = ({ group }: GroupCardProps) => {
   const navigate = useNavigate();
-  const { joinGroup } = useGroups();
+  const { joinGroup, deleteGroup, isDeleting } = useGroups();
   const { user } = useAuth();
+  const { data: userRole } = useUserRole();
   const { members, memberCount, currentUserMember, leaveGroup, isLeaving } = useGroupMembers(group.id);
   const { data: budgetData } = useGroupBudgetData(group.id);
 
@@ -51,6 +53,13 @@ export const GroupCard = ({ group }: GroupCardProps) => {
   const handleLeaveGroup = (groupId: string) => {
     console.log('Leaving group:', groupId);
     leaveGroup(groupId);
+  };
+
+  const handleDeleteGroup = (groupId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce groupe ? Cette action est irréversible.')) {
+      console.log('Deleting group:', groupId);
+      deleteGroup(groupId);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -86,9 +95,25 @@ export const GroupCard = ({ group }: GroupCardProps) => {
   const realTotalBudget = budgetData?.totalBudgetPlayed || 0;
   const isCreator = user?.id === group.created_by;
   const isMember = !!currentUserMember;
+  const isAdmin = userRole === 'admin';
 
   return (
-    <Card className="p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500">
+    <Card className="p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-blue-500 relative">
+      {isAdmin && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-2 right-2 h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteGroup(group.id);
+          }}
+          disabled={isDeleting}
+          title="Supprimer le groupe"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
           <h4 className="font-semibold text-lg mb-1">{group.name}</h4>
