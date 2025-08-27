@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, Calendar, Clock, Download } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -42,6 +42,7 @@ export const LotoFootMatchManager = () => {
   const [selectedDate, setSelectedDate] = useState<string>(
     format(new Date(), 'yyyy-MM-dd')
   );
+  const [selectedMatchCount, setSelectedMatchCount] = useState<number>(15);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<LotoFootMatch | null>(null);
   const [formData, setFormData] = useState<MatchFormData>({
@@ -56,26 +57,6 @@ export const LotoFootMatchManager = () => {
   });
 
   const queryClient = useQueryClient();
-
-  // Fetch ParionsSport matches mutation
-  const fetchParionsSportMutation = useMutation({
-    mutationFn: async (drawDate: string) => {
-      const { data, error } = await supabase.functions.invoke('fetch-parionssport-matches', {
-        body: { drawDate }
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
-      toast.success(data.message || 'Matchs récupérés avec succès');
-    },
-    onError: (error) => {
-      toast.error('Erreur lors de la récupération des matchs ParionsSport');
-      console.error(error);
-    },
-  });
 
   // Fetch matches for selected date
   const { data: matches, isLoading } = useQuery({
@@ -162,11 +143,18 @@ export const LotoFootMatchManager = () => {
   });
 
   const resetForm = () => {
+    // Find the next available position
+    const existingPositions = matches?.map(m => m.match_position) || [];
+    let nextPosition = 1;
+    while (existingPositions.includes(nextPosition) && nextPosition <= selectedMatchCount) {
+      nextPosition++;
+    }
+    
     setFormData({
       home_team: '',
       away_team: '',
       match_datetime: '',
-      match_position: (matches?.length || 0) + 1,
+      match_position: nextPosition,
       draw_date: selectedDate,
       home_odds: 2.50,
       draw_odds: 3.20,
@@ -217,22 +205,13 @@ export const LotoFootMatchManager = () => {
                 Créez et gérez les grilles de matchs pour le Loto Foot
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => fetchParionsSportMutation.mutate(selectedDate)}
-                disabled={fetchParionsSportMutation.isPending}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {fetchParionsSportMutation.isPending ? 'Récupération...' : 'Récupérer ParionsSport'}
-              </Button>
-              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={resetForm}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Ajouter manuellement
-                  </Button>
-                </DialogTrigger>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un match
+                </Button>
+              </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>Ajouter un nouveau match</DialogTitle>
@@ -246,28 +225,43 @@ export const LotoFootMatchManager = () => {
                     onSubmit={handleSubmit}
                     isLoading={addMatchMutation.isPending}
                     isEditing={false}
+                    selectedMatchCount={selectedMatchCount}
                   />
                 </DialogContent>
               </Dialog>
-            </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Label htmlFor="date-select">Date du tirage :</Label>
-              <Input
-                id="date-select"
-                type="date"
-                value={selectedDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                className="w-auto"
-              />
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="date-select">Date du tirage :</Label>
+                <Input
+                  id="date-select"
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className="w-auto"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="match-count-select">Nombre de matchs :</Label>
+                <Select value={selectedMatchCount.toString()} onValueChange={(value) => setSelectedMatchCount(parseInt(value))}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="12">12</SelectItem>
+                    <SelectItem value="14">14</SelectItem>
+                    <SelectItem value="15">15</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {isLoading ? (
               <div className="text-center py-8">Chargement des matchs...</div>
-            ) : matches && matches.length > 0 ? (
+            ) : matches && matches.length >= selectedMatchCount ? (
               <div className="space-y-3">
                 {matches.map((match) => (
                   <Card key={match.id} className="p-4">
@@ -309,7 +303,18 @@ export const LotoFootMatchManager = () => {
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                Aucun match configuré pour cette date
+                <p>
+                  {matches && matches.length > 0 
+                    ? `${matches.length}/${selectedMatchCount} matchs configurés` 
+                    : 'Aucun match configuré pour cette date'
+                  }
+                </p>
+                <p className="text-sm mt-2">
+                  {matches && matches.length > 0
+                    ? `Il manque ${selectedMatchCount - matches.length} matchs pour compléter la grille`
+                    : `Configurez ${selectedMatchCount} matchs pour cette grille`
+                  }
+                </p>
               </div>
             )}
           </div>
@@ -331,6 +336,7 @@ export const LotoFootMatchManager = () => {
             onSubmit={handleSubmit}
             isLoading={updateMatchMutation.isPending}
             isEditing={true}
+            selectedMatchCount={selectedMatchCount}
           />
         </DialogContent>
       </Dialog>
@@ -344,9 +350,10 @@ interface MatchFormProps {
   onSubmit: (e: React.FormEvent) => void;
   isLoading: boolean;
   isEditing: boolean;
+  selectedMatchCount: number;
 }
 
-const MatchForm = ({ formData, setFormData, onSubmit, isLoading, isEditing }: MatchFormProps) => {
+const MatchForm = ({ formData, setFormData, onSubmit, isLoading, isEditing, selectedMatchCount }: MatchFormProps) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
@@ -383,15 +390,18 @@ const MatchForm = ({ formData, setFormData, onSubmit, isLoading, isEditing }: Ma
         </div>
         <div>
           <Label htmlFor="match_position">Position</Label>
-          <Input
-            id="match_position"
-            type="number"
-            min="1"
-            max="15"
-            value={formData.match_position}
-            onChange={(e) => setFormData(prev => ({ ...prev, match_position: parseInt(e.target.value) }))}
-            required
-          />
+          <Select value={formData.match_position.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, match_position: parseInt(value) }))}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: selectedMatchCount }, (_, i) => i + 1).map((position) => (
+                <SelectItem key={position} value={position.toString()}>
+                  Match {position}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

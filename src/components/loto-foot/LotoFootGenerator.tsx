@@ -221,7 +221,7 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
 
   const calculation = calculateGridCosts(predictions);
   const isGridValid = isValidGrid(predictions);
-  const hasEnoughMatches = matches.length === 15;
+  const hasEnoughMatches = matches.length >= 12; // Au moins 12 matchs requis
 
   if (isLoading) {
     return (
@@ -323,7 +323,7 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
             </p>
             {matches.length > 0 && (
               <p className="text-sm text-muted-foreground mt-2">
-                {matches.length}/15 matchs disponibles
+                {matches.length} match{matches.length > 1 ? 's' : ''} disponible{matches.length > 1 ? 's' : ''} (minimum 12 requis)
               </p>
             )}
           </CardContent>
