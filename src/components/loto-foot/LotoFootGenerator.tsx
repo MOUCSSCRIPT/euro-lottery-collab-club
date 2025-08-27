@@ -8,7 +8,7 @@ import { Tables } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { isValidGrid, calculateGridCosts } from '@/utils/lotoFootCosts';
-import { generateSampleMatches } from '@/utils/lotoFootAlgorithms';
+
 import { Badge } from '@/components/ui/badge';
 import { useProfile } from '@/hooks/useProfile';
 import { useQueryClient } from '@tanstack/react-query';
@@ -50,7 +50,7 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
     try {
       setIsLoading(true);
       
-      // Try to load existing matches for the draw date
+      // Load existing matches for the draw date
       const { data: existingMatches, error } = await supabase
         .from('loto_foot_matches')
         .select('*')
@@ -59,12 +59,7 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
 
       if (error) throw error;
 
-      if (existingMatches && existingMatches.length === 15) {
-        setMatches(existingMatches as LotoFootMatch[]);
-      } else {
-        // Generate sample matches if none exist
-        await generateMatches();
-      }
+      setMatches((existingMatches as LotoFootMatch[]) || []);
     } catch (error) {
       console.error('Error loading matches:', error);
       toast({
@@ -77,29 +72,6 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
     }
   };
 
-  const generateMatches = async () => {
-    try {
-      const sampleMatches = generateSampleMatches(drawDate);
-      
-      const { data, error } = await supabase
-        .from('loto_foot_matches')
-        .insert(sampleMatches as any)
-        .select();
-
-      if (error) throw error;
-      
-      if (data) {
-        setMatches(data as LotoFootMatch[]);
-      }
-    } catch (error) {
-      console.error('Error generating matches:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de générer les matchs",
-        variant: "destructive"
-      });
-    }
-  };
 
   const handleGenerateGrid = async () => {
     if (!isValidGrid(predictions)) {
@@ -249,6 +221,7 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
 
   const calculation = calculateGridCosts(predictions);
   const isGridValid = isValidGrid(predictions);
+  const hasEnoughMatches = matches.length === 15;
 
   if (isLoading) {
     return (
@@ -289,52 +262,73 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
         </CardContent>
       </Card>
 
-      {/* Grid */}
-      <LotoFootGrid
-        matches={matches}
-        onPredictionsChange={setPredictions}
-        disabled={isGenerating}
-      />
+      {hasEnoughMatches ? (
+        <>
+          {/* Grid */}
+          <LotoFootGrid
+            matches={matches}
+            onPredictionsChange={setPredictions}
+            disabled={isGenerating}
+          />
 
-      {/* Generate Button (desktop) */}
-      <Card className="hidden md:block">
-        <CardContent className="pt-6">
-          <Button
-            onClick={handleGenerateGrid}
-            disabled={!isGridValid || isGenerating}
-            className="w-full h-12 text-base font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:animate-none disabled:hover:scale-100"
-            size="lg"
-          >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Génération en cours...
-              </>
-            ) : (
-              `Générer la grille (${calculation.totalCost} SuerteCoins)`
+          {/* Generate Button (desktop) */}
+          <Card className="hidden md:block">
+            <CardContent className="pt-6">
+              <Button
+                onClick={handleGenerateGrid}
+                disabled={!isGridValid || isGenerating}
+                className="w-full h-12 text-base font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl hover:scale-[1.02] animate-pulse-glow disabled:opacity-50 disabled:cursor-not-allowed disabled:animate-none disabled:hover:scale-100"
+                size="lg"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Génération en cours...
+                  </>
+                ) : (
+                  `Générer la grille (${calculation.totalCost} SuerteCoins)`
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Fixed bottom CTA (mobile) */}
+          <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background border-t border-border p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+            <Button
+              onClick={handleGenerateGrid}
+              disabled={!isGridValid || isGenerating}
+              className="w-full h-12 text-base font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              size="lg"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Génération en cours...
+                </>
+              ) : (
+                `Créer ma grille (${calculation.totalCost} SuerteCoins)`
+              )}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="text-muted-foreground mb-2">
+              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Matchs non disponibles</h3>
+            <p className="text-muted-foreground">
+              Les matchs pour ce tirage n'ont pas encore été configurés par l'administrateur.
+            </p>
+            {matches.length > 0 && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {matches.length}/15 matchs disponibles
+              </p>
             )}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Fixed bottom CTA (mobile) */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-background border-t border-border p-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-        <Button
-          onClick={handleGenerateGrid}
-          disabled={!isGridValid || isGenerating}
-          className="w-full h-12 text-base font-semibold transition-all duration-300 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          size="lg"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Génération en cours...
-            </>
-          ) : (
-            `Créer ma grille (${calculation.totalCost} SuerteCoins)`
-          )}
-        </Button>
-      </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
