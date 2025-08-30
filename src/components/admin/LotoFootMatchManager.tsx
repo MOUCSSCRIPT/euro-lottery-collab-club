@@ -282,10 +282,6 @@ export const LotoFootMatchManager = () => {
                         <div className="font-medium">
                           {match.home_team} vs {match.away_team}
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          {format(new Date(match.match_datetime), 'dd/MM/yyyy HH:mm', { locale: fr })}
-                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-xs text-muted-foreground">

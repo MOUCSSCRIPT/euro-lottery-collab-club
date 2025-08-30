@@ -45,7 +45,6 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
           <div className="text-sm font-medium truncate">
             {match.home_team} <span className="text-muted-foreground">vs</span> {match.away_team}
           </div>
-          <div className="text-xs text-muted-foreground">{time}</div>
         </div>
       </div>
       <ToggleGroup
