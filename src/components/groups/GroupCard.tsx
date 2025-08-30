@@ -205,7 +205,7 @@ export const GroupCard = ({ group }: GroupCardProps) => {
               <Button 
                 variant="outline" 
                 className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
-                onClick={() => navigate(`/admin?tab=loto-foot&date=${group.next_draw_date}`)}
+                onClick={() => navigate(`/admin?tab=loto-foot${group.next_draw_date ? `&date=${group.next_draw_date}` : ''}`)}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Ajouter des matchs

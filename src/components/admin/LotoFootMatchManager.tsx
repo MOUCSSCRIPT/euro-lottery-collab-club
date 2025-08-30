@@ -48,7 +48,7 @@ export const LotoFootMatchManager = () => {
 
   useEffect(() => {
     const dateParam = searchParams.get('date');
-    if (dateParam) {
+    if (dateParam && dateParam !== 'null' && dateParam !== 'undefined') {
       setSelectedDate(dateParam);
     }
   }, [searchParams]);
