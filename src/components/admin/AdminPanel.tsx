@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,6 +91,22 @@ export const AdminPanel = () => {
   const { data: profiles, isLoading } = useAllProfiles();
   const addCoinsMutation = useAddCoins();
   const setCoinsMutation = useSetCoins();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState('players');
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'loto-foot') {
+      setActiveTab('loto-foot');
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set('tab', value);
+    setSearchParams(newSearchParams);
+  };
 
   if (isLoading) {
     return (
@@ -122,7 +139,7 @@ export const AdminPanel = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="players" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="players" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />

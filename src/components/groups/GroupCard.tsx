@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Users, Dices, Trophy, Gamepad2, UserPlus, Clock, Trash2 } from 'lucide-react';
+import { Users, Dices, Trophy, Gamepad2, UserPlus, Clock, Trash2, Calendar, Plus } from 'lucide-react';
 import { useGroups } from '@/hooks/useGroups';
 import { useGroupMembers } from '@/hooks/useGroupMembers';
 import { useGroupBudgetData } from '@/hooks/useGroupBudgetData';
@@ -25,11 +25,13 @@ interface GroupCardProps {
 }
 
 const gameTypeLabels = {
-  'euromillions': 'EuroMillions'
+  'euromillions': 'EuroMillions',
+  'loto_foot': 'Loto Foot'
 };
 
 const gameTypeIcons = {
-  'euromillions': <Trophy className="h-4 w-4" />
+  'euromillions': <Trophy className="h-4 w-4" />,
+  'loto_foot': <Calendar className="h-4 w-4" />
 };
 
 export const GroupCard = ({ group }: GroupCardProps) => {
@@ -199,10 +201,21 @@ export const GroupCard = ({ group }: GroupCardProps) => {
         )}
         <div className="flex space-x-2">
           {group.status === 'closed' ? (
-            <div className="flex-1 text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <div className="text-orange-700 font-medium">Bientôt disponible</div>
-              <div className="text-xs text-orange-600">Ce groupe ouvrira prochainement</div>
-            </div>
+            group.game_type === 'loto_foot' && isAdmin ? (
+              <Button 
+                variant="outline" 
+                className="flex-1 border-blue-600 text-blue-600 hover:bg-blue-50"
+                onClick={() => navigate(`/admin?tab=loto-foot&date=${group.next_draw_date}`)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Ajouter des matchs
+              </Button>
+            ) : (
+              <div className="flex-1 text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="text-orange-700 font-medium">Bientôt disponible</div>
+                <div className="text-xs text-orange-600">Ce groupe ouvrira prochainement</div>
+              </div>
+            )
           ) : !isMember ? (
             <Button 
               variant="outline" 

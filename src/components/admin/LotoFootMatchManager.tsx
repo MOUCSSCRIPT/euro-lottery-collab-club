@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,10 +40,18 @@ interface MatchFormData {
 }
 
 export const LotoFootMatchManager = () => {
+  const [searchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState<string>(
     format(new Date(), 'yyyy-MM-dd')
   );
   const [selectedMatchCount, setSelectedMatchCount] = useState<number>(15);
+
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    if (dateParam) {
+      setSelectedDate(dateParam);
+    }
+  }, [searchParams]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<LotoFootMatch | null>(null);
   const [formData, setFormData] = useState<MatchFormData>({
