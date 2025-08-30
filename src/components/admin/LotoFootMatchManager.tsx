@@ -31,7 +31,6 @@ interface LotoFootMatch {
 interface MatchFormData {
   home_team: string;
   away_team: string;
-  match_datetime: string;
   match_position: number;
   draw_date: string;
   home_odds: number;
@@ -57,7 +56,6 @@ export const LotoFootMatchManager = () => {
   const [formData, setFormData] = useState<MatchFormData>({
     home_team: '',
     away_team: '',
-    match_datetime: '',
     match_position: 1,
     draw_date: selectedDate,
     home_odds: 2.50,
@@ -87,7 +85,7 @@ export const LotoFootMatchManager = () => {
     mutationFn: async (matchData: MatchFormData) => {
       const { data, error } = await supabase
         .from('loto_foot_matches')
-        .insert([matchData])
+        .insert([{ ...matchData, match_datetime: new Date().toISOString() }])
         .select()
         .single();
 
@@ -111,7 +109,7 @@ export const LotoFootMatchManager = () => {
     mutationFn: async ({ id, ...matchData }: MatchFormData & { id: string }) => {
       const { data, error } = await supabase
         .from('loto_foot_matches')
-        .update(matchData)
+        .update({ ...matchData, match_datetime: new Date().toISOString() })
         .eq('id', id)
         .select()
         .single();
@@ -162,7 +160,6 @@ export const LotoFootMatchManager = () => {
     setFormData({
       home_team: '',
       away_team: '',
-      match_datetime: '',
       match_position: nextPosition,
       draw_date: selectedDate,
       home_odds: 2.50,
@@ -186,7 +183,6 @@ export const LotoFootMatchManager = () => {
     setFormData({
       home_team: match.home_team,
       away_team: match.away_team,
-      match_datetime: match.match_datetime,
       match_position: match.match_position,
       draw_date: match.draw_date,
       home_odds: match.home_odds,
@@ -382,32 +378,20 @@ const MatchForm = ({ formData, setFormData, onSubmit, isLoading, isEditing, sele
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="match_datetime">Date et heure</Label>
-          <Input
-            id="match_datetime"
-            type="datetime-local"
-            value={formData.match_datetime}
-            onChange={(e) => setFormData(prev => ({ ...prev, match_datetime: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="match_position">Position</Label>
-          <Select value={formData.match_position.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, match_position: parseInt(value) }))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: selectedMatchCount }, (_, i) => i + 1).map((position) => (
-                <SelectItem key={position} value={position.toString()}>
-                  Match {position}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div>
+        <Label htmlFor="match_position">Position</Label>
+        <Select value={formData.match_position.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, match_position: parseInt(value) }))}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.from({ length: selectedMatchCount }, (_, i) => i + 1).map((position) => (
+              <SelectItem key={position} value={position.toString()}>
+                Match {position}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
