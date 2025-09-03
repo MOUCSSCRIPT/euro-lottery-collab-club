@@ -6,38 +6,6 @@ import { useQueryClient } from '@tanstack/react-query';
 export const useCoinPurchase = () => {
   const queryClient = useQueryClient();
 
-  const verifyPayPalPurchase = useCallback(async (paypalToken: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('verify-coin-purchase-paypal', {
-        body: { orderId: paypalToken }
-      });
-
-      if (error) throw error;
-
-      if (data?.success) {
-        toast({
-          title: "Achat confirmé !",
-          description: data.message,
-        });
-        // Refresh profile data
-        queryClient.invalidateQueries({ queryKey: ['profile'] });
-      } else {
-        toast({
-          title: "Vérification échouée",
-          description: data?.message || "Impossible de vérifier le paiement PayPal.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error('Error verifying PayPal purchase:', error);
-      toast({
-        title: "Erreur de vérification",
-        description: "Impossible de vérifier le paiement PayPal.",
-        variant: "destructive",
-      });
-    }
-  }, [queryClient]);
-
   const verifyPurchase = useCallback(async (sessionId: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('verify-coin-purchase', {
@@ -74,30 +42,22 @@ export const useCoinPurchase = () => {
     // Check for purchase result in URL
     const urlParams = new URLSearchParams(window.location.search);
     const purchaseStatus = urlParams.get('purchase');
-    const provider = urlParams.get('provider');
     
-    if (purchaseStatus === 'success' && provider === 'paypal') {
-      // Get PayPal token from URL if available
-      const paypalToken = urlParams.get('token');
-      
-      if (paypalToken) {
-        verifyPayPalPurchase(paypalToken);
-      } else {
-        toast({
-          title: "Achat réussi !",
-          description: "Vos SuerteCoins ont été ajoutés à votre compte.",
-        });
-        // Refresh profile data
-        queryClient.invalidateQueries({ queryKey: ['profile'] });
-      }
+    if (purchaseStatus === 'success') {
+      toast({
+        title: "Achat réussi !",
+        description: "Vos SuerteCoins ont été ajoutés à votre compte.",
+      });
+      // Refresh profile data
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       
       // Clean URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
-    } else if (purchaseStatus === 'cancelled' && provider === 'paypal') {
+    } else if (purchaseStatus === 'cancelled') {
       toast({
         title: "Achat annulé",
-        description: "Votre achat PayPal a été annulé.",
+        description: "Votre achat a été annulé.",
         variant: "destructive",
       });
       
@@ -105,7 +65,7 @@ export const useCoinPurchase = () => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [queryClient, verifyPayPalPurchase]);
+  }, [queryClient]);
 
-  return { verifyPurchase, verifyPayPalPurchase };
+  return { verifyPurchase };
 };
