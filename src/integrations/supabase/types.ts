@@ -547,6 +547,84 @@ export type Database = {
           },
         ]
       }
+      user_grids: {
+        Row: {
+          cost: number
+          created_at: string
+          draw_date: string | null
+          grid_number: number | null
+          id: string
+          is_active: boolean | null
+          numbers: number[]
+          player_name: string | null
+          stars: number[]
+          user_id: string
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          draw_date?: string | null
+          grid_number?: number | null
+          id?: string
+          is_active?: boolean | null
+          numbers: number[]
+          player_name?: string | null
+          stars: number[]
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          draw_date?: string | null
+          grid_number?: number | null
+          id?: string
+          is_active?: boolean | null
+          numbers?: number[]
+          player_name?: string | null
+          stars?: number[]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_loto_foot_grids: {
+        Row: {
+          cost: number
+          created_at: string
+          draw_date: string
+          id: string
+          is_active: boolean | null
+          player_name: string | null
+          potential_winnings: number
+          predictions: Json
+          stake: number
+          user_id: string
+        }
+        Insert: {
+          cost: number
+          created_at?: string
+          draw_date: string
+          id?: string
+          is_active?: boolean | null
+          player_name?: string | null
+          potential_winnings?: number
+          predictions: Json
+          stake?: number
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          draw_date?: string
+          id?: string
+          is_active?: boolean | null
+          player_name?: string | null
+          potential_winnings?: number
+          predictions?: Json
+          stake?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Header } from '@/components/Header';
-import { GroupsSection } from '@/components/GroupsSection';
 import { GameSelector } from '@/components/grids/GameSelector';
+import { EuromillionsQuickPlay } from '@/components/euromillions/EuromillionsQuickPlay';
+import { LotoFootQuickPlay } from '@/components/loto-foot/LotoFootQuickPlay';
 import { Database } from '@/integrations/supabase/types';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Settings } from 'lucide-react';
+
 type GameType = Database['public']['Enums']['game_type'];
 
 const Games = () => {
@@ -12,12 +14,12 @@ const Games = () => {
 
   const gameInfo = {
     euromillions: {
-      title: "Bienvenue dans l'univers EuroMillions",
-      description: ""
+      title: "Jeu Rapide EuroMillions",
+      description: "Créez vos grilles EuroMillions en quelques clics"
     },
     loto_foot: {
-      title: "Découvrez le Loto Foot 15",
-      description: ""
+      title: "Jeu Rapide Loto Foot 15",
+      description: "Faites vos pronostics sur 15 matchs de football"
     }
   };
 
@@ -25,6 +27,7 @@ const Games = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 pb-20">
       <div className="hidden md:block"><Header /></div>
       <div className="md:hidden"><MobileHeader title="Jeux" rightIcon={Settings} /></div>
+      
       <div className="py-8">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
@@ -42,6 +45,10 @@ const Games = () => {
               onGameSelect={setSelectedGame}
             />
           </div>
+
+          {/* Quick Play Components */}
+          {selectedGame === 'euromillions' && <EuromillionsQuickPlay />}
+          {selectedGame === 'loto_foot' && <LotoFootQuickPlay />}
         </div>
       </div>
     </div>

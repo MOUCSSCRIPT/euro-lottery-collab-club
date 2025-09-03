@@ -2,78 +2,52 @@ import { Database } from '@/integrations/supabase/types';
 
 type GameType = Database['public']['Enums']['game_type'];
 
-export function getNextPlayDeadline(gameType: GameType): Date {
+export function getPlayDeadline(gameType: GameType): Date | null {
   const now = new Date();
-  const nextDrawDate = getNextDrawDate(gameType);
-  
-  // EuroMillions deadline is 20:15 CET on draw day
-  const deadline = new Date(nextDrawDate);
-  deadline.setHours(20, 15, 0, 0);
-  
-  return deadline;
-}
-
-export function getNextDrawDate(gameType: GameType): Date {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  
-  let daysUntilNextDraw;
+  const dayOfWeek = now.getDay();
+  const hour = now.getHours();
+  const minute = now.getMinutes();
   
   switch (gameType) {
     case 'euromillions':
-      // Euromillions draws: Tuesday (2) and Friday (5)
-      if (dayOfWeek < 2) {
-        daysUntilNextDraw = 2 - dayOfWeek;
-      } else if (dayOfWeek < 5) {
-        daysUntilNextDraw = 5 - dayOfWeek;
+      // Euromillions draws: Tuesday (2) at 20:30 and Friday (5) at 20:30
+      let deadline = new Date();
+      
+      if (dayOfWeek < 2 || (dayOfWeek === 2 && (hour < 20 || (hour === 20 && minute < 30)))) {
+        // Next Tuesday at 20:30
+        deadline.setDate(now.getDate() + (2 - dayOfWeek));
+        deadline.setHours(20, 30, 0, 0);
+      } else if (dayOfWeek < 5 || (dayOfWeek === 5 && (hour < 20 || (hour === 20 && minute < 30)))) {
+        // Next Friday at 20:30
+        deadline.setDate(now.getDate() + (5 - dayOfWeek));
+        deadline.setHours(20, 30, 0, 0);
       } else {
-        daysUntilNextDraw = 7 - dayOfWeek + 2; // Next Tuesday
+        // Next Tuesday at 20:30
+        deadline.setDate(now.getDate() + (7 - dayOfWeek + 2));
+        deadline.setHours(20, 30, 0, 0);
       }
-      break;
+      
+      return deadline;
+      
+    case 'loto_foot':
+      // Loto Foot usually has deadlines on Sunday evening
+      let lotoDeadline = new Date();
+      
+      if (dayOfWeek === 0) { // Sunday
+        if (hour >= 19) {
+          // Next Sunday at 19:00
+          lotoDeadline.setDate(now.getDate() + 7);
+        }
+        lotoDeadline.setHours(19, 0, 0, 0);
+      } else {
+        // Next Sunday at 19:00
+        lotoDeadline.setDate(now.getDate() + (7 - dayOfWeek));
+        lotoDeadline.setHours(19, 0, 0, 0);
+      }
+      
+      return lotoDeadline;
+      
     default:
-      daysUntilNextDraw = 1; // Default to tomorrow
+      return null;
   }
-  
-  const nextDraw = new Date(today);
-  nextDraw.setDate(today.getDate() + daysUntilNextDraw);
-  
-  return nextDraw;
-}
-
-export function isAfterDeadline(deadline: string | Date | null): boolean {
-  if (!deadline) return false;
-  return new Date() > new Date(deadline);
-}
-
-export function formatDeadline(deadline: string | Date | null): string {
-  if (!deadline) return '';
-  return new Date(deadline).toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long', 
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
-
-export function getTimeUntilDeadline(deadline: string | Date | null): {
-  hours: number;
-  minutes: number;
-  isExpired: boolean;
-} {
-  if (!deadline) return { hours: 0, minutes: 0, isExpired: true };
-  
-  const now = new Date();
-  const deadlineDate = new Date(deadline);
-  const diffMs = deadlineDate.getTime() - now.getTime();
-  
-  if (diffMs <= 0) {
-    return { hours: 0, minutes: 0, isExpired: true };
-  }
-  
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
-  return { hours, minutes, isExpired: false };
 }
