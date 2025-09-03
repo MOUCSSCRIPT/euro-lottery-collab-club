@@ -92,11 +92,14 @@ export const AdminPanel = () => {
   const addCoinsMutation = useAddCoins();
   const setCoinsMutation = useSetCoins();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState('players');
+  const [activeTab, setActiveTab] = useState('loto-foot'); // Default to loto-foot
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'loto-foot') {
+    if (tabParam === 'players') {
+      setActiveTab('players');
+    } else {
+      // Default to loto-foot if no tab or loto-foot tab
       setActiveTab('loto-foot');
     }
   }, [searchParams]);
@@ -135,7 +138,7 @@ export const AdminPanel = () => {
             Panneau d'Administration
           </CardTitle>
           <CardDescription>
-            Gérez les jeux, les joueurs et leurs soldes
+            Administration — Gestion Loto Foot et Joueurs
           </CardDescription>
         </CardHeader>
         <CardContent>

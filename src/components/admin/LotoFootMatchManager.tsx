@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Clock, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -33,6 +33,7 @@ interface MatchFormData {
   away_team: string;
   match_position: number;
   draw_date: string;
+  match_datetime: string;
   home_odds: number;
   draw_odds: number;
   away_odds: number;
@@ -58,6 +59,7 @@ export const LotoFootMatchManager = () => {
     away_team: '',
     match_position: 1,
     draw_date: selectedDate,
+    match_datetime: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm'),
     home_odds: 2.50,
     draw_odds: 3.20,
     away_odds: 2.80
@@ -80,12 +82,32 @@ export const LotoFootMatchManager = () => {
     },
   });
 
+  // Import ParionsSport matches mutation
+  const importMatchesMutation = useMutation({
+    mutationFn: async (drawDate: string) => {
+      const { data, error } = await supabase.functions.invoke('fetch-parionssport-matches', {
+        body: { drawDate }
+      });
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
+      toast.success('Matchs ParionsSport importés avec succès');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de l\'import des matchs ParionsSport');
+      console.error(error);
+    },
+  });
+
   // Add match mutation
   const addMatchMutation = useMutation({
     mutationFn: async (matchData: MatchFormData) => {
       const { data, error } = await supabase
         .from('loto_foot_matches')
-        .insert([{ ...matchData, match_datetime: new Date().toISOString() }])
+        .insert([{ ...matchData, match_datetime: new Date(matchData.match_datetime).toISOString() }])
         .select()
         .single();
 
@@ -109,7 +131,7 @@ export const LotoFootMatchManager = () => {
     mutationFn: async ({ id, ...matchData }: MatchFormData & { id: string }) => {
       const { data, error } = await supabase
         .from('loto_foot_matches')
-        .update({ ...matchData, match_datetime: new Date().toISOString() })
+        .update({ ...matchData, match_datetime: new Date(matchData.match_datetime).toISOString() })
         .eq('id', id)
         .select()
         .single();
@@ -162,6 +184,7 @@ export const LotoFootMatchManager = () => {
       away_team: '',
       match_position: nextPosition,
       draw_date: selectedDate,
+      match_datetime: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm'),
       home_odds: 2.50,
       draw_odds: 3.20,
       away_odds: 2.80
@@ -185,6 +208,7 @@ export const LotoFootMatchManager = () => {
       away_team: match.away_team,
       match_position: match.match_position,
       draw_date: match.draw_date,
+      match_datetime: format(new Date(match.match_datetime), 'yyyy-MM-dd\'T\'HH:mm'),
       home_odds: match.home_odds,
       draw_odds: match.draw_odds,
       away_odds: match.away_odds
@@ -194,6 +218,10 @@ export const LotoFootMatchManager = () => {
   const handleDateChange = (date: string) => {
     setSelectedDate(date);
     setFormData(prev => ({ ...prev, draw_date: date }));
+  };
+
+  const handleImportMatches = () => {
+    importMatchesMutation.mutate(selectedDate);
   };
 
   return (
@@ -262,6 +290,15 @@ export const LotoFootMatchManager = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <Button 
+                onClick={handleImportMatches}
+                disabled={importMatchesMutation.isPending}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {importMatchesMutation.isPending ? 'Import...' : 'Importer ParionsSport'}
+              </Button>
             </div>
 
             {isLoading ? (
@@ -277,6 +314,10 @@ export const LotoFootMatchManager = () => {
                         </Badge>
                         <div className="font-medium">
                           {match.home_team} vs {match.away_team}
+                        </div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {format(new Date(match.match_datetime), 'dd/MM HH:mm', { locale: fr })}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -376,6 +417,17 @@ const MatchForm = ({ formData, setFormData, onSubmit, isLoading, isEditing, sele
             required
           />
         </div>
+      </div>
+
+      <div>
+        <Label htmlFor="match_datetime">Date et heure du match</Label>
+        <Input
+          id="match_datetime"
+          type="datetime-local"
+          value={formData.match_datetime}
+          onChange={(e) => setFormData(prev => ({ ...prev, match_datetime: e.target.value }))}
+          required
+        />
       </div>
 
       <div>

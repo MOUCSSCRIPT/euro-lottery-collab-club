@@ -67,7 +67,7 @@ export const Header = () => {
                   <Menu className="h-6 w-6" />
                 </Button>
               </div>
-              {user && profile && (
+              {user && profile && userRole !== 'admin' && (
                 <SuerteCoinsDisplay 
                   amount={profile.coins} 
                   size="sm" 
@@ -83,26 +83,26 @@ export const Header = () => {
                 <Link to="/" className="text-foreground hover:text-blue-600 transition-colors">
                   Accueil
                 </Link>
-                <Link to="/games" className="text-foreground hover:text-blue-600 transition-colors">
-                  Jeux
-                </Link>
-                {userRole === 'admin' ? (
-                  <Link to="/groups" className="text-foreground hover:text-blue-600 transition-colors">
-                    Groupes
+                {userRole !== 'admin' && (
+                  <Link to="/games" className="text-foreground hover:text-blue-600 transition-colors">
+                    Jeux
                   </Link>
-                ) : (
+                )}
+                {userRole !== 'admin' && (
                   <Link to="/stats" className="text-foreground hover:text-blue-600 transition-colors flex items-center gap-1">
                     <BarChart3 className="h-4 w-4" />
                     Statistiques
                   </Link>
                 )}
                 {userRole === 'admin' && (
-                  <button
-                    onClick={() => navigate('/admin')}
-                    className="text-yellow-600 hover:text-yellow-700 transition-colors font-medium"
-                  >
-                    Admin
-                  </button>
+                  <>
+                    <Link to="/admin" className="text-yellow-600 hover:text-yellow-700 transition-colors font-medium">
+                      Administration
+                    </Link>
+                    <Link to="/admin?tab=loto-foot" className="text-foreground hover:text-blue-600 transition-colors">
+                      Loto Foot
+                    </Link>
+                  </>
                 )}
                 {user ? (
                   <UserMenu />
@@ -117,7 +117,7 @@ export const Header = () => {
                   )
                 )}
               </nav>
-              {user && profile && (
+              {user && profile && userRole !== 'admin' && (
                 <SuerteCoinsDisplay 
                   amount={profile.coins} 
                   size="sm" 

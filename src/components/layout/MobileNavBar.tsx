@@ -8,7 +8,26 @@ export const MobileNavBar = () => {
   const location = useLocation();
   const { data: userRole } = useUserRole();
   
-  const navItems = [
+  const navItems = userRole === 'admin' ? [
+    {
+      href: '/',
+      icon: Home,
+      label: 'Accueil',
+      isActive: location.pathname === '/',
+    },
+    {
+      href: '/admin',
+      icon: Users,
+      label: 'Admin',
+      isActive: location.pathname === '/admin',
+    },
+    {
+      href: '/profile',
+      icon: User,
+      label: 'Profil',
+      isActive: location.pathname === '/profile',
+    },
+  ] : [
     {
       href: '/',
       icon: Home,

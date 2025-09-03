@@ -4,16 +4,23 @@ import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { GridGeneratorWithGameSelector } from '@/components/grids/GridGeneratorWithGameSelector';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import { Database } from '@/integrations/supabase/types';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+import { useUserRole } from '@/hooks/useAdminActions';
 
 type GameType = Database['public']['Enums']['game_type'];
 
 const Index = () => {
   const { user } = useAuth();
+  const { data: userRole } = useUserRole();
   const [searchParams] = useSearchParams();
   const gameParam = searchParams.get('game') as GameType;
+
+  // Redirect admins to admin panel
+  if (user && userRole === 'admin') {
+    return <Navigate to="/admin?tab=loto-foot" replace />;
+  }
 
   // Create a default public group for direct grid access
   const defaultGroup = {

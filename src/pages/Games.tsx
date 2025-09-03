@@ -6,11 +6,19 @@ import { LotoFootQuickPlay } from '@/components/loto-foot/LotoFootQuickPlay';
 import { Database } from '@/integrations/supabase/types';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Settings } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useAdminActions';
 
 type GameType = Database['public']['Enums']['game_type'];
 
 const Games = () => {
+  const { data: userRole } = useUserRole();
   const [selectedGame, setSelectedGame] = useState<GameType>('euromillions');
+
+  // Redirect admins to admin panel
+  if (userRole === 'admin') {
+    return <Navigate to="/admin?tab=loto-foot" replace />;
+  }
 
   const gameInfo = {
     euromillions: {
