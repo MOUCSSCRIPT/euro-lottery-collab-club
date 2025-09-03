@@ -51,3 +51,45 @@ export function getPlayDeadline(gameType: GameType): Date | null {
       return null;
   }
 }
+
+// Legacy function compatibility
+export function getNextPlayDeadline(gameType: GameType): Date {
+  return getPlayDeadline(gameType) || new Date();
+}
+
+export function formatDeadline(deadline: string | Date): string {
+  const date = typeof deadline === 'string' ? new Date(deadline) : deadline;
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+export function isAfterDeadline(deadline: string | Date | null): boolean {
+  if (!deadline) return false;
+  const date = typeof deadline === 'string' ? new Date(deadline) : deadline;
+  return new Date() > date;
+}
+
+export function getTimeUntilDeadline(deadline: string | Date | null): {
+  hours: number;
+  minutes: number;
+  isExpired: boolean;
+} {
+  if (!deadline) return { hours: 0, minutes: 0, isExpired: true };
+  
+  const date = typeof deadline === 'string' ? new Date(deadline) : deadline;
+  const now = new Date();
+  const diff = date.getTime() - now.getTime();
+  
+  if (diff <= 0) {
+    return { hours: 0, minutes: 0, isExpired: true };
+  }
+  
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  
+  return { hours, minutes, isExpired: false };
+}

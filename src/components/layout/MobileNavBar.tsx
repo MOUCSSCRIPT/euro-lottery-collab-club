@@ -21,12 +21,7 @@ export const MobileNavBar = () => {
       label: 'Jeux',
       isActive: location.pathname === '/games',
     },
-    userRole === 'admin' ? {
-      href: '/groups',
-      icon: Users,
-      label: 'Groupes',
-      isActive: location.pathname === '/groups',
-    } : {
+    {
       href: '/stats',
       icon: BarChart3,
       label: 'Stats',
