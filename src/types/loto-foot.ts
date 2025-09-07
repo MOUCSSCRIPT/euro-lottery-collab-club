@@ -4,9 +4,6 @@ export interface LotoFootMatch {
   match_position: number;
   home_team: string;
   away_team: string;
-  home_odds: number;
-  draw_odds: number;
-  away_odds: number;
   match_datetime: string;
   status: 'scheduled' | 'live' | 'finished';
   result?: '1' | 'X' | '2';

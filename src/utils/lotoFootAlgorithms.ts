@@ -1,36 +1,6 @@
 import { LotoFootMatch, LotoFootPrediction, PredictionType } from '@/types/loto-foot';
 
 /**
- * Dynamic odds calculation algorithm based on team statistics
- */
-export function calculateDynamicOdds(
-  homeTeam: string,
-  awayTeam: string,
-  matchDate: Date
-): { home_odds: number; draw_odds: number; away_odds: number } {
-  // Base probabilities (simplified algorithm)
-  const homeAdvantage = 0.45; // Home team advantage
-  const drawProbability = 0.25;
-  const awayProbability = 0.30;
-  
-  // Apply random variations to simulate real market conditions
-  const variation = 0.1;
-  const homeProb = homeAdvantage + (Math.random() - 0.5) * variation;
-  const drawProb = drawProbability + (Math.random() - 0.5) * variation;
-  const awayProb = 1 - homeProb - drawProb;
-  
-  // Convert probabilities to odds (with bookmaker margin)
-  const margin = 0.05; // 5% margin
-  const factor = 1 - margin;
-  
-  return {
-    home_odds: Math.round((factor / homeProb) * 100) / 100,
-    draw_odds: Math.round((factor / drawProb) * 100) / 100,
-    away_odds: Math.round((factor / awayProb) * 100) / 100
-  };
-}
-
-/**
  * Generate optimized grid combinations
  */
 export function generateOptimizedGrids(
@@ -40,35 +10,27 @@ export function generateOptimizedGrids(
 ): LotoFootPrediction[] {
   const predictions: LotoFootPrediction[] = [];
   
-  matches.forEach(match => {
-    const odds = [match.home_odds, match.draw_odds, match.away_odds];
-    const minOddsIndex = odds.indexOf(Math.min(...odds));
-    
+  matches.forEach((match, index) => {
+    // Utilise une stratégie basée sur la position du match et la stratégie choisie
     let selectedPredictions: PredictionType[] = [];
     
     switch (strategy) {
       case 'conservative':
-        // Pick most likely outcome
-        selectedPredictions = [['1', 'X', '2'][minOddsIndex] as PredictionType];
+        // Stratégie conservatrice : favorise le match nul et les équipes à domicile
+        selectedPredictions = index % 3 === 0 ? ['X'] : index % 2 === 0 ? ['1'] : ['2'];
         break;
-        
       case 'balanced':
-        // Pick 2 most likely outcomes
-        const sortedIndices = odds
-          .map((odd, index) => ({ odd, index }))
-          .sort((a, b) => a.odd - b.odd)
-          .slice(0, 2)
-          .map(item => item.index);
-        selectedPredictions = sortedIndices.map(i => ['1', 'X', '2'][i] as PredictionType);
+        // Stratégie équilibrée : alterne entre différentes prédictions
+        if (index % 4 === 0) selectedPredictions = ['1', 'X'];
+        else if (index % 4 === 1) selectedPredictions = ['X', '2'];
+        else if (index % 4 === 2) selectedPredictions = ['1', '2'];
+        else selectedPredictions = ['1'];
         break;
-        
       case 'aggressive':
-        // Pick all outcomes for high-odds matches
-        if (Math.min(...odds) > 2.0) {
-          selectedPredictions = ['1', 'X', '2'];
-        } else {
-          selectedPredictions = [['1', 'X', '2'][minOddsIndex] as PredictionType];
-        }
+        // Stratégie agressive : plus de combinaisons possibles
+        if (index % 3 === 0) selectedPredictions = ['1', 'X', '2'];
+        else if (index % 3 === 1) selectedPredictions = ['1', '2'];
+        else selectedPredictions = ['X', '2'];
         break;
     }
     
@@ -119,13 +81,11 @@ export function generateSampleMatches(drawDate: string): Partial<LotoFootMatch>[
   ];
   
   return teams.map(([home, away], index) => {
-    const odds = calculateDynamicOdds(home, away, new Date(drawDate));
     return {
       draw_date: drawDate,
       match_position: index + 1,
       home_team: home,
       away_team: away,
-      ...odds,
       match_datetime: new Date(drawDate).toISOString(),
       status: 'scheduled' as const
     };

@@ -25,7 +25,7 @@ export const LotoFootMatchCard = ({
     });
   };
 
-  const getPredictionButton = (type: PredictionType, odds: number) => {
+  const getPredictionButton = (type: PredictionType) => {
     const isSelected = selectedPredictions.includes(type);
     
     const getVariantClasses = () => {
@@ -53,7 +53,6 @@ export const LotoFootMatchCard = ({
         disabled={disabled}
       >
         <span className="text-sm font-bold">{type}</span>
-        <span className="text-[10px] opacity-75">{odds.toFixed(2)}</span>
       </Button>
     );
   };
@@ -75,9 +74,9 @@ export const LotoFootMatchCard = ({
       </div>
 
       <div className="flex gap-1">
-        {getPredictionButton('1', match.home_odds)}
-        {getPredictionButton('X', match.draw_odds)}
-        {getPredictionButton('2', match.away_odds)}
+        {getPredictionButton('1')}
+        {getPredictionButton('X')}
+        {getPredictionButton('2')}
       </div>
 
       {match.result && (

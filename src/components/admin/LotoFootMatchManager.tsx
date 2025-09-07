@@ -21,9 +21,6 @@ interface LotoFootMatch {
   match_datetime: string;
   match_position: number;
   draw_date: string;
-  home_odds: number;
-  draw_odds: number;
-  away_odds: number;
   status: string;
   result?: string;
 }
@@ -34,9 +31,16 @@ interface MatchFormData {
   match_position: number;
   draw_date: string;
   match_datetime: string;
-  home_odds: number;
-  draw_odds: number;
-  away_odds: number;
+}
+
+interface BulkMatchData {
+  draw_date: string;
+  match_datetime: string;
+  matches: Array<{
+    home_team: string;
+    away_team: string;
+    match_position: number;
+  }>;
 }
 
 export const LotoFootMatchManager = () => {
@@ -53,16 +57,23 @@ export const LotoFootMatchManager = () => {
     }
   }, [searchParams]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isBulkAddDialogOpen, setIsBulkAddDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<LotoFootMatch | null>(null);
   const [formData, setFormData] = useState<MatchFormData>({
     home_team: '',
     away_team: '',
     match_position: 1,
     draw_date: selectedDate,
+    match_datetime: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm')
+  });
+  const [bulkFormData, setBulkFormData] = useState<BulkMatchData>({
+    draw_date: selectedDate,
     match_datetime: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm'),
-    home_odds: 2.50,
-    draw_odds: 3.20,
-    away_odds: 2.80
+    matches: Array.from({ length: selectedMatchCount }, (_, i) => ({
+      home_team: '',
+      away_team: '',
+      match_position: i + 1
+    }))
   });
 
   const queryClient = useQueryClient();
@@ -103,6 +114,36 @@ export const LotoFootMatchManager = () => {
     },
     onError: (error) => {
       toast.error('Erreur lors de l\'ajout du match');
+      console.error(error);
+    },
+  });
+
+  // Bulk add matches mutation
+  const bulkAddMatchesMutation = useMutation({
+    mutationFn: async (bulkData: BulkMatchData) => {
+      const matchesToInsert = bulkData.matches.map(match => ({
+        ...match,
+        draw_date: bulkData.draw_date,
+        match_datetime: new Date(bulkData.match_datetime).toISOString(),
+        status: 'scheduled'
+      }));
+
+      const { data, error } = await supabase
+        .from('loto_foot_matches')
+        .insert(matchesToInsert)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
+      toast.success(`${data.length} matchs ajoutés avec succès`);
+      setIsBulkAddDialogOpen(false);
+      resetBulkForm();
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de l\'ajout des matchs');
       console.error(error);
     },
   });
@@ -165,10 +206,19 @@ export const LotoFootMatchManager = () => {
       away_team: '',
       match_position: nextPosition,
       draw_date: selectedDate,
+      match_datetime: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm')
+    });
+  };
+
+  const resetBulkForm = () => {
+    setBulkFormData({
+      draw_date: selectedDate,
       match_datetime: format(new Date(), 'yyyy-MM-dd\'T\'HH:mm'),
-      home_odds: 2.50,
-      draw_odds: 3.20,
-      away_odds: 2.80
+      matches: Array.from({ length: selectedMatchCount }, (_, i) => ({
+        home_team: '',
+        away_team: '',
+        match_position: i + 1
+      }))
     });
   };
 
@@ -189,17 +239,49 @@ export const LotoFootMatchManager = () => {
       away_team: match.away_team,
       match_position: match.match_position,
       draw_date: match.draw_date,
-      match_datetime: format(new Date(match.match_datetime), 'yyyy-MM-dd\'T\'HH:mm'),
-      home_odds: match.home_odds,
-      draw_odds: match.draw_odds,
-      away_odds: match.away_odds
+      match_datetime: format(new Date(match.match_datetime), 'yyyy-MM-dd\'T\'HH:mm')
+    });
+  };
+
+  const handleBulkSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Vérifier que tous les matchs ont au moins les équipes renseignées
+    const validMatches = bulkFormData.matches.filter(
+      match => match.home_team.trim() && match.away_team.trim()
+    );
+    
+    if (validMatches.length === 0) {
+      toast.error('Veuillez renseigner au moins un match complet');
+      return;
+    }
+    
+    bulkAddMatchesMutation.mutate({
+      ...bulkFormData,
+      matches: validMatches
     });
   };
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date);
     setFormData(prev => ({ ...prev, draw_date: date }));
+    setBulkFormData(prev => ({ ...prev, draw_date: date }));
   };
+
+  // Update bulk form when match count changes
+  React.useEffect(() => {
+    setBulkFormData(prev => ({
+      ...prev,
+      matches: Array.from({ length: selectedMatchCount }, (_, i) => {
+        const existingMatch = prev.matches[i];
+        return existingMatch || {
+          home_team: '',
+          away_team: '',
+          match_position: i + 1
+        };
+      })
+    }));
+  }, [selectedMatchCount]);
 
 
   return (
@@ -216,13 +298,38 @@ export const LotoFootMatchManager = () => {
                 Créez et gérez les grilles de matchs pour le Loto Foot
               </CardDescription>
             </div>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={resetForm}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un match
-                </Button>
-              </DialogTrigger>
+            <div className="flex gap-2">
+              <Dialog open={isBulkAddDialogOpen} onOpenChange={setIsBulkAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={resetBulkForm}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter tous les matchs
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Ajouter tous les matchs</DialogTitle>
+                    <DialogDescription>
+                      Renseignez tous les matchs pour la date sélectionnée
+                    </DialogDescription>
+                  </DialogHeader>
+                  <BulkMatchForm
+                    bulkFormData={bulkFormData}
+                    setBulkFormData={setBulkFormData}
+                    onSubmit={handleBulkSubmit}
+                    isLoading={bulkAddMatchesMutation.isPending}
+                    selectedMatchCount={selectedMatchCount}
+                  />
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" onClick={resetForm}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Ajouter un match
+                  </Button>
+                </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
                     <DialogTitle>Ajouter un nouveau match</DialogTitle>
@@ -240,6 +347,7 @@ export const LotoFootMatchManager = () => {
                   />
                 </DialogContent>
               </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -290,9 +398,6 @@ export const LotoFootMatchManager = () => {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          Cotes: {match.home_odds} - {match.draw_odds} - {match.away_odds}
-                        </div>
                         <Button
                           variant="outline"
                           size="sm"
@@ -364,6 +469,14 @@ interface MatchFormProps {
   selectedMatchCount: number;
 }
 
+interface BulkMatchFormProps {
+  bulkFormData: BulkMatchData;
+  setBulkFormData: React.Dispatch<React.SetStateAction<BulkMatchData>>;
+  onSubmit: (e: React.FormEvent) => void;
+  isLoading: boolean;
+  selectedMatchCount: number;
+}
+
 const MatchForm = ({ formData, setFormData, onSubmit, isLoading, isEditing, selectedMatchCount }: MatchFormProps) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -415,47 +528,75 @@ const MatchForm = ({ formData, setFormData, onSubmit, isLoading, isEditing, sele
         </Select>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Enregistrement...' : (isEditing ? 'Modifier' : 'Ajouter')}
+      </Button>
+    </form>
+  );
+};
+
+const BulkMatchForm = ({ bulkFormData, setBulkFormData, onSubmit, isLoading, selectedMatchCount }: BulkMatchFormProps) => {
+  const updateMatch = (index: number, field: keyof BulkMatchData['matches'][0], value: string | number) => {
+    setBulkFormData(prev => ({
+      ...prev,
+      matches: prev.matches.map((match, i) => 
+        i === index ? { ...match, [field]: value } : match
+      )
+    }));
+  };
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="home_odds">Cote 1</Label>
+          <Label htmlFor="bulk_draw_date">Date du tirage</Label>
           <Input
-            id="home_odds"
-            type="number"
-            step="0.01"
-            min="1"
-            value={formData.home_odds}
-            onChange={(e) => setFormData(prev => ({ ...prev, home_odds: parseFloat(e.target.value) }))}
+            id="bulk_draw_date"
+            type="date"
+            value={bulkFormData.draw_date}
+            onChange={(e) => setBulkFormData(prev => ({ ...prev, draw_date: e.target.value }))}
             required
           />
         </div>
         <div>
-          <Label htmlFor="draw_odds">Cote N</Label>
+          <Label htmlFor="bulk_match_datetime">Date et heure des matchs</Label>
           <Input
-            id="draw_odds"
-            type="number"
-            step="0.01"
-            min="1"
-            value={formData.draw_odds}
-            onChange={(e) => setFormData(prev => ({ ...prev, draw_odds: parseFloat(e.target.value) }))}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="away_odds">Cote 2</Label>
-          <Input
-            id="away_odds"
-            type="number"
-            step="0.01"
-            min="1"
-            value={formData.away_odds}
-            onChange={(e) => setFormData(prev => ({ ...prev, away_odds: parseFloat(e.target.value) }))}
+            id="bulk_match_datetime"
+            type="datetime-local"
+            value={bulkFormData.match_datetime}
+            onChange={(e) => setBulkFormData(prev => ({ ...prev, match_datetime: e.target.value }))}
             required
           />
         </div>
       </div>
 
+      <div className="space-y-4">
+        <Label>Matchs ({selectedMatchCount})</Label>
+        <div className="grid gap-3 max-h-96 overflow-y-auto">
+          {bulkFormData.matches.map((match, index) => (
+            <div key={index} className="grid grid-cols-4 gap-2 items-center p-3 border rounded-lg">
+              <div className="text-sm font-medium">
+                Match {match.match_position}
+              </div>
+              <Input
+                placeholder="Équipe domicile"
+                value={match.home_team}
+                onChange={(e) => updateMatch(index, 'home_team', e.target.value)}
+              />
+              <div className="text-center text-muted-foreground">vs</div>
+              <Input
+                placeholder="Équipe extérieur"
+                value={match.away_team}
+                onChange={(e) => updateMatch(index, 'away_team', e.target.value)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
       <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? 'Enregistrement...' : (isEditing ? 'Modifier' : 'Ajouter')}
+        {isLoading ? 'Ajout en cours...' : `Ajouter tous les matchs`}
       </Button>
     </form>
   );

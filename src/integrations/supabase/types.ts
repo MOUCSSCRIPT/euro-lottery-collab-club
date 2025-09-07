@@ -389,12 +389,9 @@ export type Database = {
       }
       loto_foot_matches: {
         Row: {
-          away_odds: number
           away_team: string
           created_at: string
           draw_date: string
-          draw_odds: number
-          home_odds: number
           home_team: string
           id: string
           match_datetime: string
@@ -404,12 +401,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          away_odds?: number
           away_team: string
           created_at?: string
           draw_date: string
-          draw_odds?: number
-          home_odds?: number
           home_team: string
           id?: string
           match_datetime: string
@@ -419,12 +413,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          away_odds?: number
           away_team?: string
           created_at?: string
           draw_date?: string
-          draw_odds?: number
-          home_odds?: number
           home_team?: string
           id?: string
           match_datetime?: string

@@ -60,7 +60,6 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
           className={itemClasses}
         >
           <span>1</span>
-          <span className="text-[10px] text-muted-foreground">{match.home_odds.toFixed(2)}</span>
         </ToggleGroupItem>
         <ToggleGroupItem
           value="X"
@@ -69,7 +68,6 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
           className={itemClasses}
         >
           <span>X</span>
-          <span className="text-[10px] text-muted-foreground">{match.draw_odds.toFixed(2)}</span>
         </ToggleGroupItem>
         <ToggleGroupItem
           value="2"
@@ -78,7 +76,6 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
           className={itemClasses}
         >
           <span>2</span>
-          <span className="text-[10px] text-muted-foreground">{match.away_odds.toFixed(2)}</span>
         </ToggleGroupItem>
       </ToggleGroup>
     </div>
