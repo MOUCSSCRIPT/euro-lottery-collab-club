@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit2, Trash2, Calendar, Clock, Download } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -82,25 +82,6 @@ export const LotoFootMatchManager = () => {
     },
   });
 
-  // Import ParionsSport matches mutation
-  const importMatchesMutation = useMutation({
-    mutationFn: async (drawDate: string) => {
-      const { data, error } = await supabase.functions.invoke('fetch-parionssport-matches', {
-        body: { drawDate }
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
-      toast.success('Matchs ParionsSport importés avec succès');
-    },
-    onError: (error) => {
-      toast.error('Erreur lors de l\'import des matchs ParionsSport');
-      console.error(error);
-    },
-  });
 
   // Add match mutation
   const addMatchMutation = useMutation({
@@ -220,9 +201,6 @@ export const LotoFootMatchManager = () => {
     setFormData(prev => ({ ...prev, draw_date: date }));
   };
 
-  const handleImportMatches = () => {
-    importMatchesMutation.mutate(selectedDate);
-  };
 
   return (
     <div className="space-y-6">
@@ -290,15 +268,6 @@ export const LotoFootMatchManager = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button 
-                onClick={handleImportMatches}
-                disabled={importMatchesMutation.isPending}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                {importMatchesMutation.isPending ? 'Import...' : 'Importer ParionsSport'}
-              </Button>
             </div>
 
             {isLoading ? (
