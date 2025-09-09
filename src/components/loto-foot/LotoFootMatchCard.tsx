@@ -31,10 +31,10 @@ export const LotoFootMatchCard = ({
     const getVariantClasses = () => {
       if (isSelected) {
         return type === '1' 
-          ? "bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg animate-bounce-in" 
+          ? "bg-prediction-1 text-prediction-1-foreground shadow-lg animate-bounce-in hover:bg-prediction-1/90" 
           : type === 'X' 
-          ? "bg-gradient-to-br from-accent to-accent/80 text-accent-foreground shadow-lg animate-bounce-in"
-          : "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg animate-bounce-in";
+          ? "bg-prediction-x text-prediction-x-foreground shadow-lg animate-bounce-in hover:bg-prediction-x/90"
+          : "bg-prediction-2 text-prediction-2-foreground shadow-lg animate-bounce-in hover:bg-prediction-2/90";
       }
       return "hover:bg-muted/70 hover:scale-105 transition-all duration-200";
     };

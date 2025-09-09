@@ -48,6 +48,18 @@ export default {
 					DEFAULT: 'hsl(var(--success))',
 					foreground: 'hsl(var(--success-foreground))'
 				},
+				'prediction-1': {
+					DEFAULT: 'hsl(var(--prediction-1))',
+					foreground: 'hsl(var(--prediction-1-foreground))'
+				},
+				'prediction-x': {
+					DEFAULT: 'hsl(var(--prediction-x))',
+					foreground: 'hsl(var(--prediction-x-foreground))'
+				},
+				'prediction-2': {
+					DEFAULT: 'hsl(var(--prediction-2))',
+					foreground: 'hsl(var(--prediction-2-foreground))'
+				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
 					foreground: 'hsl(var(--popover-foreground))'

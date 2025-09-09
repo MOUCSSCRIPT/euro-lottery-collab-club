@@ -35,7 +35,19 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
     minute: '2-digit',
   });
 
-  const itemClasses = 'flex flex-col items-center justify-center gap-0.5 h-10 w-12 text-xs font-semibold';
+  const itemClasses = (prediction: PredictionType, isSelected: boolean) => {
+    const baseClasses = 'flex flex-col items-center justify-center gap-0.5 h-10 w-12 text-xs font-semibold transition-all duration-200';
+    
+    if (isSelected) {
+      return prediction === '1' 
+        ? `${baseClasses} bg-prediction-1 text-prediction-1-foreground data-[state=on]:bg-prediction-1 data-[state=on]:text-prediction-1-foreground hover:bg-prediction-1/90`
+        : prediction === 'X' 
+        ? `${baseClasses} bg-prediction-x text-prediction-x-foreground data-[state=on]:bg-prediction-x data-[state=on]:text-prediction-x-foreground hover:bg-prediction-x/90`
+        : `${baseClasses} bg-prediction-2 text-prediction-2-foreground data-[state=on]:bg-prediction-2 data-[state=on]:text-prediction-2-foreground hover:bg-prediction-2/90`;
+    }
+    
+    return baseClasses;
+  };
 
   return (
     <div className={cn('flex items-center justify-between bg-background px-4 py-3 rounded-lg border border-border')}>
@@ -57,7 +69,7 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
           value="1"
           aria-label={`Pronostic 1 pour M${match.match_position}`}
           disabled={disabled}
-          className={itemClasses}
+          className={itemClasses('1', selectedPredictions.includes('1'))}
         >
           <span>1</span>
         </ToggleGroupItem>
@@ -65,7 +77,7 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
           value="X"
           aria-label={`Pronostic X pour M${match.match_position}`}
           disabled={disabled}
-          className={itemClasses}
+          className={itemClasses('X', selectedPredictions.includes('X'))}
         >
           <span>X</span>
         </ToggleGroupItem>
@@ -73,7 +85,7 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
           value="2"
           aria-label={`Pronostic 2 pour M${match.match_position}`}
           disabled={disabled}
-          className={itemClasses}
+          className={itemClasses('2', selectedPredictions.includes('2'))}
         >
           <span>2</span>
         </ToggleGroupItem>

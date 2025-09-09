@@ -31,9 +31,21 @@
     --success: 142 72% 47%;
     --success-foreground: 0 0% 98%;
     
+    --prediction-1: 217 91% 60%;
+    --prediction-1-foreground: 0 0% 98%;
+    
+    --prediction-x: 25 95% 53%;
+    --prediction-x-foreground: 0 0% 98%;
+    
+    --prediction-2: 142 71% 45%;
+    --prediction-2-foreground: 0 0% 98%;
+    
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
     --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(16 100% 70%));
     --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(142 72% 55%));
+    --gradient-prediction-1: linear-gradient(135deg, hsl(var(--prediction-1)), hsl(217 91% 70%));
+    --gradient-prediction-x: linear-gradient(135deg, hsl(var(--prediction-x)), hsl(25 95% 63%));
+    --gradient-prediction-2: linear-gradient(135deg, hsl(var(--prediction-2)), hsl(142 71% 55%));
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
