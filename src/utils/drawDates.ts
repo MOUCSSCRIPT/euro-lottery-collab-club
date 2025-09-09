@@ -20,8 +20,18 @@ export function getNextDrawDate(gameType: GameType): string {
         daysUntilNextDraw = 7 - dayOfWeek + 2; // Next Tuesday
       }
       break;
+    case 'loto_foot':
+      // Loto Foot draws: Friday (5)
+      // If today is Friday or before, use today's date to check for current week matches
+      // Otherwise, find next Friday
+      if (dayOfWeek <= 5) {
+        daysUntilNextDraw = 0; // Check today first
+      } else {
+        daysUntilNextDraw = 7 - dayOfWeek + 5; // Next Friday
+      }
+      break;
     default:
-      daysUntilNextDraw = 1; // Default to tomorrow
+      daysUntilNextDraw = 0; // Check today first
   }
   
   const nextDraw = new Date(today);
