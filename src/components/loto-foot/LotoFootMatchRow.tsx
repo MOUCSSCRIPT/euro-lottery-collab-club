@@ -52,7 +52,6 @@ export const LotoFootMatchRow: React.FC<LotoFootMatchRowProps> = ({
   return (
     <div className={cn('flex items-center justify-between bg-background px-4 py-3 rounded-lg border border-border')}>
       <div className="flex items-center gap-3 min-w-0">
-        <Badge variant="secondary" className="shrink-0 text-[10px] px-1.5 py-0.5">M{match.match_position}</Badge>
         <div className="min-w-0">
           <div className="text-sm font-medium truncate">
             {match.home_team} <span className="text-muted-foreground">vs</span> {match.away_team}

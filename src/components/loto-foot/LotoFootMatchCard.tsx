@@ -59,12 +59,6 @@ export const LotoFootMatchCard = ({
 
   return (
     <Card className="p-2 bg-background border border-border hover:shadow-md transition-all duration-200">
-      <div className="flex items-center justify-center mb-1.5">
-        <Badge variant="secondary" className="text-[10px] px-1.5 py-0.5">
-          M{match.match_position}
-        </Badge>
-      </div>
-      
       <div className="text-center mb-2">
         <div className="text-xs font-medium leading-tight">
           <div className="truncate">{match.home_team}</div>

@@ -132,24 +132,29 @@ export const LotoFootQuickPlay = () => {
             <div className="grid gap-3">
               {matches?.map((match, index) => (
                 <Card key={match.id} className="p-4">
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="mb-3">
                     <span className="font-medium text-sm">
-                      Match {index + 1}: {match.home_team} vs {match.away_team}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {new Date(match.match_datetime).toLocaleDateString()}
+                      {match.home_team} vs {match.away_team}
                     </span>
                   </div>
                    <div className="flex gap-2">
                     {['1', 'X', '2'].map((pred) => (
                       <Button
                         key={pred}
-                        variant={predictions[match.id] === pred ? 'default' : 'outline'}
+                        variant="outline"
                         size="sm"
                         onClick={() => handlePredictionChange(match.id, pred)}
-                        className="flex-1"
+                        className={`flex-1 transition-all duration-200 ${
+                          predictions[match.id] === pred 
+                            ? pred === '1' 
+                              ? 'bg-prediction-1 text-prediction-1-foreground hover:bg-prediction-1/90 border-prediction-1' 
+                              : pred === 'X' 
+                              ? 'bg-prediction-x text-prediction-x-foreground hover:bg-prediction-x/90 border-prediction-x'
+                              : 'bg-prediction-2 text-prediction-2-foreground hover:bg-prediction-2/90 border-prediction-2'
+                            : ''
+                        }`}
                       >
-                        {pred === '1' ? 'Domicile' : pred === 'X' ? 'Nul' : 'Extérieur'}
+                        {pred}
                       </Button>
                     ))}
                   </div>

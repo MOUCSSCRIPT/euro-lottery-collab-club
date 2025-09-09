@@ -250,16 +250,6 @@ export const LotoFootGenerator = ({ group, memberCount }: LotoFootGeneratorProps
             </Badge>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            Tirage du {new Date(drawDate).toLocaleDateString('fr-FR', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </div>
-        </CardContent>
       </Card>
 
       {hasEnoughMatches ? (
