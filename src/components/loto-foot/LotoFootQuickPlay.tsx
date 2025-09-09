@@ -140,8 +140,8 @@ export const LotoFootQuickPlay = () => {
                       {new Date(match.match_datetime).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="flex gap-2">
-                    {['1', 'N', '2'].map((pred) => (
+                   <div className="flex gap-2">
+                    {['1', 'X', '2'].map((pred) => (
                       <Button
                         key={pred}
                         variant={predictions[match.id] === pred ? 'default' : 'outline'}
@@ -149,7 +149,7 @@ export const LotoFootQuickPlay = () => {
                         onClick={() => handlePredictionChange(match.id, pred)}
                         className="flex-1"
                       >
-                        {pred === '1' ? 'Domicile' : pred === 'N' ? 'Nul' : 'Extérieur'}
+                        {pred === '1' ? 'Domicile' : pred === 'X' ? 'Nul' : 'Extérieur'}
                       </Button>
                     ))}
                   </div>
