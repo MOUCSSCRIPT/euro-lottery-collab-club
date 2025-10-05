@@ -28,12 +28,10 @@ type GameType = Database['public']['Enums']['game_type'];
 type GroupMode = Database['public']['Enums']['group_mode'];
 
 const gameTypeLabels = {
-  'euromillions': 'EuroMillions',
   'loto_foot': 'Loto Foot 15'
 };
 
 const gameTypeIcons = {
-  'euromillions': <Trophy className="h-4 w-4" />,
   'loto_foot': <Gamepad2 className="h-4 w-4" />
 };
 
@@ -44,10 +42,10 @@ export const GroupModal = ({ open, onOpenChange, defaultGameType }: GroupModalPr
   const [maxMembers, setMaxMembers] = useState(10);
   const [myContribution, setMyContribution] = useState(25);
   const [description, setDescription] = useState('');
-  const [gameType, setGameType] = useState<GameType>(defaultGameType || 'euromillions');
+  const [gameType, setGameType] = useState<GameType>(defaultGameType || 'loto_foot');
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isPrivateGroup, setIsPrivateGroup] = useState(false);
-  const [playDeadline, setPlayDeadline] = useState<Date>(() => getNextPlayDeadline('euromillions'));
+  const [playDeadline, setPlayDeadline] = useState<Date>(() => getNextPlayDeadline('loto_foot'));
   const [deadlineTime, setDeadlineTime] = useState('20:15');
   
   const { createGroup, isCreating } = useGroups();
@@ -102,10 +100,10 @@ export const GroupModal = ({ open, onOpenChange, defaultGameType }: GroupModalPr
     setDescription('');
     setMaxMembers(10);
     setMyContribution(25);
-    setGameType('euromillions');
+    setGameType('loto_foot');
     setIsDemoMode(false);
     setIsPrivateGroup(false);
-    setPlayDeadline(getNextPlayDeadline('euromillions'));
+    setPlayDeadline(getNextPlayDeadline('loto_foot'));
     setDeadlineTime('20:15');
     onOpenChange(false);
   };

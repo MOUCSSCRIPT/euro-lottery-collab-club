@@ -13,13 +13,6 @@ interface GameSelectorProps {
 }
 
 const gameConfig = {
-  euromillions: {
-    icon: Star,
-    title: 'EuroMillions',
-    description: 'Le jeu européen avec les plus gros jackpots',
-    cost: '2,50€',
-    color: 'blue'
-  },
   loto_foot: {
     icon: Trophy,
     title: 'Loto Foot 15',

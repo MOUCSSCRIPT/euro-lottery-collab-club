@@ -11,23 +11,10 @@ interface GameInfoCardProps {
 
 export const GameInfoCard = ({ gameType }: GameInfoCardProps) => {
   const getGameInfo = () => {
-    switch (gameType) {
-      case 'euromillions':
-        return {
-          description: (
-            <>
-              <div>• 5 numéros de 1 à 50</div>
-              <div>• 2 étoiles de 1 à 12</div>
-              <div>• Coût par grille : 2,50€</div>
-              <div>• Options : Numéros Chance, Systèmes</div>
-            </>
-          )
-        };
-      default:
-        return {
-          description: <div>• Configuration par défaut</div>
-        };
-    }
+    // Only Loto Foot is supported now
+    return {
+      description: <div>• Configuration par défaut</div>
+    };
   };
 
   return (

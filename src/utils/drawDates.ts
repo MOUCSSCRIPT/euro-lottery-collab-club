@@ -10,16 +10,6 @@ export function getNextDrawDate(gameType: GameType): string {
   let daysUntilNextDraw;
   
   switch (gameType) {
-    case 'euromillions':
-      // Euromillions draws: Tuesday (2) and Friday (5)
-      if (dayOfWeek < 2) {
-        daysUntilNextDraw = 2 - dayOfWeek;
-      } else if (dayOfWeek < 5) {
-        daysUntilNextDraw = 5 - dayOfWeek;
-      } else {
-        daysUntilNextDraw = 7 - dayOfWeek + 2; // Next Tuesday
-      }
-      break;
     case 'loto_foot':
       // Loto Foot draws: Friday (5)
       // If today is Friday or before, use today's date to check for current week matches

@@ -81,98 +81,63 @@ export const GridDisplay = ({ grids, gameType, groupId }: GridDisplayProps) => {
   const totalCost = grids.reduce((sum, grid) => sum + grid.cost, 0);
 
   const renderGridContent = (grid: GridData) => {
-    switch (gameType) {
-      case 'euromillions':
-        return (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <Hash className="h-4 w-4 text-blue-600" />
-                <div className="flex space-x-1">
-                  {grid.numbers.map((num, idx) => (
-                    <Badge key={idx} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      {num}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              {grid.stars && (
-                <div className="flex items-center space-x-1">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <div className="flex space-x-1">
-                    {grid.stars.map((star, idx) => (
-                      <Badge key={idx} variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                        {star}
+    // Only Loto Foot is supported now
+    if (gameType === 'loto_foot') {
+      return (
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground">Pronostics sélectionnés :</div>
+            <div className="grid grid-cols-5 gap-2">
+              {(grid as any).predictions?.map((pred: any, idx: number) => (
+                <div key={idx} className="text-center">
+                  <div className="text-xs font-medium text-muted-foreground mb-1">
+                    Match {pred.match_position}
+                  </div>
+                  <div className="flex gap-1 justify-center">
+                    {pred.predictions.map((p: string, pIdx: number) => (
+                      <Badge 
+                        key={pIdx} 
+                        variant="outline" 
+                        className={`text-xs ${
+                          p === '1' ? 'bg-green-50 text-green-700 border-green-200' :
+                          p === 'X' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                          'bg-red-50 text-red-700 border-red-200'
+                        }`}
+                      >
+                        {p}
                       </Badge>
                     ))}
                   </div>
                 </div>
-              )}
+              )) || <div className="text-sm text-muted-foreground">Aucun pronostic</div>}
             </div>
-            <SuerteCoinsDisplay 
-              amount={grid.cost} 
-              size="sm" 
-              variant="default"
-            />
           </div>
-        );
-      
-      case 'loto_foot':
-        return (
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="text-xs text-muted-foreground">Pronostics sélectionnés :</div>
-              <div className="grid grid-cols-5 gap-2">
-                {(grid as any).predictions?.map((pred: any, idx: number) => (
-                  <div key={idx} className="text-center">
-                    <div className="text-xs font-medium text-muted-foreground mb-1">
-                      Match {pred.match_position}
-                    </div>
-                    <div className="flex gap-1 justify-center">
-                      {pred.predictions.map((p: string, pIdx: number) => (
-                        <Badge 
-                          key={pIdx} 
-                          variant="outline" 
-                          className={`text-xs ${
-                            p === '1' ? 'bg-green-50 text-green-700 border-green-200' :
-                            p === 'X' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                            'bg-red-50 text-red-700 border-red-200'
-                          }`}
-                        >
-                          {p}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )) || <div className="text-sm text-muted-foreground">Aucun pronostic</div>}
-              </div>
-            </div>
-            <SuerteCoinsDisplay 
-              amount={grid.cost} 
-              size="sm" 
-              variant="default"
-            />
-          </div>
-        );
-      
-      default:
-        return (
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-1">
-              {grid.numbers.map((num, idx) => (
-                <Badge key={idx} variant="outline">
-                  {num}
-                </Badge>
-              ))}
-            </div>
-            <SuerteCoinsDisplay 
-              amount={grid.cost} 
-              size="sm" 
-              variant="default"
-            />
-          </div>
-        );
+          <SuerteCoinsDisplay 
+            amount={grid.cost} 
+            size="sm" 
+            variant="default"
+          />
+        </div>
+      );
     }
+    
+    // Default fallback
+    return (
+      <div className="flex items-center justify-between">
+        <div className="flex space-x-1">
+          {grid.numbers.map((num, idx) => (
+            <Badge key={idx} variant="outline">
+              {num}
+            </Badge>
+          ))}
+        </div>
+        <SuerteCoinsDisplay 
+          amount={grid.cost} 
+          size="sm" 
+          variant="default"
+        />
+      </div>
+    );
   };
 
   return (

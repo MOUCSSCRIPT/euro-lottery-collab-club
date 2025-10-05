@@ -132,7 +132,7 @@ export default function EmailConfirmation() {
                 <li>• Créez votre pseudo unique</li>
                 <li>• Choisissez votre pays</li>
                 <li>• Rejoignez des groupes de jeu</li>
-                <li>• Tentez votre chance à l'EuroMillions !</li>
+                <li>• Tentez votre chance au Loto Foot !</li>
               </ul>
             </div>
           </div>

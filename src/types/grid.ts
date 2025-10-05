@@ -23,8 +23,7 @@ export interface GenerateGridsParams {
   groupId: string;
   budget: number;
   memberCount: number;
-  gameType?: 'euromillions';
+  gameType?: 'loto_foot';
   playerName?: string;
-  euromillionsOptions?: any;
   manualGrids?: ManualGrid[];
 }

@@ -17,7 +17,6 @@ import { TeamRequestsModal } from '@/components/teams/TeamRequestsModal';
 import { TeamBadge } from '@/components/teams/TeamBadge';
 import { HistoryTab } from '@/components/groups/HistoryTab';
 import { useGroupCreator } from '@/hooks/useGroupCreator';
-import { GridGenerator } from '@/components/grids/GridGenerator';
 import { GridGeneratorWithGameSelector } from '@/components/grids/GridGeneratorWithGameSelector';
 import { GridDisplay } from '@/components/grids/GridDisplay';
 import { useState } from 'react';
@@ -189,7 +188,7 @@ const GroupDetails = () => {
             <HistoryTab groupId={group.id} />
           </TabsContent>
 
-          {/* Seulement Euromillions maintenant */}
+          {/* History tab */}
         </Tabs>
 
         

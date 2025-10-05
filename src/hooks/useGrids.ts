@@ -109,7 +109,7 @@ export const useGrids = (groupId: string, gameType?: string) => {
           predictions: grid.predictions // Keep predictions for display
         })) as GridData[];
       } else {
-        // Fetch EuroMillions grids
+        // Fetch grids
         const { data, error } = await supabase
           .from('group_grids')
           .select('*')
@@ -122,7 +122,7 @@ export const useGrids = (groupId: string, gameType?: string) => {
           throw error;
         }
 
-        console.log('EuroMillions grids fetched:', data);
+        console.log('Grids fetched:', data);
         return data as GridData[];
       }
     },
@@ -139,12 +139,11 @@ export const useGenerateGrids = () => {
       groupId,
       budget,
       memberCount,
-      gameType = 'euromillions',
+      gameType = 'loto_foot',
       playerName,
-      euromillionsOptions,
       manualGrids
     }: GenerateGridsParams) => {
-      console.log('Generating grids with params:', { groupId, budget, memberCount, gameType, playerName, euromillionsOptions, manualGrids });
+      console.log('Generating grids with params:', { groupId, budget, memberCount, gameType, playerName, manualGrids });
 
       // Get current user
       const { data: user } = await supabase.auth.getUser();
@@ -164,7 +163,7 @@ export const useGenerateGrids = () => {
       }> = [];
 
       if (manualGrids && manualGrids.length > 0) {
-        // Gérer les grilles manuelles EuroMillions avec détection de doublons
+        // Gérer les grilles manuelles avec détection de doublons
         gridsToInsert = manualGrids.map(grid => ({
           numbers: grid.mainNumbers,
           stars: grid.stars,
@@ -211,7 +210,7 @@ export const useGenerateGrids = () => {
           throw new Error('Budget insuffisant pour générer des grilles');
         }
 
-        gridsToInsert = await generateOptimizedGrids(maxGrids, gameType, euromillionsOptions, groupId);
+        gridsToInsert = await generateOptimizedGrids(maxGrids, gameType, {}, groupId);
         totalCost = gridsToInsert.reduce((sum, grid) => sum + (grid.cost || gridCost), 0);
       }
 

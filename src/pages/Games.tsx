@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Header } from '@/components/Header';
 import { GameSelector } from '@/components/grids/GameSelector';
-import { EuromillionsQuickPlay } from '@/components/euromillions/EuromillionsQuickPlay';
 import { LotoFootQuickPlay } from '@/components/loto-foot/LotoFootQuickPlay';
 import { Database } from '@/integrations/supabase/types';
 import { MobileHeader } from '@/components/layout/MobileHeader';
@@ -13,7 +12,7 @@ type GameType = Database['public']['Enums']['game_type'];
 
 const Games = () => {
   const { data: userRole } = useUserRole();
-  const [selectedGame, setSelectedGame] = useState<GameType>('euromillions');
+  const [selectedGame, setSelectedGame] = useState<GameType>('loto_foot');
 
   // Redirect admins to admin panel
   if (userRole === 'admin') {
@@ -21,10 +20,6 @@ const Games = () => {
   }
 
   const gameInfo = {
-    euromillions: {
-      title: "Jeu Rapide EuroMillions",
-      description: "Créez vos grilles EuroMillions en quelques clics"
-    },
     loto_foot: {
       title: "Jeu Rapide Loto Foot 15",
       description: "Faites vos pronostics sur 15 matchs de football"
@@ -55,7 +50,6 @@ const Games = () => {
           </div>
 
           {/* Quick Play Components */}
-          {selectedGame === 'euromillions' && <EuromillionsQuickPlay />}
           {selectedGame === 'loto_foot' && <LotoFootQuickPlay />}
         </div>
       </div>

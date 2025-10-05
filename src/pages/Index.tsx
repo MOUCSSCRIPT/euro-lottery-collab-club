@@ -27,7 +27,7 @@ const Index = () => {
     id: 'public-group',
     name: 'Groupe Public',
     description: 'Groupe ouvert à tous les joueurs',
-    game_type: gameParam || ('euromillions' as GameType),
+    game_type: gameParam || ('loto_foot' as GameType),
     mode: 'real' as const,
     max_members: 100,
     total_budget: 0,

@@ -18,43 +18,13 @@ export function generateUniqueNumbers(count: number, min: number, max: number): 
 }
 
 export function generateSingleGrid(gameType: GameType, options?: any) {
-  switch (gameType) {
-    case 'euromillions':
-      // Enhanced Euromillions generation with options support
-      const numbers = generateUniqueNumbers(5, 1, 50).sort((a, b) => a - b);
-      const stars = generateUniqueNumbers(2, 1, 12).sort((a, b) => a - b);
-      
-      // Calculate cost based on options (in SuerteCoins)
-      let cost = 25; // Base cost in SuerteCoins
-      if (options?.luckyNumbers) cost += 10;
-      if (options?.system && options?.system !== 'none') {
-        if (options.system === 'System 7') cost += 70;
-        else if (options.system === 'System 8') cost += 280;
-        else if (options.system === 'System 9') cost += 840;
-      }
-      
-      // Create key AFTER sorting for consistent comparison
-      const key = `${numbers.join('-')}_${stars.join('-')}`;
-      
-      return {
-        numbers,
-        stars,
-        key,
-        cost
-      };
-    default:
-      // Fallback to euromillions
-      const defaultNumbers = generateUniqueNumbers(5, 1, 50).sort((a, b) => a - b);
-      const defaultStars = generateUniqueNumbers(2, 1, 12).sort((a, b) => a - b);
-      const defaultKey = `${defaultNumbers.join('-')}_${defaultStars.join('-')}`;
-      
-      return {
-        numbers: defaultNumbers,
-        stars: defaultStars,
-        key: defaultKey,
-        cost: 25
-      };
-  }
+  // Only Loto Foot is supported now
+  return {
+    numbers: [],
+    stars: [],
+    key: '',
+    cost: 0
+  };
 }
 
 export async function generateOptimizedGrids(count: number, gameType: GameType, options?: any, groupId?: string): Promise<Array<{numbers: number[], stars: number[], cost: number}>> {

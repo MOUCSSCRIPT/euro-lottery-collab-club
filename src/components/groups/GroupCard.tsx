@@ -25,12 +25,10 @@ interface GroupCardProps {
 }
 
 const gameTypeLabels = {
-  'euromillions': 'EuroMillions',
   'loto_foot': 'Loto Foot'
 };
 
 const gameTypeIcons = {
-  'euromillions': <Trophy className="h-4 w-4" />,
   'loto_foot': <Calendar className="h-4 w-4" />
 };
 

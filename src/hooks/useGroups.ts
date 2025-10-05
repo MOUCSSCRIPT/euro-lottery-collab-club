@@ -130,7 +130,7 @@ export const useGroups = () => {
         }
 
         if (existingGroups && existingGroups.length > 0) {
-          throw new Error(`Vous avez déjà créé un groupe pour ${groupData.game_type === 'euromillions' ? 'EuroMillions' : 'Loto Foot 15'}`);
+          throw new Error(`Vous avez déjà créé un groupe pour Loto Foot 15`);
         }
       }
 

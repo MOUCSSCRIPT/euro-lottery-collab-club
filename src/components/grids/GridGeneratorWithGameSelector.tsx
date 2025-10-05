@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { GameSelector } from './GameSelector';
-import { GridGenerator } from './GridGenerator';
 import { LotoFootGenerator } from '../loto-foot/LotoFootGenerator';
 import { LotoFootCollapsibleDisplay } from '../loto-foot/LotoFootCollapsibleDisplay';
 import { Tables } from '@/integrations/supabase/types';
@@ -17,7 +16,7 @@ export const GridGeneratorWithGameSelector = ({
   group, 
   memberCount 
 }: GridGeneratorWithGameSelectorProps) => {
-  const [selectedGame, setSelectedGame] = useState<GameType>(group.game_type || 'euromillions');
+  const [selectedGame, setSelectedGame] = useState<GameType>(group.game_type || 'loto_foot');
   const [showGrids, setShowGrids] = useState(false);
 
   const handleGameSelect = (gameType: GameType) => {
@@ -38,10 +37,6 @@ export const GridGeneratorWithGameSelector = ({
     );
   }
 
-  if (group.game_type === 'euromillions') {
-    return <GridGenerator group={group} memberCount={memberCount} />;
-  }
-
   // For new groups without a game type, show selector
   return (
     <div className="space-y-6">
@@ -49,10 +44,6 @@ export const GridGeneratorWithGameSelector = ({
         selectedGame={selectedGame}
         onGameSelect={handleGameSelect}
       />
-
-      {selectedGame === 'euromillions' && (
-        <GridGenerator group={group} memberCount={memberCount} />
-      )}
 
       {selectedGame === 'loto_foot' && (
         <div className="space-y-6">
