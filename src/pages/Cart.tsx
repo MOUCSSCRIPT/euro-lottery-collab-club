@@ -19,6 +19,7 @@ const coinPackages = [
 
 const Cart = () => {
   const [loading, setLoading] = useState<number | null>(null);
+  const [view, setView] = useState<'coins' | 'grids'>('coins');
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -86,8 +87,35 @@ const Cart = () => {
 
       <main className="container mx-auto px-4 pt-4 pb-28 pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-center mb-4">Acheter des SuerteCoins</h1>
-          <p className="text-muted-foreground text-center mb-6">Choisissez votre pack</p>
+          <div className="flex gap-2 mb-6">
+            <Button
+              variant={view === 'grids' ? 'default' : 'outline'}
+              onClick={() => setView('grids')}
+              className="flex-1"
+            >
+              Mes grilles
+            </Button>
+            <Button
+              variant={view === 'coins' ? 'default' : 'outline'}
+              onClick={() => setView('coins')}
+              className="flex-1"
+            >
+              Acheter des SuerteCoins
+            </Button>
+          </div>
+
+          {view === 'grids' ? (
+            // Redirect to checkout page
+            <>
+              {(() => {
+                navigate('/panier-validation');
+                return null;
+              })()}
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold text-center mb-4">Acheter des SuerteCoins</h1>
+              <p className="text-muted-foreground text-center mb-6">Choisissez votre pack</p>
 
           <section className="grid gap-4" aria-label="Packs SuerteCoins disponibles">
             {coinPackages.map((pack) => (
@@ -140,9 +168,11 @@ const Cart = () => {
             ))}
           </section>
 
-          <aside className="text-xs text-muted-foreground text-center mt-4">
-            Paiement sécurisé via Stripe
-          </aside>
+              <aside className="text-xs text-muted-foreground text-center mt-4">
+                Paiement sécurisé via Stripe
+              </aside>
+            </>
+          )}
         </div>
       </main>
     </div>

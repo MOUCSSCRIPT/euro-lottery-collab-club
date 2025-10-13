@@ -12,9 +12,11 @@ import { MobileNavBar } from "@/components/layout/MobileNavBar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EmailConfirmation from "./pages/EmailConfirmation";
+import Play from "./pages/Play";
 import Games from "./pages/Games";
 import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
+import CartCheckout from "./pages/CartCheckout";
 import GroupDetails from "./pages/GroupDetails";
 import Groups from "./pages/Groups";
 import PlayerStats from "./pages/PlayerStats";
@@ -31,11 +33,13 @@ const AppContent = () => {
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
+          <Route path="/jouer" element={<Play />} />
           <Route path="/games" element={<Games />} />
           <Route path="/groups" element={<Groups />} />
           <Route path="/stats" element={<PlayerStats />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/panier" element={<Cart />} />
+          <Route path="/panier-validation" element={<CartCheckout />} />
           <Route path="/group/:id" element={<GroupDetails />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

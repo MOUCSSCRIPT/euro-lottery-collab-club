@@ -22,6 +22,11 @@ const Index = () => {
     return <Navigate to="/admin?tab=loto-foot" replace />;
   }
 
+  // Redirect authenticated users to play page
+  if (user && !gameParam) {
+    return <Navigate to="/jouer" replace />;
+  }
+
   // Create a default public group for direct grid access
   const defaultGroup = {
     id: 'public-group',

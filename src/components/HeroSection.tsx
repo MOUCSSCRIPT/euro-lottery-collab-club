@@ -9,7 +9,7 @@ export const HeroSection = () => {
   const navigate = useNavigate();
 
   const handlePlayClick = () => {
-    navigate('/auth');
+    navigate('/jouer');
   };
 
   return (

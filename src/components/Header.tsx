@@ -10,6 +10,7 @@ import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
 import { useProfile } from '@/hooks/useProfile';
 import { useUserRole } from '@/hooks/useAdminActions';
 import { CoinPurchaseModal } from '@/components/coins/CoinPurchaseModal';
+import { LotoFootCartBadge } from '@/components/cart/LotoFootCartBadge';
 
 export const Header = () => {
   const { isMobile } = useMobile();
@@ -79,14 +80,14 @@ export const Header = () => {
             </div>
           ) : (
             <div className="flex flex-col items-end space-y-2">
-              <nav className="flex items-center space-x-6">
-                <Link to="/" className="text-foreground hover:text-blue-600 transition-colors">
-                  Accueil
-                </Link>
-                {userRole !== 'admin' && (
-                  <Link to="/games" className="text-foreground hover:text-blue-600 transition-colors">
-                    Jeux
+              <nav className="flex items-center space-x-4">
+                {userRole !== 'admin' && user && (
+                  <Link to="/jouer" className="text-foreground hover:text-blue-600 transition-colors font-medium">
+                    Jouer
                   </Link>
+                )}
+                {userRole !== 'admin' && user && (
+                  <LotoFootCartBadge onClick={() => navigate('/panier-validation')} />
                 )}
                 {userRole !== 'admin' && (
                   <Link to="/stats" className="text-foreground hover:text-blue-600 transition-colors flex items-center gap-1">
