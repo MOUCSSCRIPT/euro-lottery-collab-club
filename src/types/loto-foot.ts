@@ -29,6 +29,8 @@ export interface LotoFootGrid {
   is_active: boolean;
   created_by?: string;
   player_name?: string;
+  status?: 'pending' | 'finished' | 'won' | 'lost';
+  correct_predictions?: number;
 }
 
 export interface LotoFootWin {

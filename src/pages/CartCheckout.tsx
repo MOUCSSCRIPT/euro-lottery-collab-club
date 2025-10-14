@@ -48,8 +48,35 @@ const CartCheckout = () => {
         coins: newCoinsAmount
       }));
 
-      // Insert all grids
-      const gridInserts = grids.map(grid => ({
+      // Check for duplicates before inserting
+      const { data: existingGrids } = await supabase
+        .from('user_loto_foot_grids')
+        .select('predictions, draw_date')
+        .eq('user_id', user.id)
+        .in('draw_date', [...new Set(grids.map(g => g.drawDate))]);
+
+      // Filter out duplicates
+      const uniqueGrids = grids.filter(grid => {
+        const isDuplicate = existingGrids?.some(existing => 
+          existing.draw_date === grid.drawDate &&
+          JSON.stringify(existing.predictions) === JSON.stringify(grid.predictions)
+        );
+        return !isDuplicate;
+      });
+
+      if (uniqueGrids.length === 0) {
+        throw new Error('Toutes ces grilles existent déjà');
+      }
+
+      if (uniqueGrids.length < grids.length) {
+        toast({
+          title: 'Attention',
+          description: `${grids.length - uniqueGrids.length} grille(s) dupliquée(s) ignorée(s)`,
+        });
+      }
+
+      // Insert unique grids
+      const gridInserts = uniqueGrids.map(grid => ({
         user_id: user.id,
         predictions: grid.predictions,
         player_name: grid.playerName || null,
@@ -58,6 +85,7 @@ const CartCheckout = () => {
         stake: 2,
         potential_winnings: 0,
         is_active: true,
+        status: 'pending',
       }));
 
       const { error: gridsError } = await supabase

@@ -336,6 +336,7 @@ export type Database = {
       }
       loto_foot_grids: {
         Row: {
+          correct_predictions: number | null
           cost: number
           created_at: string
           created_by: string | null
@@ -348,8 +349,10 @@ export type Database = {
           potential_winnings: number
           predictions: Json
           stake: number
+          status: string
         }
         Insert: {
+          correct_predictions?: number | null
           cost: number
           created_at?: string
           created_by?: string | null
@@ -362,8 +365,10 @@ export type Database = {
           potential_winnings?: number
           predictions: Json
           stake?: number
+          status?: string
         }
         Update: {
+          correct_predictions?: number | null
           cost?: number
           created_at?: string
           created_by?: string | null
@@ -376,6 +381,7 @@ export type Database = {
           potential_winnings?: number
           predictions?: Json
           stake?: number
+          status?: string
         }
         Relationships: [
           {
@@ -579,6 +585,7 @@ export type Database = {
       }
       user_loto_foot_grids: {
         Row: {
+          correct_predictions: number | null
           cost: number
           created_at: string
           draw_date: string
@@ -588,9 +595,11 @@ export type Database = {
           potential_winnings: number
           predictions: Json
           stake: number
+          status: string
           user_id: string
         }
         Insert: {
+          correct_predictions?: number | null
           cost: number
           created_at?: string
           draw_date: string
@@ -600,9 +609,11 @@ export type Database = {
           potential_winnings?: number
           predictions: Json
           stake?: number
+          status?: string
           user_id: string
         }
         Update: {
+          correct_predictions?: number | null
           cost?: number
           created_at?: string
           draw_date?: string
@@ -612,6 +623,7 @@ export type Database = {
           potential_winnings?: number
           predictions?: Json
           stake?: number
+          status?: string
           user_id?: string
         }
         Relationships: []
@@ -667,6 +679,10 @@ export type Database = {
       add_coins_to_user: {
         Args: { _amount: number; _user_id: string }
         Returns: boolean
+      }
+      calculate_loto_foot_results: {
+        Args: { p_draw_date: string; p_winning_results: Json }
+        Returns: undefined
       }
       check_grid_wins: {
         Args: {
