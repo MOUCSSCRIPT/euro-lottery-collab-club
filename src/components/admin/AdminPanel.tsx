@@ -10,7 +10,8 @@ import { useAllProfiles, useAddCoins, useSetCoins } from '@/hooks/useAdminAction
 import { SuerteCoinsIcon } from '@/components/ui/SuerteCoinsIcon';
 import { LotoFootMatchManager } from './LotoFootMatchManager';
 import { LotoFootResultsManager } from './LotoFootResultsManager';
-import { Plus, Edit, Crown, Users, Calendar, Trophy } from 'lucide-react';
+import { LotoFootStatsChart } from './LotoFootStatsChart';
+import { Plus, Edit, Crown, Users, Calendar, Trophy, BarChart3 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface CoinModalProps {
@@ -144,7 +145,7 @@ export const AdminPanel = () => {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="players" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Joueurs
@@ -156,6 +157,10 @@ export const AdminPanel = () => {
               <TabsTrigger value="results" className="flex items-center gap-2">
                 <Trophy className="h-4 w-4" />
                 Résultats
+              </TabsTrigger>
+              <TabsTrigger value="stats" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Stats
               </TabsTrigger>
             </TabsList>
             
@@ -214,6 +219,10 @@ export const AdminPanel = () => {
             
             <TabsContent value="results" className="mt-6">
               <LotoFootResultsManager />
+            </TabsContent>
+            
+            <TabsContent value="stats" className="mt-6">
+              <LotoFootStatsChart />
             </TabsContent>
           </Tabs>
         </CardContent>

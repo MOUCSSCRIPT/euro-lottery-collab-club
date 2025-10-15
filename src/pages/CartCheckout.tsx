@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, ShoppingCart } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { normalizePredictions } from '@/utils/gridComparison';
 
 const CartCheckout = () => {
   const navigate = useNavigate();
@@ -48,24 +49,32 @@ const CartCheckout = () => {
         coins: newCoinsAmount
       }));
 
-      // Check for duplicates before inserting
+      // Check for duplicates before inserting with strict comparison
       const { data: existingGrids } = await supabase
         .from('user_loto_foot_grids')
         .select('predictions, draw_date')
         .eq('user_id', user.id)
         .in('draw_date', [...new Set(grids.map(g => g.drawDate))]);
 
-      // Filter out duplicates
+      // Filter out duplicates using normalized comparison
       const uniqueGrids = grids.filter(grid => {
-        const isDuplicate = existingGrids?.some(existing => 
-          existing.draw_date === grid.drawDate &&
-          JSON.stringify(existing.predictions) === JSON.stringify(grid.predictions)
-        );
+        const normalizedNewGrid = normalizePredictions(grid.predictions);
+        const isDuplicate = existingGrids?.some(existing => {
+          if (existing.draw_date !== grid.drawDate) return false;
+          const normalizedExisting = normalizePredictions(existing.predictions as Record<string, string[]>);
+          return normalizedExisting === normalizedNewGrid;
+        });
         return !isDuplicate;
       });
 
       if (uniqueGrids.length === 0) {
-        throw new Error('Toutes ces grilles existent déjà');
+        toast({
+          title: 'Grilles dupliquées',
+          description: 'Ces grilles existent déjà. Veuillez modifier vos choix.',
+          variant: 'destructive',
+        });
+        setIsProcessing(false);
+        return;
       }
 
       if (uniqueGrids.length < grids.length) {
@@ -181,6 +190,11 @@ const CartCheckout = () => {
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Nombre de grilles</span>
                 <span className="font-medium">{grids.length}</span>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Combinaisons totales</span>
+                <span className="font-medium">{useCartStore.getState().getTotalCombinations()}</span>
               </div>
               
               <div className="flex items-center justify-between">
