@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -8,12 +8,13 @@ import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 import { useProfile } from '@/hooks/useProfile';
 import { useCartStore } from '@/hooks/useCartStore';
 import { getNextDrawDate } from '@/utils/drawDates';
-import { Clock, ShoppingCart } from 'lucide-react';
+import { Clock, ShoppingCart, Zap } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { calculateCombinations, LOTO_FOOT_GRID_COST } from '@/utils/lotoFootCosts';
 
 export const LotoFootPlayGrid = () => {
   const [playerName, setPlayerName] = useState('');
-  const [predictions, setPredictions] = useState<Record<string, string>>({});
+  const [predictions, setPredictions] = useState<Record<string, string[]>>({});
 
   const nextDrawDate = getNextDrawDate('loto_foot');
   const { data: matches, isLoading: matchesLoading } = useLotoFootMatches(nextDrawDate);
@@ -22,17 +23,38 @@ export const LotoFootPlayGrid = () => {
 
   const predictionCount = Object.keys(predictions).length;
   const isValidGrid = predictionCount >= 12;
-  const totalCost = 2;
+  
+  // Calculate combinations and cost dynamically
+  const gridCalculation = useMemo(() => {
+    const predictionsForCalc = Object.entries(predictions).map(([matchId, preds]) => ({
+      match_position: parseInt(matchId),
+      predictions: preds as ('1' | 'X' | '2')[],
+    }));
+    const combinations = calculateCombinations(predictionsForCalc);
+    const cost = combinations * LOTO_FOOT_GRID_COST;
+    return { combinations, cost };
+  }, [predictions]);
+  
   const canAddToCart = isValidGrid;
 
   const handlePredictionChange = (matchId: string, prediction: string) => {
     setPredictions(prev => {
       const newPredictions = { ...prev };
-      if (newPredictions[matchId] === prediction) {
-        delete newPredictions[matchId];
+      const currentPredictions = newPredictions[matchId] || [];
+      
+      if (currentPredictions.includes(prediction)) {
+        // Remove prediction
+        const filtered = currentPredictions.filter(p => p !== prediction);
+        if (filtered.length === 0) {
+          delete newPredictions[matchId];
+        } else {
+          newPredictions[matchId] = filtered;
+        }
       } else {
-        newPredictions[matchId] = prediction;
+        // Add prediction
+        newPredictions[matchId] = [...currentPredictions, prediction];
       }
+      
       return newPredictions;
     });
   };
@@ -44,12 +66,13 @@ export const LotoFootPlayGrid = () => {
       predictions,
       playerName: playerName || undefined,
       drawDate: nextDrawDate,
-      cost: totalCost,
+      cost: gridCalculation.cost,
+      combinations: gridCalculation.combinations,
     });
     
     toast({
       title: 'Grille ajoutée au panier !',
-      description: 'Vous pouvez continuer à jouer ou payer maintenant.',
+      description: `${gridCalculation.combinations} combinaison${gridCalculation.combinations > 1 ? 's' : ''} - ${gridCalculation.cost} SC`,
     });
     
     // Reset form
@@ -92,9 +115,16 @@ export const LotoFootPlayGrid = () => {
             />
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Coût grille</span>
+            <span className="text-sm font-medium text-gray-700">Combinaisons</span>
+            <div className="flex items-center gap-1">
+              <Zap className="h-3 w-3 text-yellow-600" />
+              <span className="font-bold text-yellow-600">{gridCalculation.combinations}</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between border-t pt-2">
+            <span className="text-sm font-bold text-gray-700">Coût total</span>
             <SuerteCoinsDisplay 
-              amount={totalCost} 
+              amount={gridCalculation.cost} 
               size="sm"
               variant="default"
             />
@@ -128,25 +158,28 @@ export const LotoFootPlayGrid = () => {
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  {['1', 'X', '2'].map((pred) => (
-                    <Button
-                      key={pred}
-                      variant="outline"
-                      size="lg"
-                      onClick={() => handlePredictionChange(match.id, pred)}
-                      className={`flex-1 font-bold transition-all duration-200 ${
-                        predictions[match.id] === pred 
-                          ? pred === '1' 
-                            ? 'bg-prediction-1 text-prediction-1-foreground hover:bg-prediction-1/90 border-prediction-1' 
-                            : pred === 'X' 
-                            ? 'bg-prediction-x text-prediction-x-foreground hover:bg-prediction-x/90 border-prediction-x'
-                            : 'bg-prediction-2 text-prediction-2-foreground hover:bg-prediction-2/90 border-prediction-2'
-                          : ''
-                      }`}
-                    >
-                      {pred}
-                    </Button>
-                  ))}
+                  {['1', 'X', '2'].map((pred) => {
+                    const isSelected = predictions[match.id]?.includes(pred);
+                    return (
+                      <Button
+                        key={pred}
+                        variant={isSelected ? "default" : "outline"}
+                        size="lg"
+                        onClick={() => handlePredictionChange(match.id, pred)}
+                        className={`flex-1 font-bold transition-all duration-200 ${
+                          isSelected
+                            ? pred === '1' 
+                              ? 'bg-prediction-1 text-prediction-1-foreground hover:bg-prediction-1/90 border-prediction-1' 
+                              : pred === 'X' 
+                              ? 'bg-prediction-x text-prediction-x-foreground hover:bg-prediction-x/90 border-prediction-x'
+                              : 'bg-prediction-2 text-prediction-2-foreground hover:bg-prediction-2/90 border-prediction-2'
+                            : ''
+                        }`}
+                      >
+                        {pred}
+                      </Button>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -173,7 +206,7 @@ export const LotoFootPlayGrid = () => {
           size="lg"
         >
           <ShoppingCart className="mr-2 h-5 w-5" />
-          Ajouter au panier (2 SC)
+          Ajouter au panier ({gridCalculation.cost} SC)
         </Button>
       </div>
     </div>

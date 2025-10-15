@@ -24,24 +24,20 @@ export const CartGridPreview = ({ grid, onRemove }: CartGridPreviewProps) => {
             </div>
             
             <div className="text-xs text-muted-foreground space-y-1">
-              <p>{predictionCount} pronostics sélectionnés</p>
+              <p>{predictionCount} pronostics • {grid.combinations || 1} combinaison{(grid.combinations || 1) > 1 ? 's' : ''}</p>
               {grid.playerName && <p>Joueur : {grid.playerName}</p>}
               <p>Tirage : {grid.drawDate}</p>
             </div>
             
             <div className="mt-3 grid grid-cols-5 gap-1">
-              {Object.entries(grid.predictions).slice(0, 15).map(([matchId, prediction], idx) => (
+              {Object.entries(grid.predictions).slice(0, 15).map(([matchId, predictions], idx) => (
                 <div
                   key={matchId}
-                  className={`text-xs font-bold rounded px-1 py-0.5 text-center ${
-                    prediction === '1' 
-                      ? 'bg-prediction-1 text-prediction-1-foreground' 
-                      : prediction === 'X' 
-                      ? 'bg-prediction-x text-prediction-x-foreground'
-                      : 'bg-prediction-2 text-prediction-2-foreground'
-                  }`}
+                  className="text-xs font-bold rounded px-1 py-0.5 text-center bg-muted"
                 >
-                  {prediction}
+                  {Array.isArray(predictions) 
+                    ? predictions.join(',') 
+                    : predictions}
                 </div>
               ))}
             </div>

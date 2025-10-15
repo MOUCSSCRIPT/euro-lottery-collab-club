@@ -3,10 +3,11 @@ import { persist } from 'zustand/middleware';
 
 export interface CartGrid {
   id: string;
-  predictions: Record<string, string>;
+  predictions: Record<string, string[]>;
   playerName?: string;
   drawDate: string;
   cost: number;
+  combinations?: number;
   createdAt: number;
 }
 
@@ -17,6 +18,7 @@ interface CartStore {
   clearCart: () => void;
   getTotalCost: () => number;
   getGridCount: () => number;
+  getTotalCombinations: () => number;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -47,6 +49,11 @@ export const useCartStore = create<CartStore>()(
       },
       
       getGridCount: () => get().grids.length,
+      
+      getTotalCombinations: () => {
+        const { grids } = get();
+        return grids.reduce((sum, grid) => sum + (grid.combinations || 1), 0);
+      },
     }),
     {
       name: 'suerte-cart-storage',
