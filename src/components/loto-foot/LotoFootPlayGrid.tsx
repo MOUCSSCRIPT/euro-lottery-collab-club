@@ -8,9 +8,12 @@ import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 import { useProfile } from '@/hooks/useProfile';
 import { useCartStore } from '@/hooks/useCartStore';
 import { getNextDrawDate } from '@/utils/drawDates';
-import { Clock, ShoppingCart, Zap } from 'lucide-react';
+import { Clock, ShoppingCart, Zap, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { calculateCombinations, LOTO_FOOT_GRID_COST } from '@/utils/lotoFootCosts';
+import { usePublishedGrid } from '@/hooks/usePublishedGrid';
+import { DeadlineCountdown } from '@/components/ui/DeadlineCountdown';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const LotoFootPlayGrid = () => {
   const [playerName, setPlayerName] = useState('');
@@ -18,8 +21,15 @@ export const LotoFootPlayGrid = () => {
 
   const nextDrawDate = getNextDrawDate('loto_foot');
   const { data: matches, isLoading: matchesLoading } = useLotoFootMatches(nextDrawDate);
+  const { data: publishedGrid, isLoading: publishedGridLoading } = usePublishedGrid(nextDrawDate);
   const { profile } = useProfile();
   const addGrid = useCartStore(state => state.addGrid);
+
+  // Check if grid is published and if deadline has passed
+  const isPublished = publishedGrid?.status === 'published';
+  const isDeadlinePassed = publishedGrid?.play_deadline 
+    ? new Date(publishedGrid.play_deadline) < new Date()
+    : false;
 
   const predictionCount = Object.keys(predictions).length;
   const isValidGrid = predictionCount >= 12;
@@ -80,18 +90,53 @@ export const LotoFootPlayGrid = () => {
     setPlayerName('');
   };
 
-  if (matchesLoading) {
+  if (matchesLoading || publishedGridLoading) {
     return <div className="p-8 text-center">Chargement des matchs...</div>;
+  }
+
+  if (!isPublished) {
+    return (
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Aucune grille n'est actuellement disponible pour ce tirage. 
+          Revenez plus tard pour découvrir les prochains matchs !
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (isDeadlinePassed) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          La participation pour ce tirage est clôturée. 
+          La date limite était le {new Date(publishedGrid.play_deadline).toLocaleString('fr-FR')}.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header info */}
-      <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
-        <Clock className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium">
-          Prochain tirage : {nextDrawDate}
-        </span>
+      {/* Header info with deadline */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+          <Clock className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium">
+            Prochain tirage : {nextDrawDate}
+          </span>
+        </div>
+        
+        {publishedGrid?.play_deadline && (
+          <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+            <DeadlineCountdown 
+              deadline={publishedGrid.play_deadline}
+              variant="default"
+            />
+          </div>
+        )}
       </div>
 
       {/* Player info and cost */}

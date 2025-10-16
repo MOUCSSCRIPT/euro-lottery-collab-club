@@ -432,6 +432,42 @@ export type Database = {
         }
         Relationships: []
       }
+      loto_foot_published_grids: {
+        Row: {
+          created_at: string | null
+          draw_date: string
+          id: string
+          match_count: number
+          play_deadline: string
+          published_at: string | null
+          published_by: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          draw_date: string
+          id?: string
+          match_count?: number
+          play_deadline: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          draw_date?: string
+          id?: string
+          match_count?: number
+          play_deadline?: string
+          published_at?: string | null
+          published_by?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       loto_foot_wins: {
         Row: {
           correct_predictions: number

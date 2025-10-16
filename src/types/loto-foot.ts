@@ -51,3 +51,15 @@ export interface GridCalculation {
   potentialWinnings: number;
   minStake: number;
 }
+
+export interface LotoFootPublishedGrid {
+  id: string;
+  draw_date: string;
+  status: 'draft' | 'published' | 'closed';
+  play_deadline: string;
+  match_count: number;
+  created_at: string;
+  updated_at: string;
+  published_at: string | null;
+  published_by: string | null;
+}

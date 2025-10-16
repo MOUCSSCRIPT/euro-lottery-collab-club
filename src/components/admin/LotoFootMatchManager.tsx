@@ -13,6 +13,7 @@ import { Plus, Edit2, Trash2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { LotoFootGridPublisher } from './LotoFootGridPublisher';
 
 interface LotoFootMatch {
   id: string;
@@ -286,6 +287,8 @@ export const LotoFootMatchManager = () => {
 
   return (
     <div className="space-y-6">
+      <LotoFootGridPublisher drawDate={selectedDate} matchCount={matches?.length || 0} />
+      
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
