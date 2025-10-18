@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAllProfiles, useAddCoins, useSetCoins } from '@/hooks/useAdminActions';
 import { SuerteCoinsIcon } from '@/components/ui/SuerteCoinsIcon';
 import { LotoFootMatchManager } from './LotoFootMatchManager';
-import { LotoFootResultsManager } from './LotoFootResultsManager';
+import { LotoFootPublishedGridsManager } from './LotoFootPublishedGridsManager';
 import { LotoFootStatsChart } from './LotoFootStatsChart';
 import { Plus, Edit, Crown, Users, Calendar, Trophy, BarChart3 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -218,7 +218,7 @@ export const AdminPanel = () => {
             </TabsContent>
             
             <TabsContent value="results" className="mt-6">
-              <LotoFootResultsManager />
+              <LotoFootPublishedGridsManager />
             </TabsContent>
             
             <TabsContent value="stats" className="mt-6">
