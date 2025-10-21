@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAllProfiles, useAddCoins, useSetCoins } from '@/hooks/useAdminActions';
 import { SuerteCoinsIcon } from '@/components/ui/SuerteCoinsIcon';
-import { LotoFootMatchManager } from './LotoFootMatchManager';
+import { LotoFootMatchAndGridManager } from './LotoFootMatchAndGridManager';
 import { LotoFootPublishedGridsManager } from './LotoFootPublishedGridsManager';
 import { LotoFootStatsChart } from './LotoFootStatsChart';
 import { Plus, Edit, Crown, Users, Calendar, Trophy, BarChart3 } from 'lucide-react';
@@ -214,7 +214,7 @@ export const AdminPanel = () => {
             </TabsContent>
             
             <TabsContent value="loto-foot" className="mt-6">
-              <LotoFootMatchManager />
+              <LotoFootMatchAndGridManager />
             </TabsContent>
             
             <TabsContent value="results" className="mt-6">
