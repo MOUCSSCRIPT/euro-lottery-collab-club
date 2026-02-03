@@ -1,259 +1,279 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 import { useProfile } from '@/hooks/useProfile';
-import { useCartStore } from '@/hooks/useCartStore';
-import { getNextDrawDate } from '@/utils/drawDates';
-import { Clock, ShoppingCart, Zap, AlertTriangle } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { calculateCombinations, LOTO_FOOT_GRID_COST } from '@/utils/lotoFootCosts';
 import { usePublishedGrid } from '@/hooks/usePublishedGrid';
+import { getNextDrawDate } from '@/utils/drawDates';
+import { ChevronLeft, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { calculateCost, calculateCombinationsPreview, LOTO_FOOT_GRID_COST } from '@/utils/lotoFootCosts';
 import { DeadlineCountdown } from '@/components/ui/DeadlineCountdown';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
+import { MatchSlide } from './MatchSlide';
+import { RecapSlide } from './RecapSlide';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 
 export const LotoFootPlayGrid = () => {
-  const [playerName, setPlayerName] = useState('');
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [predictions, setPredictions] = useState<Record<string, string[]>>({});
 
   const nextDrawDate = getNextDrawDate('loto_foot');
   const { data: matches, isLoading: matchesLoading } = useLotoFootMatches(nextDrawDate);
   const { data: publishedGrid, isLoading: publishedGridLoading } = usePublishedGrid(nextDrawDate);
-  const { profile } = useProfile();
-  const addGrid = useCartStore(state => state.addGrid);
+  const { profile, isLoading: profileLoading } = useProfile();
 
-  // Check if grid is published and if deadline has passed
+  // Check grid status
   const isPublished = publishedGrid?.status === 'published';
   const isDeadlinePassed = publishedGrid?.play_deadline 
     ? new Date(publishedGrid.play_deadline) < new Date()
     : false;
 
-  const predictionCount = Object.keys(predictions).length;
-  const isValidGrid = predictionCount >= 12;
-  
-  // Calculate combinations and cost dynamically
-  const gridCalculation = useMemo(() => {
-    const predictionsForCalc = Object.entries(predictions).map(([matchId, preds]) => ({
-      match_position: parseInt(matchId),
-      predictions: preds as ('1' | 'X' | '2')[],
-    }));
-    const combinations = calculateCombinations(predictionsForCalc);
-    const cost = combinations * LOTO_FOOT_GRID_COST;
-    return { combinations, cost };
+  const totalSlides = matches ? matches.length + 1 : 0; // +1 for recap slide
+  const isOnRecapSlide = currentSlide === matches?.length;
+
+  // Dynamic cost calculation
+  const minPredictions = matches ? Math.max(12, matches.length - 3) : 12;
+  const { combinations, cost } = useMemo(() => {
+    return calculateCost(predictions, minPredictions);
+  }, [predictions, minPredictions]);
+
+  const combinationsPreview = useMemo(() => {
+    return calculateCombinationsPreview(predictions);
   }, [predictions]);
-  
-  const canAddToCart = isValidGrid;
 
-  const handlePredictionChange = (matchId: string, prediction: string) => {
+  // Toggle prediction for a match
+  const togglePrediction = (matchId: string, value: '1' | 'N' | '2') => {
     setPredictions(prev => {
-      const newPredictions = { ...prev };
-      const currentPredictions = newPredictions[matchId] || [];
-      
-      if (currentPredictions.includes(prediction)) {
-        // Remove prediction
-        const filtered = currentPredictions.filter(p => p !== prediction);
+      const current = prev[matchId] || [];
+      if (current.includes(value)) {
+        const filtered = current.filter(v => v !== value);
         if (filtered.length === 0) {
-          delete newPredictions[matchId];
-        } else {
-          newPredictions[matchId] = filtered;
+          const { [matchId]: _, ...rest } = prev;
+          return rest;
         }
+        return { ...prev, [matchId]: filtered };
       } else {
-        // Add prediction
-        newPredictions[matchId] = [...currentPredictions, prediction];
+        return { ...prev, [matchId]: [...current, value] };
       }
+    });
+  };
+
+  // Navigation
+  const goToSlide = (index: number) => setCurrentSlide(index);
+  const goNext = () => setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
+  const goPrev = () => setCurrentSlide(prev => Math.max(prev - 1, 0));
+
+  // Submit mutation
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      if (!user || !matches) throw new Error('Missing data');
       
-      return newPredictions;
-    });
-  };
+      // Deduct coins
+      const { error: coinsError } = await supabase.rpc('add_coins_to_user', {
+        _user_id: user.id,
+        _amount: -cost,
+      });
+      
+      if (coinsError) throw coinsError;
 
-  const handleAddToCart = () => {
-    if (!isValidGrid) return;
-    
-    addGrid({
-      predictions,
-      playerName: playerName || undefined,
-      drawDate: nextDrawDate,
-      cost: gridCalculation.cost,
-      combinations: gridCalculation.combinations,
-    });
-    
-    toast({
-      title: 'Grille ajoutée au panier !',
-      description: `${gridCalculation.combinations} combinaison${gridCalculation.combinations > 1 ? 's' : ''} - ${gridCalculation.cost} SC`,
-    });
-    
-    // Reset form
-    setPredictions({});
-    setPlayerName('');
-  };
+      // Format predictions for storage
+      const formattedPredictions = matches.map((match) => ({
+        match_position: match.match_position,
+        predictions: predictions[match.id] || [],
+      }));
 
-  if (matchesLoading || publishedGridLoading) {
-    return <div className="p-8 text-center">Chargement des matchs...</div>;
+      // Save grid
+      const { error: gridError } = await supabase
+        .from('user_loto_foot_grids')
+        .insert({
+          user_id: user.id,
+          draw_date: nextDrawDate,
+          predictions: formattedPredictions,
+          cost: cost,
+          stake: LOTO_FOOT_GRID_COST,
+          potential_winnings: 0,
+          status: 'active',
+        });
+
+      if (gridError) throw gridError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      queryClient.invalidateQueries({ queryKey: ['user-loto-foot-grids'] });
+      toast({
+        title: 'Grille validée !',
+        description: `${combinations} combinaison${combinations > 1 ? 's' : ''} enregistrée${combinations > 1 ? 's' : ''}`,
+      });
+      // Reset state
+      setPredictions({});
+      setCurrentSlide(0);
+    },
+    onError: (error) => {
+      console.error('Error submitting grid:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de valider la grille',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Loading state
+  if (matchesLoading || publishedGridLoading || profileLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
+  // No published grid
   if (!isPublished) {
     return (
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          Aucune grille n'est actuellement disponible pour ce tirage. 
-          Revenez plus tard pour découvrir les prochains matchs !
+          Aucune grille disponible pour le moment. Revenez plus tard !
         </AlertDescription>
       </Alert>
     );
   }
 
+  // Deadline passed
   if (isDeadlinePassed) {
     return (
       <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          La participation pour ce tirage est clôturée. 
-          La date limite était le {new Date(publishedGrid.play_deadline).toLocaleString('fr-FR')}.
+          La participation pour ce tirage est clôturée.
         </AlertDescription>
       </Alert>
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Header info with deadline */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
-          <Clock className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">
-            Prochain tirage : {nextDrawDate}
-          </span>
-        </div>
-        
-        {publishedGrid?.play_deadline && (
-          <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-            <DeadlineCountdown 
-              deadline={publishedGrid.play_deadline}
-              variant="default"
-            />
-          </div>
-        )}
-      </div>
+  if (!matches || matches.length === 0) {
+    return (
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>Aucun match configuré pour ce tirage.</AlertDescription>
+      </Alert>
+    );
+  }
 
-      {/* Player info and cost */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="player-name">Votre nom (optionnel)</Label>
-          <Input
-            id="player-name"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-            placeholder="Votre nom"
+  const currentMatch = matches[currentSlide];
+
+  return (
+    <div className="space-y-4">
+      {/* Deadline countdown */}
+      {publishedGrid?.play_deadline && (
+        <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+          <DeadlineCountdown 
+            deadline={publishedGrid.play_deadline}
+            variant="default"
           />
         </div>
+      )}
 
-        <div className="p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Vos SuerteCoins</span>
-            <SuerteCoinsDisplay 
-              amount={profile?.coins || 0} 
-              size="sm"
+      {/* Progress dots */}
+      <div className="flex justify-center gap-1 flex-wrap max-w-sm mx-auto">
+        {matches.map((match, index) => {
+          const hasPrediction = predictions[match.id]?.length > 0;
+          const isCurrent = index === currentSlide;
+          
+          return (
+            <button
+              key={match.id}
+              onClick={() => goToSlide(index)}
+              className={cn(
+                "w-3 h-3 rounded-full transition-all duration-200",
+                isCurrent ? "bg-primary scale-125" : 
+                hasPrediction ? "bg-primary/60" : "bg-muted-foreground/30"
+              )}
+              aria-label={`Match ${index + 1}`}
             />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Combinaisons</span>
-            <div className="flex items-center gap-1">
-              <Zap className="h-3 w-3 text-yellow-600" />
-              <span className="font-bold text-yellow-600">{gridCalculation.combinations}</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between border-t pt-2">
-            <span className="text-sm font-bold text-gray-700">Coût total</span>
-            <SuerteCoinsDisplay 
-              amount={gridCalculation.cost} 
-              size="sm"
-              variant="default"
-            />
-          </div>
-        </div>
+          );
+        })}
+        {/* Recap dot */}
+        <button
+          onClick={() => goToSlide(matches.length)}
+          className={cn(
+            "w-3 h-3 rounded-full transition-all duration-200 ml-2",
+            isOnRecapSlide ? "bg-primary scale-125" : "bg-muted-foreground/30"
+          )}
+          aria-label="Récapitulatif"
+        />
       </div>
 
-      {/* Progress */}
-      <div className="text-center p-4 bg-muted rounded-lg">
-        <p className="text-sm text-muted-foreground mb-1">
-          Pronostics sélectionnés
-        </p>
-        <p className="text-3xl font-bold text-primary">
-          {predictionCount}/15
-        </p>
-        <p className="text-xs text-muted-foreground">
-          Minimum 12 requis
-        </p>
-      </div>
+      {/* Current slide */}
+      {isOnRecapSlide ? (
+        <RecapSlide
+          predictions={predictions}
+          matches={matches}
+          combinations={combinations}
+          cost={cost}
+          userCoins={profile?.coins || 0}
+          isSubmitting={submitMutation.isPending}
+          onConfirm={() => submitMutation.mutate()}
+          onGoToMatch={goToSlide}
+        />
+      ) : currentMatch ? (
+        <MatchSlide
+          matchNumber={currentSlide + 1}
+          totalMatches={matches.length}
+          homeTeam={currentMatch.home_team}
+          awayTeam={currentMatch.away_team}
+          selected={predictions[currentMatch.id] || []}
+          onToggle={(value) => togglePrediction(currentMatch.id, value)}
+        />
+      ) : null}
 
-      {/* Matches list */}
-      <div className="space-y-3">
-        <h3 className="font-semibold text-lg">Sélectionnez vos pronostics</h3>
-        <div className="grid gap-3">
-          {matches?.map((match) => (
-            <Card key={match.id}>
-              <CardContent className="p-4">
-                <div className="mb-3">
-                  <span className="font-medium text-sm">
-                    {match.home_team} vs {match.away_team}
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  {['1', 'X', '2'].map((pred) => {
-                    const isSelected = predictions[match.id]?.includes(pred);
-                    return (
-                      <Button
-                        key={pred}
-                        variant={isSelected ? "default" : "outline"}
-                        size="lg"
-                        onClick={() => handlePredictionChange(match.id, pred)}
-                        className={`flex-1 font-bold transition-all duration-200 ${
-                          isSelected
-                            ? pred === '1' 
-                              ? 'bg-prediction-1 text-prediction-1-foreground hover:bg-prediction-1/90 border-prediction-1' 
-                              : pred === 'X' 
-                              ? 'bg-prediction-x text-prediction-x-foreground hover:bg-prediction-x/90 border-prediction-x'
-                              : 'bg-prediction-2 text-prediction-2-foreground hover:bg-prediction-2/90 border-prediction-2'
-                            : ''
-                        }`}
-                      >
-                        {pred}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      {/* Add to cart button */}
-      <div className="sticky bottom-20 md:bottom-6 z-10">
-        {!canAddToCart && (
-          <div className="p-3 mb-3 bg-orange-50 border border-orange-200 rounded-lg text-center">
-            <p className="text-orange-800 text-sm font-medium">
-              {predictionCount < 12 
-                ? `Sélectionnez ${12 - predictionCount} pronostic${12 - predictionCount > 1 ? 's' : ''} de plus` 
-                : 'Complétez votre grille'}
-            </p>
-          </div>
-        )}
-
+      {/* Navigation buttons */}
+      <div className="flex justify-between gap-4">
         <Button
-          onClick={handleAddToCart}
-          disabled={!canAddToCart}
-          className="w-full bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
-          size="lg"
+          variant="outline"
+          onClick={goPrev}
+          disabled={currentSlide === 0}
+          className="flex-1"
         >
-          <ShoppingCart className="mr-2 h-5 w-5" />
-          Ajouter au panier ({gridCalculation.cost} SC)
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Précédent
+        </Button>
+        <Button
+          onClick={goNext}
+          disabled={currentSlide === totalSlides - 1}
+          className="flex-1"
+        >
+          {isOnRecapSlide ? 'Récap' : 'Suivant'}
+          <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
+
+      {/* Live cost display */}
+      {!isOnRecapSlide && (
+        <div className="fixed bottom-20 left-0 right-0 bg-background/95 backdrop-blur border-t p-3 z-10">
+          <div className="flex justify-between items-center max-w-md mx-auto px-4">
+            <div className="text-sm">
+              <span className="text-muted-foreground">Matchs: </span>
+              <span className="font-medium">{Object.keys(predictions).length}/{matches.length}</span>
+            </div>
+            <div className="text-sm">
+              <span className="text-muted-foreground">Combinaisons: </span>
+              <span className="font-bold">{combinationsPreview || 1}</span>
+            </div>
+            <SuerteCoinsDisplay 
+              amount={combinationsPreview * LOTO_FOOT_GRID_COST || LOTO_FOOT_GRID_COST} 
+              size="sm" 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

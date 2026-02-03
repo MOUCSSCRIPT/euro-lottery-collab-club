@@ -3,8 +3,11 @@ import { LotoFootPrediction, GridCalculation } from '@/types/loto-foot';
 // Base stake per grid in euros
 export const LOTO_FOOT_BASE_STAKE = 1;
 
-// Cost per grid in SuerteCoins (equivalent to base stake)
-export const LOTO_FOOT_GRID_COST = 25; // 25 SuerteCoins = 1€
+// Cost per grid in SuerteCoins (1 combination = 25 SC)
+export const LOTO_FOOT_GRID_COST = 25;
+
+// Minimum number of predictions required (can be adjusted based on match count)
+export const MIN_PREDICTIONS = 12;
 
 // Prize distribution percentages (based on FDJ Loto Foot)
 export const PRIZE_DISTRIBUTION = {
@@ -16,11 +19,44 @@ export const PRIZE_DISTRIBUTION = {
   10: 0.01  // 1% for 10 correct
 };
 
-// Minimum number of predictions required
-export const MIN_PREDICTIONS = 12;
+/**
+ * Calculate cost from predictions object (player interface - new format)
+ * Each match can have 1, 2, or 3 selections
+ * Total combinations = product of selections per match
+ * Cost = combinations × 25 SC
+ */
+export function calculateCost(
+  predictions: Record<string, string[]>,
+  minPredictions: number = MIN_PREDICTIONS
+): { combinations: number; cost: number } {
+  const values = Object.values(predictions).filter(arr => arr.length > 0);
+  
+  if (values.length < minPredictions) {
+    return { combinations: 0, cost: 0 };
+  }
+  
+  const combinations = values.reduce((acc, preds) => acc * preds.length, 1);
+  const cost = combinations * LOTO_FOOT_GRID_COST;
+  
+  return { combinations, cost };
+}
 
 /**
- * Calculate the number of combinations for a grid
+ * Calculate combinations count only (for display during selection)
+ * Always returns a value, even if minimum not reached
+ */
+export function calculateCombinationsPreview(
+  predictions: Record<string, string[]>
+): number {
+  const values = Object.values(predictions).filter(arr => arr.length > 0);
+  
+  if (values.length === 0) return 0;
+  
+  return values.reduce((acc, preds) => acc * preds.length, 1);
+}
+
+/**
+ * Calculate the number of combinations for a grid (old format - LotoFootPrediction[])
  */
 export function calculateCombinations(predictions: LotoFootPrediction[]): number {
   if (predictions.length < MIN_PREDICTIONS) return 0;
@@ -31,7 +67,7 @@ export function calculateCombinations(predictions: LotoFootPrediction[]): number
 }
 
 /**
- * Calculate grid costs and potential winnings
+ * Calculate grid costs and potential winnings (old format - LotoFootPrediction[])
  */
 export function calculateGridCosts(
   predictions: LotoFootPrediction[],
@@ -41,9 +77,8 @@ export function calculateGridCosts(
   const totalCost = combinations * LOTO_FOOT_GRID_COST;
   
   // Estimate potential winnings based on combinations and stake
-  // This is a simplified calculation - real winnings depend on the prize pool
   const basePotential = stake * combinations;
-  const potentialWinnings = basePotential * 1000; // Rough multiplier for 15 correct
+  const potentialWinnings = basePotential * 1000;
   
   return {
     totalCombinations: combinations,
@@ -54,29 +89,21 @@ export function calculateGridCosts(
 }
 
 /**
- * Calculate odds for potential winnings
+ * Check if grid is valid for submission (supports both formats)
  */
-export function calculateOdds(predictions: LotoFootPrediction[]): number {
-  if (predictions.length === 0) return 0;
-  
-  return predictions.reduce((totalOdds, prediction) => {
-    if (prediction.predictions.length === 0) return totalOdds;
-    
-    // For multiple predictions on same match, take average odds
-    const avgOdds = prediction.predictions.length > 1 
-      ? 2.0 // Conservative estimate for multiple predictions
-      : 2.5; // Average odds for single prediction
-    
-    return totalOdds * avgOdds;
-  }, 1);
-}
-
-/**
- * Check if grid is valid for submission
- */
-export function isValidGrid(predictions: LotoFootPrediction[]): boolean {
-  const validPredictions = predictions.filter(p => p.predictions.length > 0);
-  return validPredictions.length >= MIN_PREDICTIONS;
+export function isValidGrid(
+  predictions: LotoFootPrediction[] | Record<string, string[]>,
+  minPredictions: number = MIN_PREDICTIONS
+): boolean {
+  if (Array.isArray(predictions)) {
+    // Old format: LotoFootPrediction[]
+    const validPredictions = predictions.filter(p => p.predictions.length > 0);
+    return validPredictions.length >= minPredictions;
+  } else {
+    // New format: Record<string, string[]>
+    const validPredictions = Object.values(predictions).filter(p => p.length > 0);
+    return validPredictions.length >= minPredictions;
+  }
 }
 
 /**
