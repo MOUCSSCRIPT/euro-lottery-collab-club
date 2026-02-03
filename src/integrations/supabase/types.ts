@@ -728,14 +728,8 @@ export type Database = {
         }
         Returns: undefined
       }
-      generate_invitation_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_team_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_invitation_code: { Args: never; Returns: string }
+      generate_team_code: { Args: never; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
