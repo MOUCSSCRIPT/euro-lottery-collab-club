@@ -3,8 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 import { useProfile } from '@/hooks/useProfile';
-import { usePublishedGrid } from '@/hooks/usePublishedGrid';
-import { getNextDrawDate } from '@/utils/drawDates';
+import { useNextPublishedGrid } from '@/hooks/useNextPublishedGrid';
 import { ChevronLeft, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { calculateCost, calculateCombinationsPreview, LOTO_FOOT_GRID_COST } from '@/utils/lotoFootCosts';
@@ -24,9 +23,9 @@ export const LotoFootPlayGrid = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [predictions, setPredictions] = useState<Record<string, string[]>>({});
 
-  const nextDrawDate = getNextDrawDate('loto_foot');
+  const { data: publishedGrid, isLoading: publishedGridLoading } = useNextPublishedGrid();
+  const nextDrawDate = publishedGrid?.draw_date || '';
   const { data: matches, isLoading: matchesLoading } = useLotoFootMatches(nextDrawDate);
-  const { data: publishedGrid, isLoading: publishedGridLoading } = usePublishedGrid(nextDrawDate);
   const { profile, isLoading: profileLoading } = useProfile();
 
   // Check grid status
