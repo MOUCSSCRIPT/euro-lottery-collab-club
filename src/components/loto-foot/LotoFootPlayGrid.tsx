@@ -161,7 +161,9 @@ export const LotoFootPlayGrid = () => {
     return (
       <Alert>
         <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>Aucun match configuré pour ce tirage.</AlertDescription>
+        <AlertDescription>
+          La grille est en cours de préparation. Les matchs seront bientôt disponibles.
+        </AlertDescription>
       </Alert>
     );
   }
