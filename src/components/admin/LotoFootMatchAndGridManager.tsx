@@ -28,9 +28,14 @@ export const LotoFootMatchAndGridManager = () => {
   const [matches, setMatches] = useState<MatchInput[]>([]);
   const [playDeadline, setPlayDeadline] = useState('');
   
-  // Initialize matches array when match count changes
+  // Initialize matches array when match count changes (preserve existing data)
   useEffect(() => {
-    setMatches(Array.from({ length: matchCount }, () => ({ home_team: '', away_team: '' })));
+    setMatches(prev => {
+      const newMatches = Array.from({ length: matchCount }, (_, i) => 
+        prev[i] || { home_team: '', away_team: '' }
+      );
+      return newMatches;
+    });
   }, [matchCount]);
 
   // Handle date from URL params
@@ -80,38 +85,39 @@ export const LotoFootMatchAndGridManager = () => {
 
   const allMatchesFilled = filledMatchesCount === matchCount;
 
-  // Save matches mutation
+  // Helper: save matches to DB
+  const saveMatchesToDB = async () => {
+    await supabase
+      .from('loto_foot_matches')
+      .delete()
+      .eq('draw_date', selectedDate);
+
+    const matchesToInsert = matches
+      .map((match, index) => ({
+        home_team: match.home_team.trim(),
+        away_team: match.away_team.trim(),
+        match_position: index + 1,
+        draw_date: selectedDate,
+        match_datetime: new Date(selectedDate).toISOString(),
+        status: 'scheduled',
+      }))
+      .filter(m => m.home_team && m.away_team);
+
+    if (matchesToInsert.length === 0) {
+      throw new Error('Aucun match valide à enregistrer');
+    }
+
+    const { error } = await supabase
+      .from('loto_foot_matches')
+      .insert(matchesToInsert);
+
+    if (error) throw error;
+    return matchesToInsert.length;
+  };
+
+  // Save matches mutation (manual save as draft)
   const saveMatchesMutation = useMutation({
-    mutationFn: async () => {
-      // First, delete existing matches for this date
-      await supabase
-        .from('loto_foot_matches')
-        .delete()
-        .eq('draw_date', selectedDate);
-
-      // Then insert new matches
-      const matchesToInsert = matches
-        .map((match, index) => ({
-          home_team: match.home_team.trim(),
-          away_team: match.away_team.trim(),
-          match_position: index + 1,
-          draw_date: selectedDate,
-          match_datetime: new Date(selectedDate).toISOString(),
-          status: 'scheduled',
-        }))
-        .filter(m => m.home_team && m.away_team);
-
-      if (matchesToInsert.length === 0) {
-        throw new Error('Aucun match valide à enregistrer');
-      }
-
-      const { error } = await supabase
-        .from('loto_foot_matches')
-        .insert(matchesToInsert);
-
-      if (error) throw error;
-      return matchesToInsert.length;
-    },
+    mutationFn: saveMatchesToDB,
     onSuccess: (count) => {
       queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
       toast.success(`${count} matchs enregistrés`);
@@ -122,9 +128,13 @@ export const LotoFootMatchAndGridManager = () => {
     },
   });
 
-  // Create grid mutation
+  // Create grid mutation (saves matches first)
   const createGridMutation = useMutation({
     mutationFn: async (deadline: string) => {
+      // Step 1: save matches
+      await saveMatchesToDB();
+      
+      // Step 2: create published grid
       const { data, error } = await supabase
         .from('loto_foot_published_grids')
         .insert({
@@ -140,8 +150,9 @@ export const LotoFootMatchAndGridManager = () => {
       return data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
       queryClient.invalidateQueries({ queryKey: ['published-grid', selectedDate] });
-      toast.success('Grille créée en mode brouillon');
+      toast.success('Matchs enregistrés et grille créée');
     },
     onError: (error) => {
       console.error('Error creating grid:', error);
@@ -149,10 +160,13 @@ export const LotoFootMatchAndGridManager = () => {
     },
   });
 
-  // Publish grid mutation
+  // Publish grid mutation (saves matches first)
   const publishGridMutation = useMutation({
     mutationFn: async () => {
       if (!publishedGrid) throw new Error('No grid to publish');
+      
+      // Save matches before publishing
+      await saveMatchesToDB();
       
       const { error } = await supabase
         .from('loto_foot_published_grids')
@@ -165,6 +179,7 @@ export const LotoFootMatchAndGridManager = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
       queryClient.invalidateQueries({ queryKey: ['published-grid', selectedDate] });
       queryClient.invalidateQueries({ queryKey: ['next-published-grid'] });
       toast.success('Grille publiée !');
