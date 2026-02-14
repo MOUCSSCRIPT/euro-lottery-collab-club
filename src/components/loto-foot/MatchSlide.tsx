@@ -47,7 +47,6 @@ export const MatchSlide = ({
                 onClick={() => onToggle(value)}
                 className={cn(
                   "w-20 h-20 text-2xl font-bold transition-all duration-200",
-                  isSelected && "animate-bounce-in animate-pulse-glow",
                   isSelected && value === '1' && "bg-prediction-1 text-prediction-1-foreground hover:bg-prediction-1/90 border-prediction-1",
                   isSelected && value === 'N' && "bg-prediction-x text-prediction-x-foreground hover:bg-prediction-x/90 border-prediction-x",
                   isSelected && value === '2' && "bg-prediction-2 text-prediction-2-foreground hover:bg-prediction-2/90 border-prediction-2",
