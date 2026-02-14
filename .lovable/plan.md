@@ -1,147 +1,45 @@
 
 
-## Correction : Les matchs ne s'enregistrent pas pour les joueurs
+## Correction : Le bouton "Publier" est bloqué
 
-### Probleme identifie
+### Probleme
 
-L'admin a publie la grille mais les matchs n'ont jamais ete sauvegardes dans la base de donnees. La requete `loto_foot_matches?draw_date=eq.2026-02-13` retourne un tableau vide `[]`.
+Quand l'admin revient sur une grille existante de 12 matchs, le formulaire s'initialise avec 15 matchs (valeur par defaut). Les 12 matchs existants sont charges mais le formulaire affiche 15 lignes. 3 lignes restent vides, donc `allMatchesFilled` = false et le bouton "Publier" est desactive.
 
-**Cause racine** : Le workflow admin a 2 actions separees (Enregistrer matchs + Publier grille) et il est possible de publier sans avoir enregistre les matchs. Il faut forcer l'enregistrement des matchs avant toute publication.
+### Cause racine
 
-### Corrections a apporter
+`matchCount` est initialise a 15 par defaut (ligne 27) et n'est jamais mis a jour quand une grille existante est chargee depuis la base.
 
-#### 1. Fusionner "Enregistrer" et "Publier" dans `LotoFootMatchAndGridManager.tsx`
+### Correction dans `LotoFootMatchAndGridManager.tsx`
 
-Quand l'admin clique "Creer la grille" ou "Publier", les matchs doivent etre automatiquement sauvegardes en meme temps. Plus besoin de cliquer separement sur "Enregistrer".
-
-**Changements :**
-- Modifier `createGridMutation` pour sauvegarder les matchs AVANT de creer la grille publiee
-- Modifier `publishGridMutation` pour sauvegarder les matchs AVANT de publier
-- Garder le bouton "Enregistrer" comme option manuelle (brouillon), mais le rendre secondaire
-- Ajouter une verification : empecher la publication si les matchs ne sont pas tous remplis (deja fait via `allMatchesFilled`)
-
-**Code concret :**
+Ajouter un `useEffect` qui synchronise `matchCount` avec la grille publiee existante ou le nombre de matchs existants :
 
 ```typescript
-// Fonction utilitaire pour sauvegarder les matchs
-const saveMatchesToDB = async () => {
-  await supabase
-    .from('loto_foot_matches')
-    .delete()
-    .eq('draw_date', selectedDate);
-
-  const matchesToInsert = matches
-    .map((match, index) => ({
-      home_team: match.home_team.trim(),
-      away_team: match.away_team.trim(),
-      match_position: index + 1,
-      draw_date: selectedDate,
-      match_datetime: new Date(selectedDate).toISOString(),
-      status: 'scheduled',
-    }))
-    .filter(m => m.home_team && m.away_team);
-
-  if (matchesToInsert.length === 0) {
-    throw new Error('Aucun match valide');
-  }
-
-  const { error } = await supabase
-    .from('loto_foot_matches')
-    .insert(matchesToInsert);
-
-  if (error) throw error;
-  return matchesToInsert.length;
-};
-
-// createGridMutation sauvegarde les matchs PUIS cree la grille
-const createGridMutation = useMutation({
-  mutationFn: async (deadline: string) => {
-    // Etape 1: sauvegarder les matchs
-    await saveMatchesToDB();
-    
-    // Etape 2: creer la grille publiee
-    const { data, error } = await supabase
-      .from('loto_foot_published_grids')
-      .insert({
-        draw_date: selectedDate,
-        play_deadline: deadline,
-        match_count: matchCount,
-        status: 'draft',
-      })
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
-  },
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['admin-loto-foot-matches'] });
-    queryClient.invalidateQueries({ queryKey: ['published-grid', selectedDate] });
-    toast.success('Matchs enregistres et grille creee');
-  },
-  // ...
-});
-
-// publishGridMutation met aussi a jour les matchs
-const publishGridMutation = useMutation({
-  mutationFn: async () => {
-    // Sauvegarder les matchs (au cas ou modifies)
-    await saveMatchesToDB();
-    
-    // Publier la grille
-    const { error } = await supabase
-      .from('loto_foot_published_grids')
-      .update({
-        status: 'published',
-        published_at: new Date().toISOString(),
-      })
-      .eq('id', publishedGrid.id);
-    
-    if (error) throw error;
-  },
-  // ...
-});
-```
-
-#### 2. Proteger contre la reinitialisation des matchs
-
-Le `useEffect` sur `matchCount` (ligne 32-34) reinitialise les matchs a vide a chaque changement. Il faut preserver les donnees existantes.
-
-```typescript
+// Synchronize matchCount when published grid or existing matches are loaded
 useEffect(() => {
-  setMatches(prev => {
-    const newMatches = Array.from({ length: matchCount }, (_, i) => 
-      prev[i] || { home_team: '', away_team: '' }
-    );
-    return newMatches;
-  });
-}, [matchCount]);
+  if (publishedGrid?.match_count) {
+    const count = publishedGrid.match_count;
+    if (count === 12 || count === 14 || count === 15) {
+      setMatchCount(count);
+    }
+  } else if (existingMatches && existingMatches.length > 0) {
+    const count = existingMatches.length;
+    if (count === 12 || count === 14 || count === 15) {
+      setMatchCount(count as 12 | 14 | 15);
+    }
+  }
+}, [publishedGrid, existingMatches]);
 ```
 
-#### 3. Ajouter un message d'avertissement cote joueur
-
-Dans `LotoFootPlayGrid.tsx`, ameliorer le message quand les matchs sont absents mais la grille existe :
-
-```typescript
-if (publishedGrid && (!matches || matches.length === 0)) {
-  return (
-    <Alert>
-      <AlertTriangle className="h-4 w-4" />
-      <AlertDescription>
-        La grille est en cours de preparation. Les matchs seront bientot disponibles.
-      </AlertDescription>
-    </Alert>
-  );
-}
-```
-
-### Fichiers modifies
+### Fichier modifie
 
 | Fichier | Modification |
 |---------|-------------|
-| `src/components/admin/LotoFootMatchAndGridManager.tsx` | Fusionner sauvegarde matchs + publication, proteger useEffect matchCount |
-| `src/components/loto-foot/LotoFootPlayGrid.tsx` | Meilleur message quand matchs absents |
+| `src/components/admin/LotoFootMatchAndGridManager.tsx` | Ajouter un useEffect pour synchroniser matchCount avec les donnees existantes |
 
-### Resume
+### Resultat attendu
 
-Le fix principal : **quand l'admin publie, les matchs sont automatiquement sauvegardes**. Plus de risque d'oublier l'etape "Enregistrer".
+- L'admin revient sur la page avec la grille du 14/02
+- `matchCount` se met automatiquement a 12 (valeur de la grille existante)
+- Les 12 matchs sont affiches et remplis → `allMatchesFilled` = true
+- Le bouton "Publier" est actif et cliquable
