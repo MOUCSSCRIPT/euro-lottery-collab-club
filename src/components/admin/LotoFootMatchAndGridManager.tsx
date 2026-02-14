@@ -61,6 +61,24 @@ export const LotoFootMatchAndGridManager = () => {
     },
   });
 
+  // Fetch published grid
+  const { data: publishedGrid, isLoading: gridLoading } = usePublishedGrid(selectedDate);
+
+  // Synchronize matchCount when published grid or existing matches are loaded
+  useEffect(() => {
+    if (publishedGrid?.match_count) {
+      const count = publishedGrid.match_count;
+      if (count === 12 || count === 14 || count === 15) {
+        setMatchCount(count);
+      }
+    } else if (existingMatches && existingMatches.length > 0) {
+      const count = existingMatches.length;
+      if (count === 12 || count === 14 || count === 15) {
+        setMatchCount(count as 12 | 14 | 15);
+      }
+    }
+  }, [publishedGrid, existingMatches]);
+
   // Populate form when existing matches are loaded
   useEffect(() => {
     if (existingMatches && existingMatches.length > 0) {
@@ -74,9 +92,6 @@ export const LotoFootMatchAndGridManager = () => {
       setMatches(newMatches);
     }
   }, [existingMatches, matchCount]);
-
-  // Fetch published grid
-  const { data: publishedGrid, isLoading: gridLoading } = usePublishedGrid(selectedDate);
 
   // Count filled matches
   const filledMatchesCount = useMemo(() => {
