@@ -22,6 +22,7 @@ export const LotoFootPlayGrid = () => {
   
   const [currentSlide, setCurrentSlide] = useState(0);
   const [predictions, setPredictions] = useState<Record<string, string[]>>({});
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
 
   const { data: publishedGrid, isLoading: publishedGridLoading } = useNextPublishedGrid();
   const nextDrawDate = publishedGrid?.draw_date || '';
@@ -65,9 +66,18 @@ export const LotoFootPlayGrid = () => {
   };
 
   // Navigation
-  const goToSlide = (index: number) => setCurrentSlide(index);
-  const goNext = () => setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
-  const goPrev = () => setCurrentSlide(prev => Math.max(prev - 1, 0));
+  const goToSlide = (index: number) => {
+    setSlideDirection(index > currentSlide ? 'right' : 'left');
+    setCurrentSlide(index);
+  };
+  const goNext = () => {
+    setSlideDirection('right');
+    setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
+  };
+  const goPrev = () => {
+    setSlideDirection('left');
+    setCurrentSlide(prev => Math.max(prev - 1, 0));
+  };
 
   // Submit mutation
   const submitMutation = useMutation({
@@ -213,27 +223,34 @@ export const LotoFootPlayGrid = () => {
       </div>
 
       {/* Current slide */}
-      {isOnRecapSlide ? (
-        <RecapSlide
-          predictions={predictions}
-          matches={matches}
-          combinations={combinations}
-          cost={cost}
-          userCoins={profile?.coins || 0}
-          isSubmitting={submitMutation.isPending}
-          onConfirm={() => submitMutation.mutate()}
-          onGoToMatch={goToSlide}
-        />
-      ) : currentMatch ? (
-        <MatchSlide
-          matchNumber={currentSlide + 1}
-          totalMatches={matches.length}
-          homeTeam={currentMatch.home_team}
-          awayTeam={currentMatch.away_team}
-          selected={predictions[currentMatch.id] || []}
-          onToggle={(value) => togglePrediction(currentMatch.id, value)}
-        />
-      ) : null}
+      <div
+        key={currentSlide}
+        className={cn(
+          slideDirection === 'right' ? 'animate-slide-in-right' : 'animate-slide-in-left'
+        )}
+      >
+        {isOnRecapSlide ? (
+          <RecapSlide
+            predictions={predictions}
+            matches={matches}
+            combinations={combinations}
+            cost={cost}
+            userCoins={profile?.coins || 0}
+            isSubmitting={submitMutation.isPending}
+            onConfirm={() => submitMutation.mutate()}
+            onGoToMatch={goToSlide}
+          />
+        ) : currentMatch ? (
+          <MatchSlide
+            matchNumber={currentSlide + 1}
+            totalMatches={matches.length}
+            homeTeam={currentMatch.home_team}
+            awayTeam={currentMatch.away_team}
+            selected={predictions[currentMatch.id] || []}
+            onToggle={(value) => togglePrediction(currentMatch.id, value)}
+          />
+        ) : null}
+      </div>
 
       {/* Navigation buttons */}
       <div className="flex justify-between gap-4">

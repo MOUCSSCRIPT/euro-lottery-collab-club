@@ -57,9 +57,10 @@ export const RecapSlide = ({
                 key={match.id}
                 onClick={() => onGoToMatch(index)}
                 className={cn(
-                  "w-full flex items-center justify-between py-2 px-3 rounded hover:bg-muted/50 transition-colors text-left",
+                  "w-full flex items-center justify-between py-2 px-3 rounded hover:bg-muted/50 transition-colors text-left animate-fade-in-up opacity-0",
                   !hasPrediction && "text-muted-foreground"
                 )}
+                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
               >
                 <span className="text-sm flex items-center gap-2">
                   {hasPrediction ? (
