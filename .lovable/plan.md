@@ -1,27 +1,48 @@
 
-## Correction de la validation des resultats admin
+# Ajouter un nom personnalisable aux grilles Loto Foot
 
-### Probleme identifie
+## Objectif
+Permettre a l'administrateur de donner un nom a une grille lors de sa creation (ex: "Loto Foot Journee 25"), et afficher ce nom dynamiquement dans le titre de la page Play (ligne 58) a la place du texte statique "Loto Foot 15".
 
-Le bouton "Valider et calculer les gagnants" reste desactive car le code exige exactement **15 resultats saisis** (`Object.keys(results).length < 15`), meme si la grille ne contient que **12 ou 14 matchs**. L'administrateur ne peut jamais atteindre 15 si la grille a moins de matchs.
+## Modifications prevues
 
-Le meme probleme existe dans le message d'erreur toast qui affiche toujours "15 resultats".
+### 1. Migration base de donnees
+Ajouter une colonne `name` (texte, nullable, valeur par defaut `NULL`) a la table `loto_foot_published_grids`.
 
-### Correction
+```text
+ALTER TABLE public.loto_foot_published_grids
+  ADD COLUMN name text DEFAULT NULL;
+```
 
-Modifier `LotoFootPublishedGridsManager.tsx` pour utiliser le nombre reel de matchs au lieu du chiffre 15 fixe :
+### 2. Interface admin -- LotoFootMatchAndGridManager
+- Ajouter un champ `Input` "Nom de la grille" dans l'etape 1 (section Selection) ou l'etape 3 (section Publication), avec un placeholder comme "Ex: Loto Foot Journee 25".
+- Ajouter un state `gridName` dans le composant.
+- Passer `name: gridName` lors de l'insertion dans `createGridMutation`.
+- Permettre la modification du nom sur une grille existante (brouillon ou publiee).
 
-1. **Condition du bouton (ligne 234)** : Remplacer `Object.keys(results).length < 15` par `Object.keys(results).length < (matches?.length || 15)` -- le bouton s'active des que tous les matchs ont un resultat.
+### 3. Type PublishedGrid
+Ajouter `name: string | null` dans l'interface `PublishedGrid` du fichier `src/hooks/usePublishedGrid.ts`.
 
-2. **Message toast (ligne 41-44)** : Remplacer le chiffre 15 par `matches?.length` pour afficher le bon compteur (ex: "10/12" au lieu de "10/15").
+### 4. Page Play -- affichage dynamique du titre
+- Importer `useNextPublishedGrid` (deja utilise par `LotoFootPlayGrid`).
+- Remplacer le texte statique "Loto Foot 15" par le nom de la grille publiee si disponible, sinon conserver "Loto Foot 15" comme fallback.
+- Le CSS existant (gradient, taille, etc.) reste identique.
 
-3. **Compteur affiche (ligne 189)** : Remplacer le `/15` fixe par le nombre reel de matchs pour que l'indicateur de progression soit correct.
+```text
+Avant:  <h1 ...>Loto Foot 15</h1>
+Apres:  <h1 ...>{publishedGrid?.name || 'Loto Foot 15'}</h1>
+```
 
-### Details techniques
+## Details techniques
 
-Fichier modifie : `src/components/admin/LotoFootPublishedGridsManager.tsx`
+| Fichier | Modification |
+|---|---|
+| Migration SQL | Ajout colonne `name` sur `loto_foot_published_grids` |
+| `src/hooks/usePublishedGrid.ts` | Ajout `name: string \| null` dans l'interface |
+| `src/components/admin/LotoFootMatchAndGridManager.tsx` | Ajout champ "Nom de la grille" + state + insertion/mise a jour |
+| `src/pages/Play.tsx` | Hook `useNextPublishedGrid` + affichage dynamique du titre |
 
-- Ligne 41 : `resultsCount < (matches?.length || 15)` 
-- Ligne 44 : afficher `matches?.length || 15` dans le message
-- Ligne 189 : afficher `matches?.length || 15` dans le compteur
-- Ligne 234 : `Object.keys(results).length < (matches?.length || 15)` pour la condition disabled du bouton
+## Comportement
+- Si l'admin ne saisit pas de nom, le titre affiche "Loto Foot 15" (fallback).
+- Si un nom est saisi, il s'affiche avec le meme style gradient.
+- Le nom est modifiable tant que la grille existe (brouillon ou publiee).
