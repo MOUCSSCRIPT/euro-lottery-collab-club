@@ -86,20 +86,36 @@ const PlayerStats = () => {
                       <CardContent className="space-y-4">
                         {/* Display predictions */}
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                          {Object.entries(grid.predictions as Record<string, string>).map(([matchId, prediction], index) => (
-                            <div 
-                              key={matchId}
-                              className={`p-2 rounded-md text-center font-bold text-sm ${
-                                prediction === '1' 
-                                  ? 'bg-prediction-1/20 text-prediction-1' 
-                                  : prediction === 'X' 
-                                  ? 'bg-prediction-x/20 text-prediction-x'
-                                  : 'bg-prediction-2/20 text-prediction-2'
-                              }`}
-                            >
-                              Match {index + 1}: {prediction}
-                            </div>
-                          ))}
+                          {(() => {
+                            const preds = grid.predictions;
+                            // New format: array of {match_position, predictions: string[]}
+                            if (Array.isArray(preds)) {
+                              return preds.map((item: any, index: number) => {
+                                const predValues = Array.isArray(item.predictions) ? item.predictions : [item.predictions];
+                                const label = predValues.join('/');
+                                return (
+                                  <div 
+                                    key={index}
+                                    className="p-2 rounded-md text-center font-bold text-sm bg-muted"
+                                  >
+                                    Match {item.match_position || index + 1}: {label}
+                                  </div>
+                                );
+                              });
+                            }
+                            // Old format: Record<string, string | string[]>
+                            return Object.entries(preds as Record<string, any>).map(([matchId, prediction], index) => {
+                              const label = Array.isArray(prediction) ? prediction.join('/') : String(prediction);
+                              return (
+                                <div 
+                                  key={matchId}
+                                  className="p-2 rounded-md text-center font-bold text-sm bg-muted"
+                                >
+                                  Match {index + 1}: {label}
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
 
                         {/* Display stats */}
