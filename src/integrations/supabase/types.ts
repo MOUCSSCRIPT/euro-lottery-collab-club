@@ -438,6 +438,7 @@ export type Database = {
           draw_date: string
           id: string
           match_count: number
+          name: string | null
           play_deadline: string
           published_at: string | null
           published_by: string | null
@@ -449,6 +450,7 @@ export type Database = {
           draw_date: string
           id?: string
           match_count?: number
+          name?: string | null
           play_deadline: string
           published_at?: string | null
           published_by?: string | null
@@ -460,6 +462,7 @@ export type Database = {
           draw_date?: string
           id?: string
           match_count?: number
+          name?: string | null
           play_deadline?: string
           published_at?: string | null
           published_by?: string | null
