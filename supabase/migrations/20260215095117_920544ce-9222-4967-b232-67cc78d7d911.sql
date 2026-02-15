@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.calculate_loto_foot_results(date, jsonb);
