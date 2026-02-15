@@ -1,48 +1,45 @@
 
-# Ajouter un nom personnalisable aux grilles Loto Foot
+# Corriger la validation des résultats et renommer le bouton
 
-## Objectif
-Permettre a l'administrateur de donner un nom a une grille lors de sa creation (ex: "Loto Foot Journee 25"), et afficher ce nom dynamiquement dans le titre de la page Play (ligne 58) a la place du texte statique "Loto Foot 15".
+## Probleme identifie
+La fonction SQL `calculate_loto_foot_results` declare le parametre `p_draw_date` en type `text`, mais les colonnes `draw_date` des tables `user_loto_foot_grids` et `loto_foot_grids` sont de type `date`. PostgreSQL refuse la comparaison `date = text` sans cast explicite.
 
-## Modifications prevues
+**Erreur exacte** : `operator does not exist: date = text`
 
-### 1. Migration base de donnees
-Ajouter une colonne `name` (texte, nullable, valeur par defaut `NULL`) a la table `loto_foot_published_grids`.
+## Corrections prevues
 
-```text
-ALTER TABLE public.loto_foot_published_grids
-  ADD COLUMN name text DEFAULT NULL;
-```
-
-### 2. Interface admin -- LotoFootMatchAndGridManager
-- Ajouter un champ `Input` "Nom de la grille" dans l'etape 1 (section Selection) ou l'etape 3 (section Publication), avec un placeholder comme "Ex: Loto Foot Journee 25".
-- Ajouter un state `gridName` dans le composant.
-- Passer `name: gridName` lors de l'insertion dans `createGridMutation`.
-- Permettre la modification du nom sur une grille existante (brouillon ou publiee).
-
-### 3. Type PublishedGrid
-Ajouter `name: string | null` dans l'interface `PublishedGrid` du fichier `src/hooks/usePublishedGrid.ts`.
-
-### 4. Page Play -- affichage dynamique du titre
-- Importer `useNextPublishedGrid` (deja utilise par `LotoFootPlayGrid`).
-- Remplacer le texte statique "Loto Foot 15" par le nom de la grille publiee si disponible, sinon conserver "Loto Foot 15" comme fallback.
-- Le CSS existant (gradient, taille, etc.) reste identique.
+### 1. Migration SQL : recréer la fonction avec un cast explicite
+Remplacer la fonction `calculate_loto_foot_results` pour caster `p_draw_date::date` dans les clauses `WHERE`, afin que la comparaison fonctionne correctement.
 
 ```text
-Avant:  <h1 ...>Loto Foot 15</h1>
-Apres:  <h1 ...>{publishedGrid?.name || 'Loto Foot 15'}</h1>
+WHERE draw_date = p_draw_date::date AND status = 'pending'
 ```
 
-## Details techniques
+Cela s'applique aux deux boucles de la fonction (user grids et group grids), ainsi qu'a l'insertion dans `loto_foot_wins`.
+
+### 2. Renommer les labels dans l'interface admin
+Dans `LotoFootPublishedGridsManager.tsx`, remplacer les textes "Valider" par "Calculer" pour eviter la confusion avec la validation joueur :
+
+| Avant | Apres |
+|---|---|
+| "Valider Resultat" (bouton) | "Calculer Resultat" |
+| "Saisir les resultats" (titre dialog) | "Saisir les resultats" (inchange) |
+| "Valider et calculer les gagnants" (bouton final) | "Calculer les gagnants" |
+| "Validation en cours..." | "Calcul en cours..." |
+| "Resultats valides !" (toast) | "Resultats calcules !" |
+| "Impossible de valider les resultats" (toast erreur) | "Impossible de calculer les resultats" |
+| "Grilles publiees a valider" (titre section) | "Grilles publiees a calculer" |
+| "Validez les resultats..." (description) | "Calculez les resultats..." |
+
+### 3. Fichiers impactes
 
 | Fichier | Modification |
 |---|---|
-| Migration SQL | Ajout colonne `name` sur `loto_foot_published_grids` |
-| `src/hooks/usePublishedGrid.ts` | Ajout `name: string \| null` dans l'interface |
-| `src/components/admin/LotoFootMatchAndGridManager.tsx` | Ajout champ "Nom de la grille" + state + insertion/mise a jour |
-| `src/pages/Play.tsx` | Hook `useNextPublishedGrid` + affichage dynamique du titre |
+| Migration SQL | `CREATE OR REPLACE FUNCTION` avec `p_draw_date::date` dans les WHERE et INSERT |
+| `src/components/admin/LotoFootPublishedGridsManager.tsx` | Renommer les labels "valider" en "calculer" |
 
-## Comportement
-- Si l'admin ne saisit pas de nom, le titre affiche "Loto Foot 15" (fallback).
-- Si un nom est saisi, il s'affiche avec le meme style gradient.
-- Le nom est modifiable tant que la grille existe (brouillon ou publiee).
+### 4. Comportement attendu
+- L'admin saisit les resultats (1, X, 2) pour chaque match
+- Le bouton "Calculer les gagnants" appelle la fonction corrigee
+- La comparaison `draw_date = p_draw_date::date` fonctionne sans erreur
+- Les grilles joueurs et groupes sont analysees et les statuts mis a jour
