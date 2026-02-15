@@ -100,7 +100,7 @@ export const LotoFootPlayGrid = () => {
           cost: cost,
           stake: LOTO_FOOT_GRID_COST,
           potential_winnings: 0,
-          status: 'active',
+          status: 'pending',
         });
 
       if (gridError) throw gridError;
