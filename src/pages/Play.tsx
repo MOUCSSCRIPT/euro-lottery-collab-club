@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
-import { Header } from '@/components/Header';
-import { MobileHeader } from '@/components/layout/MobileHeader';
-import { LotoFootPlayGrid } from '@/components/loto-foot/LotoFootPlayGrid';
-import { LotoFootCartBadge } from '@/components/cart/LotoFootCartBadge';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect } from "react";
+import { Header } from "@/components/Header";
+import { MobileHeader } from "@/components/layout/MobileHeader";
+import { LotoFootPlayGrid } from "@/components/loto-foot/LotoFootPlayGrid";
+import { LotoFootCartBadge } from "@/components/cart/LotoFootCartBadge";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Play = () => {
   const navigate = useNavigate();
@@ -12,20 +12,20 @@ const Play = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    document.title = 'Jouer – Loto Foot 15 | SuertePlus';
+    document.title = "Jouer – Loto Foot 15 | SuertePlus";
     const metaDesc = document.querySelector('meta[name="description"]');
-    const content = 'Faites vos pronostics sur 15 matchs de football et tentez de gagner. Interface simple et rapide.';
+    const content = "Faites vos pronostics sur 15 matchs de football et tentez de gagner. Interface simple et rapide.";
     if (metaDesc) {
-      metaDesc.setAttribute('content', content);
+      metaDesc.setAttribute("content", content);
     } else {
-      const m = document.createElement('meta');
-      m.setAttribute('name', 'description');
-      m.setAttribute('content', content);
+      const m = document.createElement("meta");
+      m.setAttribute("name", "description");
+      m.setAttribute("content", content);
       document.head.appendChild(m);
     }
   }, []);
@@ -44,12 +44,12 @@ const Play = () => {
         <Header />
       </div>
       <div className="md:hidden">
-        <MobileHeader 
-          title="Jouer" 
-          rightIcon={() => <LotoFootCartBadge onClick={() => navigate('/panier-validation')} />}
+        <MobileHeader
+          title="Jouer"
+          rightIcon={() => <LotoFootCartBadge onClick={() => navigate("/panier-validation")} />}
         />
       </div>
-      
+
       <main className="py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
@@ -57,11 +57,8 @@ const Play = () => {
               <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-yellow-500 bg-clip-text text-transparent">
                 Loto Foot 15
               </h1>
-              <p className="text-xl text-muted-foreground">
-                Faites vos pronostics sur 15 matchs
-              </p>
             </div>
-            
+
             <LotoFootPlayGrid />
           </div>
         </div>
