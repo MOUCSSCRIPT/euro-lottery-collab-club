@@ -38,10 +38,11 @@ export const LotoFootPublishedGridsManager = () => {
     if (!selectedGridData || !matches) return;
 
     const resultsCount = Object.keys(results).length;
-    if (resultsCount < 15) {
+    const requiredCount = matches?.length || 15;
+    if (resultsCount < requiredCount) {
       toast({
         title: 'Résultats incomplets',
-        description: `Veuillez saisir les 15 résultats (${resultsCount}/15)`,
+        description: `Veuillez saisir les ${requiredCount} résultats (${resultsCount}/${requiredCount})`,
         variant: 'destructive',
       });
       return;
@@ -186,7 +187,7 @@ export const LotoFootPublishedGridsManager = () => {
                 <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm">
-                    Résultats saisis : {Object.keys(results).length}/15
+                    Résultats saisis : {Object.keys(results).length}/{matches?.length || 15}
                   </span>
                 </div>
 
@@ -231,7 +232,7 @@ export const LotoFootPublishedGridsManager = () => {
 
                 <Button
                   onClick={handleValidateResults}
-                  disabled={isProcessing || Object.keys(results).length < 15}
+                  disabled={isProcessing || Object.keys(results).length < (matches?.length || 15)}
                   className="w-full"
                   size="lg"
                 >
