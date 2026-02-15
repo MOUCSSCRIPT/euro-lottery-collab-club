@@ -74,7 +74,7 @@ export const LotoFootPublishedGridsManager = () => {
       await closeGridMutation.mutateAsync(selectedGridData.id);
 
       toast({
-        title: 'Résultats validés !',
+        title: 'Résultats calculés !',
         description: 'Les grilles ont été analysées et les gagnants calculés',
       });
 
@@ -84,7 +84,7 @@ export const LotoFootPublishedGridsManager = () => {
       console.error('Error validating results:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de valider les résultats',
+        description: 'Impossible de calculer les résultats',
         variant: 'destructive',
       });
     } finally {
@@ -111,10 +111,10 @@ export const LotoFootPublishedGridsManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-yellow-500" />
-            Grilles publiées à valider
+            Grilles publiées à calculer
           </CardTitle>
           <CardDescription>
-            Validez les résultats pour chaque grille publiée
+            Calculez les résultats pour chaque grille publiée
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -149,7 +149,7 @@ export const LotoFootPublishedGridsManager = () => {
                     size="sm"
                   >
                     <Trophy className="mr-2 h-4 w-4" />
-                    Valider Résultat
+                    Calculer Résultat
                   </Button>
                 </div>
               </div>
@@ -157,9 +157,9 @@ export const LotoFootPublishedGridsManager = () => {
           ) : (
             <div className="text-center py-12">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-              <p className="text-lg font-medium">Aucune grille à valider</p>
+              <p className="text-lg font-medium">Aucune grille à calculer</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Toutes les grilles publiées ont été validées
+                Toutes les grilles publiées ont été calculées
               </p>
             </div>
           )}
@@ -239,12 +239,12 @@ export const LotoFootPublishedGridsManager = () => {
                   {isProcessing ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Validation en cours...
+                      Calcul en cours...
                     </>
                   ) : (
                     <>
                       <Trophy className="mr-2 h-5 w-5" />
-                      Valider et calculer les gagnants
+                      Calculer les gagnants
                     </>
                   )}
                 </Button>
