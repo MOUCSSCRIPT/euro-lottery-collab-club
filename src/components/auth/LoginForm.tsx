@@ -33,7 +33,7 @@ export const LoginForm = () => {
           title: "Connexion réussie",
           description: "Bienvenue sur suerte+ !",
         });
-        navigate('/games');
+        navigate('/jouer');
       }
     } catch (error) {
       toast({

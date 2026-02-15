@@ -13,7 +13,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import Play from "./pages/Play";
-import Games from "./pages/Games";
+import { Navigate } from "react-router-dom";
 import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import CartCheckout from "./pages/CartCheckout";
@@ -34,7 +34,7 @@ const AppContent = () => {
           <Route path="/auth" element={<Auth />} />
           <Route path="/email-confirmation" element={<EmailConfirmation />} />
           <Route path="/jouer" element={<Play />} />
-          <Route path="/games" element={<Games />} />
+          <Route path="/games" element={<Navigate to="/jouer" replace />} />
           <Route path="/groups" element={<Groups />} />
           <Route path="/stats" element={<PlayerStats />} />
           <Route path="/profile" element={<Profile />} />

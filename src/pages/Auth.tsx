@@ -16,7 +16,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (user && !loading) {
-      navigate('/games');
+      navigate('/jouer');
     }
   }, [user, loading, navigate]);
 

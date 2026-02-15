@@ -9,7 +9,7 @@ const Groups = () => {
   if (userRole === 'admin') {
     return <Navigate to="/admin?tab=loto-foot" replace />;
   }
-  return <Navigate to="/games" replace />;
+  return <Navigate to="/jouer" replace />;
 };
 
 export default Groups;
