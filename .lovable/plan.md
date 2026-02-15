@@ -1,45 +1,27 @@
 
+## Correction de la validation des resultats admin
 
-## Correction : Le bouton "Publier" est bloqué
+### Probleme identifie
 
-### Probleme
+Le bouton "Valider et calculer les gagnants" reste desactive car le code exige exactement **15 resultats saisis** (`Object.keys(results).length < 15`), meme si la grille ne contient que **12 ou 14 matchs**. L'administrateur ne peut jamais atteindre 15 si la grille a moins de matchs.
 
-Quand l'admin revient sur une grille existante de 12 matchs, le formulaire s'initialise avec 15 matchs (valeur par defaut). Les 12 matchs existants sont charges mais le formulaire affiche 15 lignes. 3 lignes restent vides, donc `allMatchesFilled` = false et le bouton "Publier" est desactive.
+Le meme probleme existe dans le message d'erreur toast qui affiche toujours "15 resultats".
 
-### Cause racine
+### Correction
 
-`matchCount` est initialise a 15 par defaut (ligne 27) et n'est jamais mis a jour quand une grille existante est chargee depuis la base.
+Modifier `LotoFootPublishedGridsManager.tsx` pour utiliser le nombre reel de matchs au lieu du chiffre 15 fixe :
 
-### Correction dans `LotoFootMatchAndGridManager.tsx`
+1. **Condition du bouton (ligne 234)** : Remplacer `Object.keys(results).length < 15` par `Object.keys(results).length < (matches?.length || 15)` -- le bouton s'active des que tous les matchs ont un resultat.
 
-Ajouter un `useEffect` qui synchronise `matchCount` avec la grille publiee existante ou le nombre de matchs existants :
+2. **Message toast (ligne 41-44)** : Remplacer le chiffre 15 par `matches?.length` pour afficher le bon compteur (ex: "10/12" au lieu de "10/15").
 
-```typescript
-// Synchronize matchCount when published grid or existing matches are loaded
-useEffect(() => {
-  if (publishedGrid?.match_count) {
-    const count = publishedGrid.match_count;
-    if (count === 12 || count === 14 || count === 15) {
-      setMatchCount(count);
-    }
-  } else if (existingMatches && existingMatches.length > 0) {
-    const count = existingMatches.length;
-    if (count === 12 || count === 14 || count === 15) {
-      setMatchCount(count as 12 | 14 | 15);
-    }
-  }
-}, [publishedGrid, existingMatches]);
-```
+3. **Compteur affiche (ligne 189)** : Remplacer le `/15` fixe par le nombre reel de matchs pour que l'indicateur de progression soit correct.
 
-### Fichier modifie
+### Details techniques
 
-| Fichier | Modification |
-|---------|-------------|
-| `src/components/admin/LotoFootMatchAndGridManager.tsx` | Ajouter un useEffect pour synchroniser matchCount avec les donnees existantes |
+Fichier modifie : `src/components/admin/LotoFootPublishedGridsManager.tsx`
 
-### Resultat attendu
-
-- L'admin revient sur la page avec la grille du 14/02
-- `matchCount` se met automatiquement a 12 (valeur de la grille existante)
-- Les 12 matchs sont affiches et remplis → `allMatchesFilled` = true
-- Le bouton "Publier" est actif et cliquable
+- Ligne 41 : `resultsCount < (matches?.length || 15)` 
+- Ligne 44 : afficher `matches?.length || 15` dans le message
+- Ligne 189 : afficher `matches?.length || 15` dans le compteur
+- Ligne 234 : `Object.keys(results).length < (matches?.length || 15)` pour la condition disabled du bouton
