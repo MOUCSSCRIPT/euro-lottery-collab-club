@@ -58,8 +58,8 @@ export const usePersonalLotoFootGrids = () => {
         throw new Error('Au moins 12 pronostics sont requis');
       }
 
-      // Ignore cost calculation for now
-      const totalCost = 2;
+      // Cost = 1.50 SC per combination (1 SC = 1€)
+      const totalCost = 1.5;
 
       // Check user's coins
       const { data: profile } = await supabase
