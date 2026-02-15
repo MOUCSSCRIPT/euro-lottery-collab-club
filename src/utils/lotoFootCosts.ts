@@ -1,10 +1,10 @@
 import { LotoFootPrediction, GridCalculation } from '@/types/loto-foot';
 
 // Base stake per grid in euros
-export const LOTO_FOOT_BASE_STAKE = 1.5;
+export const LOTO_FOOT_BASE_STAKE = 1;
 
-// Cost per combination in SuerteCoins (1 SC = 1€, FDJ price = 1.50€ per combination)
-export const LOTO_FOOT_GRID_COST = 1.5;
+// Cost per combination in SuerteCoins (1 SC = 1€, 1 combination = 1 SC)
+export const LOTO_FOOT_GRID_COST = 1;
 
 // Minimum number of predictions required (can be adjusted based on match count)
 export const MIN_PREDICTIONS = 12;
