@@ -72,13 +72,15 @@ export const LotoFootPlayGrid = () => {
   // Submit mutation
   const submitMutation = useMutation({
     mutationFn: async () => {
-      if (!user || !matches) throw new Error('Missing data');
+      if (!user || !matches || !profile) throw new Error('Missing data');
       
-      // Deduct coins
-      const { error: coinsError } = await supabase.rpc('add_coins_to_user', {
-        _user_id: user.id,
-        _amount: -cost,
-      });
+      if (profile.coins < cost) throw new Error('SuerteCoins insuffisants');
+
+      // Deduct coins directly via profile update
+      const { error: coinsError } = await supabase
+        .from('profiles')
+        .update({ coins: profile.coins - cost })
+        .eq('user_id', user.id);
       
       if (coinsError) throw coinsError;
 
