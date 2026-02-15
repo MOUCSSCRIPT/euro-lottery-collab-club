@@ -27,6 +27,7 @@ export const LotoFootMatchAndGridManager = () => {
   const [matchCount, setMatchCount] = useState<12 | 14 | 15>(15);
   const [matches, setMatches] = useState<MatchInput[]>([]);
   const [playDeadline, setPlayDeadline] = useState('');
+  const [gridName, setGridName] = useState('');
   
   // Initialize matches array when match count changes (preserve existing data)
   useEffect(() => {
@@ -63,6 +64,13 @@ export const LotoFootMatchAndGridManager = () => {
 
   // Fetch published grid
   const { data: publishedGrid, isLoading: gridLoading } = usePublishedGrid(selectedDate);
+
+  // Sync gridName when published grid is loaded
+  useEffect(() => {
+    if (publishedGrid?.name) {
+      setGridName(publishedGrid.name);
+    }
+  }, [publishedGrid]);
 
   // Synchronize matchCount when published grid or existing matches are loaded
   useEffect(() => {
@@ -157,6 +165,7 @@ export const LotoFootMatchAndGridManager = () => {
           play_deadline: deadline,
           match_count: matchCount,
           status: 'draft',
+          name: gridName.trim() || null,
         })
         .select()
         .single();
@@ -413,6 +422,39 @@ export const LotoFootMatchAndGridManager = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
+            {/* Nom de la grille */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 flex-1">
+                <Label htmlFor="grid-name">Nom :</Label>
+                <Input
+                  id="grid-name"
+                  placeholder="Ex: Loto Foot Journée 25"
+                  value={gridName}
+                  onChange={(e) => setGridName(e.target.value)}
+                  disabled={!allMatchesFilled}
+                  className="flex-1"
+                />
+              </div>
+              {publishedGrid && (
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    const { error } = await supabase
+                      .from('loto_foot_published_grids')
+                      .update({ name: gridName.trim() || null })
+                      .eq('id', publishedGrid.id);
+                    if (error) { toast.error('Erreur'); return; }
+                    queryClient.invalidateQueries({ queryKey: ['published-grid', selectedDate] });
+                    queryClient.invalidateQueries({ queryKey: ['next-published-grid'] });
+                    toast.success('Nom mis à jour');
+                  }}
+                  disabled={!allMatchesFilled}
+                >
+                  Renommer
+                </Button>
+              )}
+            </div>
+
             {/* Date limite input */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 flex-1">

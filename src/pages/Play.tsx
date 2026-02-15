@@ -5,10 +5,12 @@ import { LotoFootPlayGrid } from "@/components/loto-foot/LotoFootPlayGrid";
 import { LotoFootCartBadge } from "@/components/cart/LotoFootCartBadge";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNextPublishedGrid } from "@/hooks/useNextPublishedGrid";
 
 const Play = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { data: publishedGrid } = useNextPublishedGrid();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -55,7 +57,7 @@ const Play = () => {
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-yellow-500 bg-clip-text text-transparent">
-                Loto Foot 15
+                {publishedGrid?.name || 'Loto Foot 15'}
               </h1>
             </div>
 

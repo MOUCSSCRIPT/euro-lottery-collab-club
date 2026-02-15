@@ -1,0 +1,1 @@
+ALTER TABLE public.loto_foot_published_grids ADD COLUMN name text DEFAULT NULL;

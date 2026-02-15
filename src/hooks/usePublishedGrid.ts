@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface PublishedGrid {
   id: string;
+  name: string | null;
   draw_date: string;
   status: 'draft' | 'published' | 'closed';
   play_deadline: string;
