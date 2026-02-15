@@ -334,7 +334,7 @@ const Profile = () => {
               <Button 
                 variant="outline" 
                 className="w-full justify-start"
-                onClick={() => navigate('/games')}
+                onClick={() => navigate('/jouer')}
               >
                 <History className="w-4 h-4 mr-2" />
                 Mes groupes et tirages
