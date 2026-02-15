@@ -716,10 +716,15 @@ export type Database = {
         Args: { _amount: number; _user_id: string }
         Returns: boolean
       }
-      calculate_loto_foot_results: {
-        Args: { p_draw_date: string; p_winning_results: Json }
-        Returns: undefined
-      }
+      calculate_loto_foot_results:
+        | {
+            Args: { p_draw_date: string; p_winning_results: Json }
+            Returns: undefined
+          }
+        | {
+            Args: { p_draw_date: string; p_winning_results: Json }
+            Returns: undefined
+          }
       check_grid_wins: {
         Args: {
           p_draw_result_id: string
