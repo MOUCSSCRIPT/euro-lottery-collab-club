@@ -48,7 +48,7 @@ export const LotoFootPlayGrid = () => {
   }, [predictions]);
 
   // Toggle prediction for a match
-  const togglePrediction = (matchId: string, value: '1' | 'N' | '2') => {
+  const togglePrediction = (matchId: string, value: '1' | 'X' | '2') => {
     setPredictions(prev => {
       const current = prev[matchId] || [];
       if (current.includes(value)) {
@@ -84,11 +84,10 @@ export const LotoFootPlayGrid = () => {
       
       if (coinsError) throw coinsError;
 
-      // Format predictions for storage
-      const formattedPredictions = matches.map((match) => ({
-        match_position: match.match_position,
-        predictions: predictions[match.id] || [],
-      }));
+      // Format predictions as object keyed by match ID (compatible with calculate_loto_foot_results)
+      const formattedPredictions = Object.fromEntries(
+        Object.entries(predictions).map(([matchId, preds]) => [matchId, preds])
+      );
 
       // Save grid
       const { error: gridError } = await supabase

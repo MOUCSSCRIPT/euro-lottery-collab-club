@@ -9,7 +9,7 @@ interface MatchSlideProps {
   homeTeam: string;
   awayTeam: string;
   selected: string[];
-  onToggle: (value: '1' | 'N' | '2') => void;
+  onToggle: (value: '1' | 'X' | '2') => void;
 }
 
 export const MatchSlide = ({
@@ -37,7 +37,7 @@ export const MatchSlide = ({
         
         {/* Prediction buttons */}
         <div className="flex justify-center gap-4 py-4">
-          {(['1', 'N', '2'] as const).map((value) => {
+          {(['1', 'X', '2'] as const).map((value) => {
             const isSelected = selected.includes(value);
             return (
               <Button
@@ -48,7 +48,7 @@ export const MatchSlide = ({
                 className={cn(
                   "w-20 h-20 text-2xl font-bold transition-all duration-200",
                   isSelected && value === '1' && "bg-prediction-1 text-prediction-1-foreground hover:bg-prediction-1/90 border-prediction-1",
-                  isSelected && value === 'N' && "bg-prediction-x text-prediction-x-foreground hover:bg-prediction-x/90 border-prediction-x",
+                  isSelected && value === 'X' && "bg-prediction-x text-prediction-x-foreground hover:bg-prediction-x/90 border-prediction-x",
                   isSelected && value === '2' && "bg-prediction-2 text-prediction-2-foreground hover:bg-prediction-2/90 border-prediction-2",
                 )}
               >
