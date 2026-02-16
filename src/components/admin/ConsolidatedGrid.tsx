@@ -8,17 +8,17 @@ interface ConsolidatedGridProps {
   matches: LotoFootMatch[];
 }
 
-function parsePredictions(predictions: any): Map<number, string[]> {
-  const map = new Map<number, string[]>();
+function parsePredictions(predictions: any): Map<string, string[]> {
+  const map = new Map<string, string[]>();
   if (Array.isArray(predictions)) {
     predictions.forEach((item: any) => {
       const preds = Array.isArray(item.predictions) ? item.predictions : [item.predictions];
-      map.set(item.match_position, preds);
+      map.set(String(item.match_position), preds);
     });
   } else if (predictions && typeof predictions === 'object') {
     Object.entries(predictions).forEach(([key, val]: [string, any]) => {
       const preds = Array.isArray(val) ? val : [val];
-      map.set(parseInt(key), preds);
+      map.set(key, preds);
     });
   }
   return map;
@@ -31,7 +31,7 @@ export const ConsolidatedGrid = ({ grids, matches }: ConsolidatedGridProps) => {
 
     grids.forEach((grid) => {
       const predsMap = parsePredictions(grid.predictions);
-      const preds = predsMap.get(match.match_position) || [];
+      const preds = predsMap.get(match.id) || predsMap.get(String(match.match_position)) || [];
       if (preds.includes('1')) count1++;
       if (preds.includes('N') || preds.includes('X')) countN++;
       if (preds.includes('2')) count2++;
