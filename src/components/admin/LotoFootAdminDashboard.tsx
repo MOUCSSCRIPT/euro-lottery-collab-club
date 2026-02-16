@@ -4,7 +4,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Users, Grid3X3, Eye, Percent, DollarSign } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Users, Grid3X3, Eye, Percent, DollarSign, CalendarSearch } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useAdminLotoFootGrids } from '@/hooks/useAdminLotoFootGrids';
 import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 import { useLotoFootStats } from '@/hooks/useLotoFootStats';
@@ -15,9 +17,25 @@ import { AllSelectionsView } from './AllSelectionsView';
 import { WinningsCalculator } from './WinningsCalculator';
 import { LotoFootStatsChart } from './LotoFootStatsChart';
 
+const useLatestGridDate = () => {
+  return useQuery({
+    queryKey: ['latest-loto-foot-grid-date'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_loto_foot_grids')
+        .select('draw_date')
+        .order('draw_date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.draw_date || null;
+    },
+  });
+};
+
 export const LotoFootAdminDashboard = () => {
   const [drawDate, setDrawDate] = useState(getNextDrawDate('loto_foot'));
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { data: latestDate } = useLatestGridDate();
 
   const { data: grids = [], isLoading: gridsLoading } = useAdminLotoFootGrids(drawDate);
   const { data: matches = [], isLoading: matchesLoading } = useLotoFootMatches(drawDate);
@@ -47,6 +65,17 @@ export const LotoFootAdminDashboard = () => {
             <div className="text-sm text-muted-foreground">
               {grids.length} grille{grids.length > 1 ? 's' : ''} • {matches.length} match{matches.length > 1 ? 's' : ''}
             </div>
+            {latestDate && latestDate !== drawDate && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setDrawDate(latestDate); setCurrentSlide(0); }}
+                className="flex items-center gap-1"
+              >
+                <CalendarSearch className="h-3 w-3" />
+                Dernière date ({latestDate})
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
