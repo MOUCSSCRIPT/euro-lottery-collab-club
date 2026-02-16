@@ -10,7 +10,7 @@ import { useAllProfiles, useAddCoins, useSetCoins } from '@/hooks/useAdminAction
 import { SuerteCoinsIcon } from '@/components/ui/SuerteCoinsIcon';
 import { LotoFootMatchAndGridManager } from './LotoFootMatchAndGridManager';
 import { LotoFootPublishedGridsManager } from './LotoFootPublishedGridsManager';
-import { LotoFootStatsChart } from './LotoFootStatsChart';
+import { LotoFootAdminDashboard } from './LotoFootAdminDashboard';
 import { Plus, Edit, Crown, Users, Calendar, Trophy, BarChart3 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
@@ -222,7 +222,7 @@ export const AdminPanel = () => {
             </TabsContent>
             
             <TabsContent value="stats" className="mt-6">
-              <LotoFootStatsChart />
+              <LotoFootAdminDashboard />
             </TabsContent>
           </Tabs>
         </CardContent>

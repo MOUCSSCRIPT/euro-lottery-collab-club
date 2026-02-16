@@ -3,17 +3,44 @@ import { Header } from '@/components/Header';
 import { MobileHeader } from '@/components/layout/MobileHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { usePersonalLotoFootGridsWithStatus } from '@/hooks/usePersonalLotoFootGridsWithStatus';
 import { GridStatusBadge } from '@/components/grids/GridStatusBadge';
-import { Trophy, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Trophy, Clock, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 type GridStatus = 'all' | 'pending' | 'finished' | 'won' | 'lost';
 
 const PlayerStats = () => {
   const [statusFilter, setStatusFilter] = useState<GridStatus>('all');
   const { data: grids, isLoading } = usePersonalLotoFootGridsWithStatus(statusFilter);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteHistory = async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('user_loto_foot_grids')
+        .delete()
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast({ title: 'Historique supprimé', description: 'Toutes vos grilles ont été supprimées.' });
+      queryClient.invalidateQueries({ queryKey: ['personal-loto-foot-grids'] });
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de supprimer l\'historique.', variant: 'destructive' });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const getStatusIcon = (status: GridStatus) => {
     switch (status) {
@@ -32,7 +59,31 @@ const PlayerStats = () => {
 
       <main className="container mx-auto px-4 pt-4 pb-28">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Mes grilles</h1>
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-3xl font-bold">Mes grilles</h1>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="flex items-center gap-1">
+                  <Trash2 className="h-4 w-4" />
+                  Supprimer l'historique
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer tout l'historique ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Cette action est irréversible. Toutes vos grilles Loto Foot seront définitivement supprimées.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteHistory} disabled={deleting}>
+                    {deleting ? 'Suppression...' : 'Supprimer'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
 
           <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as GridStatus)}>
             <TabsList className="grid w-full grid-cols-5">
@@ -88,29 +139,21 @@ const PlayerStats = () => {
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                           {(() => {
                             const preds = grid.predictions;
-                            // New format: array of {match_position, predictions: string[]}
                             if (Array.isArray(preds)) {
                               return preds.map((item: any, index: number) => {
                                 const predValues = Array.isArray(item.predictions) ? item.predictions : [item.predictions];
                                 const label = predValues.join('/');
                                 return (
-                                  <div 
-                                    key={index}
-                                    className="p-2 rounded-md text-center font-bold text-sm bg-muted"
-                                  >
+                                  <div key={index} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
                                     Match {item.match_position || index + 1}: {label}
                                   </div>
                                 );
                               });
                             }
-                            // Old format: Record<string, string | string[]>
                             return Object.entries(preds as Record<string, any>).map(([matchId, prediction], index) => {
                               const label = Array.isArray(prediction) ? prediction.join('/') : String(prediction);
                               return (
-                                <div 
-                                  key={matchId}
-                                  className="p-2 rounded-md text-center font-bold text-sm bg-muted"
-                                >
+                                <div key={matchId} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
                                   Match {index + 1}: {label}
                                 </div>
                               );
@@ -118,18 +161,11 @@ const PlayerStats = () => {
                           })()}
                         </div>
 
-                        {/* Display stats */}
                         <div className="flex items-center justify-between text-sm pt-4 border-t">
-                          <span className="text-muted-foreground">
-                            Mise: {grid.stake} SC
-                          </span>
-                          <span className="text-muted-foreground">
-                            Coût: {grid.cost} SC
-                          </span>
+                          <span className="text-muted-foreground">Mise: {grid.stake} SC</span>
+                          <span className="text-muted-foreground">Coût: {grid.cost} SC</span>
                           {grid.status === 'won' && (
-                            <span className="text-green-600 font-bold">
-                              Gain: {grid.potential_winnings} SC
-                            </span>
+                            <span className="text-green-600 font-bold">Gain: {grid.potential_winnings} SC</span>
                           )}
                         </div>
                       </CardContent>
