@@ -98,10 +98,10 @@ export const AdminPanel = () => {
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'players') {
-      setActiveTab('players');
+    const validTabs = ['players', 'loto-foot', 'results', 'stats'];
+    if (tabParam && validTabs.includes(tabParam)) {
+      setActiveTab(tabParam);
     } else {
-      // Default to loto-foot if no tab or loto-foot tab
       setActiveTab('loto-foot');
     }
   }, [searchParams]);
