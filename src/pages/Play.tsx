@@ -6,17 +6,21 @@ import { LotoFootCartBadge } from "@/components/cart/LotoFootCartBadge";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNextPublishedGrid } from "@/hooks/useNextPublishedGrid";
+import { useUserRole } from "@/hooks/useAdminActions";
 
 const Play = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { data: publishedGrid } = useNextPublishedGrid();
+  const { data: userRole } = useUserRole();
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
+    } else if (!loading && userRole === 'admin') {
+      navigate("/admin");
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, userRole, navigate]);
 
   useEffect(() => {
     document.title = "Jouer – Loto Foot 15 | SuertePlus";
