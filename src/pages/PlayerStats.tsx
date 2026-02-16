@@ -32,9 +32,15 @@ const PlayerStats = () => {
       const { error } = await supabase
         .from('user_loto_foot_grids')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .neq('status', 'pending');
       if (error) throw error;
-      toast({ title: 'Historique supprimé', description: 'Toutes vos grilles ont été supprimées.' });
+      const pendingCount = grids?.filter(g => g.status === 'pending').length || 0;
+      if (pendingCount > 0) {
+        toast({ title: 'Historique supprimé', description: `${pendingCount} grille(s) en cours conservée(s).` });
+      } else {
+        toast({ title: 'Historique supprimé', description: 'Toutes vos grilles ont été supprimées.' });
+      }
       queryClient.invalidateQueries({ queryKey: ['personal-loto-foot-grids'] });
     } catch {
       toast({ title: 'Erreur', description: 'Impossible de supprimer l\'historique.', variant: 'destructive' });
@@ -187,27 +193,29 @@ const PlayerStats = () => {
                           {grid.status === 'won' && (
                             <span className="text-green-600 font-bold">Gain: {grid.potential_winnings} SC</span>
                           )}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Supprimer cette grille ?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Cette action est irréversible.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteOne(grid.id)} disabled={deletingId === grid.id}>
-                                  {deletingId === grid.id ? 'Suppression...' : 'Supprimer'}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          {grid.status !== 'pending' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer cette grille ?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Cette action est irréversible.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeleteOne(grid.id)} disabled={deletingId === grid.id}>
+                                    {deletingId === grid.id ? 'Suppression...' : 'Supprimer'}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
