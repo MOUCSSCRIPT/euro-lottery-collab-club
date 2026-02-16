@@ -23,6 +23,7 @@ const PlayerStats = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [deleting, setDeleting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDeleteHistory = async () => {
     if (!user) return;
@@ -39,6 +40,25 @@ const PlayerStats = () => {
       toast({ title: 'Erreur', description: 'Impossible de supprimer l\'historique.', variant: 'destructive' });
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleDeleteOne = async (gridId: string) => {
+    if (!user) return;
+    setDeletingId(gridId);
+    try {
+      const { error } = await supabase
+        .from('user_loto_foot_grids')
+        .delete()
+        .eq('id', gridId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast({ title: 'Grille supprimée' });
+      queryClient.invalidateQueries({ queryKey: ['personal-loto-foot-grids'] });
+    } catch {
+      toast({ title: 'Erreur', description: 'Impossible de supprimer cette grille.', variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -167,6 +187,27 @@ const PlayerStats = () => {
                           {grid.status === 'won' && (
                             <span className="text-green-600 font-bold">Gain: {grid.potential_winnings} SC</span>
                           )}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Supprimer cette grille ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Cette action est irréversible.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteOne(grid.id)} disabled={deletingId === grid.id}>
+                                  {deletingId === grid.id ? 'Suppression...' : 'Supprimer'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </CardContent>
                     </Card>
