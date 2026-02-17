@@ -30,9 +30,9 @@ export const MatchSlide = ({
         
         {/* Teams */}
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold">{homeTeam}</h2>
+          <h2 className="text-2xl font-bold text-primary">{homeTeam}</h2>
           <span className="text-muted-foreground text-lg">vs</span>
-          <h2 className="text-2xl font-bold">{awayTeam}</h2>
+          <h2 className="text-2xl font-bold text-accent">{awayTeam}</h2>
         </div>
         
         {/* Prediction buttons */}
