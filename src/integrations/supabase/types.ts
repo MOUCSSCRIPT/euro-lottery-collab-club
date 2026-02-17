@@ -628,7 +628,9 @@ export type Database = {
           cost: number
           created_at: string
           draw_date: string
+          group_grid_id: string | null
           id: string
+          instance_index: number
           is_active: boolean | null
           player_name: string | null
           potential_winnings: number
@@ -642,7 +644,9 @@ export type Database = {
           cost: number
           created_at?: string
           draw_date: string
+          group_grid_id?: string | null
           id?: string
+          instance_index?: number
           is_active?: boolean | null
           player_name?: string | null
           potential_winnings?: number
@@ -656,7 +660,9 @@ export type Database = {
           cost?: number
           created_at?: string
           draw_date?: string
+          group_grid_id?: string | null
           id?: string
+          instance_index?: number
           is_active?: boolean | null
           player_name?: string | null
           potential_winnings?: number

@@ -139,87 +139,112 @@ const PlayerStats = () => {
                 </div>
               ) : grids && grids.length > 0 ? (
                 <>
-                  <div className="text-sm text-muted-foreground mb-4">
-                    {grids.length} grille{grids.length > 1 ? 's' : ''} trouvée{grids.length > 1 ? 's' : ''}
-                  </div>
-                  {grids.map((grid) => (
-                    <Card key={grid.id}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <div className="flex flex-col gap-2">
-                            <span className="text-lg">
-                              {grid.player_name || 'Grille anonyme'}
-                            </span>
-                            <span className="text-sm font-normal text-muted-foreground">
-                              Tirage du {format(new Date(grid.draw_date), 'dd MMMM yyyy', { locale: fr })}
-                            </span>
-                          </div>
-                          <GridStatusBadge 
-                            status={grid.status} 
-                            correctPredictions={grid.correct_predictions}
-                          />
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {/* Display predictions */}
-                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                          {(() => {
-                            const preds = grid.predictions;
-                            if (Array.isArray(preds)) {
-                              return preds.map((item: any, index: number) => {
-                                const predValues = Array.isArray(item.predictions) ? item.predictions : [item.predictions];
-                                const label = predValues.join('/');
-                                return (
-                                  <div key={index} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
-                                    Match {item.match_position || index + 1}: {label}
+                  {(() => {
+                    // Group grids by group_grid_id
+                    const grouped = new Map<string, typeof grids>();
+                    grids.forEach((grid: any) => {
+                      const key = grid.group_grid_id || grid.id;
+                      if (!grouped.has(key)) grouped.set(key, []);
+                      grouped.get(key)!.push(grid);
+                    });
+                    const groupedEntries = Array.from(grouped.values());
+                    return (
+                      <>
+                        <div className="text-sm text-muted-foreground mb-4">
+                          {groupedEntries.length} grille{groupedEntries.length > 1 ? 's' : ''} trouvée{groupedEntries.length > 1 ? 's' : ''}
+                        </div>
+                        {groupedEntries.map((group) => {
+                          const grid = group[0];
+                          const instanceCount = group.length;
+                          return (
+                            <Card key={grid.group_grid_id || grid.id}>
+                              <CardHeader>
+                                <CardTitle className="flex items-center justify-between">
+                                  <div className="flex flex-col gap-2">
+                                    <span className="text-lg">
+                                      {grid.player_name || 'Grille anonyme'}
+                                      {instanceCount > 1 && (
+                                        <span className="ml-2 text-sm font-medium text-primary">x{instanceCount}</span>
+                                      )}
+                                    </span>
+                                    <span className="text-sm font-normal text-muted-foreground">
+                                      Tirage du {format(new Date(grid.draw_date), 'dd MMMM yyyy', { locale: fr })}
+                                    </span>
                                   </div>
-                                );
-                              });
-                            }
-                            return Object.entries(preds as Record<string, any>).map(([matchId, prediction], index) => {
-                              const label = Array.isArray(prediction) ? prediction.join('/') : String(prediction);
-                              return (
-                                <div key={matchId} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
-                                  Match {index + 1}: {label}
+                                  <GridStatusBadge 
+                                    status={grid.status} 
+                                    correctPredictions={grid.correct_predictions}
+                                  />
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                  {(() => {
+                                    const preds = grid.predictions;
+                                    if (Array.isArray(preds)) {
+                                      return preds.map((item: any, index: number) => {
+                                        const predValues = Array.isArray(item.predictions) ? item.predictions : [item.predictions];
+                                        const label = predValues.join('/');
+                                        return (
+                                          <div key={index} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
+                                            Match {item.match_position || index + 1}: {label}
+                                          </div>
+                                        );
+                                      });
+                                    }
+                                    return Object.entries(preds as Record<string, any>).map(([matchId, prediction], index) => {
+                                      const label = Array.isArray(prediction) ? prediction.join('/') : String(prediction);
+                                      return (
+                                        <div key={matchId} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
+                                          Match {index + 1}: {label}
+                                        </div>
+                                      );
+                                    });
+                                  })()}
                                 </div>
-                              );
-                            });
-                          })()}
-                        </div>
 
-                        <div className="flex items-center justify-between text-sm pt-4 border-t">
-                          <span className="text-muted-foreground">Mise: {grid.stake} SC</span>
-                          <span className="text-muted-foreground">Coût: {grid.cost} SC</span>
-                          {grid.status === 'won' && (
-                            <span className="text-green-600 font-bold">Gain: {grid.potential_winnings} SC</span>
-                          )}
-                          {grid.status !== 'pending' && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Supprimer cette grille ?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Cette action est irréversible.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteOne(grid.id)} disabled={deletingId === grid.id}>
-                                    {deletingId === grid.id ? 'Suppression...' : 'Supprimer'}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                                <div className="flex items-center justify-between text-sm pt-4 border-t">
+                                  <span className="text-muted-foreground">
+                                    Mise: {instanceCount > 1 ? `${instanceCount} x 1 SC` : `${grid.stake} SC`}
+                                  </span>
+                                  <span className="text-muted-foreground">Coût total: {instanceCount} SC</span>
+                                  {grid.status === 'won' && (
+                                    <span className="text-green-600 font-bold">Gain: {grid.potential_winnings} SC</span>
+                                  )}
+                                  {grid.status !== 'pending' && (
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Supprimer cette grille ?</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Cette action est irréversible.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                          <AlertDialogAction 
+                                            onClick={() => group.forEach(g => handleDeleteOne(g.id))} 
+                                            disabled={deletingId === grid.id}
+                                          >
+                                            {deletingId === grid.id ? 'Suppression...' : 'Supprimer'}
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </>
+                    );
+                  })()}
                 </>
               ) : (
                 <div className="text-center py-12">

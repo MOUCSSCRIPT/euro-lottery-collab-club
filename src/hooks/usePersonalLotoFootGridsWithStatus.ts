@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface PersonalLotoFootGridWithStatus {
+export interface PersonalLotoFootGridWithStatus {
   id: string;
   user_id: string;
   predictions: any;
@@ -15,6 +15,8 @@ interface PersonalLotoFootGridWithStatus {
   player_name?: string;
   status: 'pending' | 'finished' | 'won' | 'lost';
   correct_predictions?: number;
+  instance_index?: number;
+  group_grid_id?: string;
 }
 
 type GridStatus = 'all' | 'pending' | 'finished' | 'won' | 'lost';

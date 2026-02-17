@@ -65,3 +65,6 @@ verify_jwt = true
 
 [functions.verify-coin-purchase-paypal]
 verify_jwt = true
+
+[functions.submit-loto-foot-grid]
+verify_jwt = false
