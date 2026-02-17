@@ -76,42 +76,30 @@ export const LotoFootPlayGrid = () => {
       
       if (profile.coins < cost) throw new Error('SuerteCoins insuffisants');
 
-      // Deduct coins directly via profile update
-      const { error: coinsError } = await supabase
-        .from('profiles')
-        .update({ coins: profile.coins - cost })
-        .eq('user_id', user.id);
-      
-      if (coinsError) throw coinsError;
+      const { data, error } = await supabase.functions.invoke('submit-loto-foot-grid', {
+        body: { predictions, draw_date: nextDrawDate },
+      });
 
-      // Format predictions as object keyed by match ID (compatible with calculate_loto_foot_results)
-      const formattedPredictions = Object.fromEntries(
-        Object.entries(predictions).map(([matchId, preds]) => [matchId, preds])
-      );
+      if (error) throw error;
+      if (data?.code === 'DUPLICATE_GRID') {
+        throw new Error(data.error || 'Cette combinaison existe déjà.');
+      }
+      if (data?.code === 'INSUFFICIENT_COINS') {
+        throw new Error(data.error || 'SuerteCoins insuffisants.');
+      }
+      if (!data?.success) {
+        throw new Error(data?.error || 'Erreur inconnue');
+      }
 
-      // Save grid
-      const { error: gridError } = await supabase
-        .from('user_loto_foot_grids')
-        .insert({
-          user_id: user.id,
-          draw_date: nextDrawDate,
-          predictions: formattedPredictions,
-          cost: cost,
-          stake: LOTO_FOOT_GRID_COST,
-          potential_winnings: 0,
-          status: 'pending',
-        });
-
-      if (gridError) throw gridError;
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.invalidateQueries({ queryKey: ['user-loto-foot-grids'] });
       toast({
         title: 'Grille validée !',
-        description: `${combinations} combinaison${combinations > 1 ? 's' : ''} enregistrée${combinations > 1 ? 's' : ''}`,
+        description: `${data.grids_created} grille${data.grids_created > 1 ? 's' : ''} enregistrée${data.grids_created > 1 ? 's' : ''} (${data.cost} SC)`,
       });
-      // Reset state
       setPredictions({});
       setCurrentSlide(0);
     },
@@ -119,7 +107,7 @@ export const LotoFootPlayGrid = () => {
       console.error('Error submitting grid:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de valider la grille',
+        description: error.message || 'Impossible de valider la grille',
         variant: 'destructive',
       });
     },
