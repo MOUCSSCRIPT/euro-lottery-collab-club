@@ -6,21 +6,71 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-function normalizePredictions(predictions: Record<string, string[]>): string {
-  const sorted = Object.keys(predictions)
+/**
+ * Cartesian product: expand multi-choice predictions into individual single-choice grids.
+ * Input:  { "m1": ["X","2"], "m2": ["X"], "m3": ["1"] }
+ * Output: [
+ *   { "m1": "X", "m2": "X", "m3": "1" },
+ *   { "m1": "2", "m2": "X", "m3": "1" }
+ * ]
+ */
+function expandCombinations(
+  predictions: Record<string, string[]>
+): Record<string, string>[] {
+  const matchIds = Object.keys(predictions).sort();
+  let combos: Record<string, string>[] = [{}];
+
+  for (const matchId of matchIds) {
+    const choices = predictions[matchId];
+    const newCombos: Record<string, string>[] = [];
+    for (const combo of combos) {
+      for (const choice of choices) {
+        newCombos.push({ ...combo, [matchId]: choice });
+      }
+    }
+    combos = newCombos;
+  }
+  return combos;
+}
+
+/**
+ * Normalize a single-choice prediction object for reliable comparison.
+ * Keys are sorted alphabetically.
+ */
+function normalizeSinglePrediction(pred: Record<string, string>): string {
+  const sorted = Object.keys(pred)
     .sort()
-    .reduce((acc: Record<string, string[]>, key: string) => {
-      acc[key] = [...predictions[key]].sort();
+    .reduce((acc: Record<string, string>, key: string) => {
+      acc[key] = pred[key];
       return acc;
     }, {});
   return JSON.stringify(sorted);
 }
 
-function countCombinations(predictions: Record<string, string[]>): number {
-  return Object.values(predictions).reduce(
-    (total, preds) => total * (preds.length || 1),
-    1
-  );
+/**
+ * Normalize an existing DB row's predictions to a single-choice string for comparison.
+ * Handles both legacy format (values are arrays) and new format (values are strings).
+ */
+function normalizeExistingPrediction(pred: Record<string, unknown>): string {
+  const sorted = Object.keys(pred)
+    .sort()
+    .reduce((acc: Record<string, string>, key: string) => {
+      const val = pred[key];
+      // New format: string value directly
+      if (typeof val === "string") {
+        acc[key] = val;
+      }
+      // Legacy format: array with single element
+      else if (Array.isArray(val) && val.length === 1) {
+        acc[key] = val[0];
+      }
+      // Legacy format with multiple choices — not a single combo, skip
+      else {
+        acc[key] = JSON.stringify(val);
+      }
+      return acc;
+    }, {});
+  return JSON.stringify(sorted);
 }
 
 Deno.serve(async (req) => {
@@ -48,7 +98,6 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Get current user
     const { data: { user }, error: userError } = await supabaseUser.auth.getUser();
     if (userError || !user) {
       return new Response(
@@ -66,38 +115,45 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate cost = number of combinations
-    const cost = countCombinations(predictions);
+    // 1. Expand predictions into individual combinations (Cartesian product)
+    const expandedCombos = expandCombinations(predictions);
+    const cost = expandedCombos.length;
 
-    // 1. Anti-duplicate check: compare normalized predictions against ALL grids for same draw_date
+    // 2. Fetch ALL existing single-combo grids for this draw date (all players)
     const { data: existingGrids, error: fetchError } = await supabaseAdmin
       .from("user_loto_foot_grids")
       .select("predictions")
-      .eq("draw_date", draw_date)
-      .eq("instance_index", 1); // Only check first instance to avoid self-duplicates
+      .eq("draw_date", draw_date);
 
     if (fetchError) throw fetchError;
 
-    const normalizedNew = normalizePredictions(predictions);
-    const isDuplicate = existingGrids?.some((g: any) => {
-      try {
-        return normalizePredictions(g.predictions) === normalizedNew;
-      } catch {
-        return false;
+    // Build a Set of normalized existing predictions for fast lookup
+    const existingSet = new Set<string>();
+    if (existingGrids) {
+      for (const g of existingGrids) {
+        try {
+          existingSet.add(normalizeExistingPrediction(g.predictions as Record<string, unknown>));
+        } catch {
+          // Skip malformed rows
+        }
       }
-    });
-
-    if (isDuplicate) {
-      return new Response(
-        JSON.stringify({
-          error: "Cette combinaison existe déjà. Veuillez modifier vos choix.",
-          code: "DUPLICATE_GRID",
-        }),
-        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
-    // 2. Check user balance
+    // 3. Check each expanded combo for duplicates
+    for (const combo of expandedCombos) {
+      const normalized = normalizeSinglePrediction(combo);
+      if (existingSet.has(normalized)) {
+        return new Response(
+          JSON.stringify({
+            error: "Une ou plusieurs combinaisons générées existent déjà. Veuillez modifier vos choix.",
+            code: "DUPLICATE_GRID",
+          }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // 4. Check user balance
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("coins")
@@ -121,22 +177,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Generate group_grid_id and insert N rows
+    // 5. Insert each expanded combination as a separate row
     const groupGridId = crypto.randomUUID();
-    const rows = [];
-    for (let i = 1; i <= cost; i++) {
-      rows.push({
-        user_id: user.id,
-        draw_date,
-        predictions,
-        cost: 1,
-        stake: 1,
-        potential_winnings: 0,
-        status: "pending",
-        instance_index: i,
-        group_grid_id: groupGridId,
-      });
-    }
+    const rows = expandedCombos.map((combo, i) => ({
+      user_id: user.id,
+      draw_date,
+      predictions: combo, // single-choice object: {"m1":"X", "m2":"1", ...}
+      cost: 1,
+      stake: 1,
+      potential_winnings: 0,
+      status: "pending",
+      instance_index: i + 1,
+      group_grid_id: groupGridId,
+    }));
 
     const { error: insertError } = await supabaseAdmin
       .from("user_loto_foot_grids")
@@ -144,7 +197,7 @@ Deno.serve(async (req) => {
 
     if (insertError) throw insertError;
 
-    // 4. Deduct coins
+    // 6. Deduct coins
     const { error: coinError } = await supabaseAdmin
       .from("profiles")
       .update({ coins: profile.coins - cost })
