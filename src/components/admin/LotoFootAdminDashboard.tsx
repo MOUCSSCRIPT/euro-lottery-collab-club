@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Users, Grid3X3, Eye, Percent, DollarSign, CalendarSearch } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdminLotoFootGrids } from '@/hooks/useAdminLotoFootGrids';
+import { useAdminLotoFootGrids, mergeGridsByGroup } from '@/hooks/useAdminLotoFootGrids';
 import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 import { useLotoFootStats } from '@/hooks/useLotoFootStats';
 import { getNextDrawDate } from '@/utils/drawDates';
@@ -37,9 +37,12 @@ export const LotoFootAdminDashboard = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { data: latestDate } = useLatestGridDate();
 
-  const { data: grids = [], isLoading: gridsLoading } = useAdminLotoFootGrids(drawDate);
+  const { data: rawGrids = [], isLoading: gridsLoading } = useAdminLotoFootGrids(drawDate);
   const { data: matches = [], isLoading: matchesLoading } = useLotoFootMatches(drawDate);
   const { data: statsData } = useLotoFootStats(drawDate);
+
+  // Merge expanded combos into one visual grid per submission
+  const grids = mergeGridsByGroup(rawGrids);
 
   const isLoading = gridsLoading || matchesLoading;
 
