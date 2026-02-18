@@ -192,14 +192,16 @@ const PlayerStats = () => {
                                         );
                                       });
                                     }
-                                    return Object.entries(preds as Record<string, any>).map(([matchId, prediction], index) => {
-                                      const label = Array.isArray(prediction) ? prediction.join('/') : String(prediction);
-                                      return (
-                                        <div key={matchId} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
-                                          Match {index + 1}: {label}
-                                        </div>
-                                      );
-                                    });
+                                    return Object.entries(preds as Record<string, any>)
+                                      .sort(([a], [b]) => a.localeCompare(b))
+                                      .map(([matchId, prediction], index) => {
+                                        const label = Array.isArray(prediction) ? prediction.join('/') : String(prediction);
+                                        return (
+                                          <div key={matchId} className="p-2 rounded-md text-center font-bold text-sm bg-muted">
+                                            Match {index + 1}: {label}
+                                          </div>
+                                        );
+                                      });
                                   })()}
                                 </div>
 
