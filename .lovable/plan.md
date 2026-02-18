@@ -1,91 +1,109 @@
 
 
-# Enregistrement individuel des grilles et anti-doublons
+# Correction de la logique de generation et d'enregistrement des grilles
 
-## Contexte
+## Probleme principal
 
-Ton projet utilise Supabase (pas Node.js/Express), donc la logique sera implementee via une **Edge Function Supabase** (Deno/TypeScript) qui remplace l'equivalent d'une route Express `POST /grilles/jouer`.
+Actuellement, la Edge Function `submit-loto-foot-grid` enregistre N copies **identiques** des predictions (le meme objet JSON avec doubles/triples) au lieu de **decomposer les combinaisons** en grilles individuelles avec un seul pronostic par match.
 
-## Architecture actuelle vs cible
-
-Aujourd'hui : 1 grille jouee = 1 ligne dans `user_loto_foot_grids` avec `cost = N` (nombre de combinaisons).
-
-Demain : 1 grille jouee = **N lignes distinctes** dans la table, chacune avec un `instance_index` (de 1 a N) et le meme `group_grid_id` pour les regrouper visuellement.
+Exemple concret :
+- Le joueur choisit : match1=["X","2"], match2=["X"], match3=["1"]
+- Aujourd'hui : 2 lignes en base, toutes les deux avec `{"match1":["X","2"], "match2":["X"], "match3":["1"]}`
+- Attendu : 2 lignes distinctes :
+  - `{"match1":"X", "match2":"X", "match3":"1"}`
+  - `{"match1":"2", "match2":"X", "match3":"1"}`
 
 ## Modifications prevues
 
-### 1. Migration SQL : ajouter les colonnes manquantes
+### 1. Edge Function `submit-loto-foot-grid` -- Refonte complete
 
-Ajouter deux colonnes a `user_loto_foot_grids` :
-- `instance_index` (integer, default 1) : numero de l'instance (1 a N)
-- `group_grid_id` (uuid, nullable) : identifiant commun pour regrouper les N grilles visuelles d'un meme jeu
+**Produit cartesien** : ajouter une fonction `expandCombinations` qui genere toutes les combinaisons possibles a partir des predictions multi-choix du joueur.
 
-### 2. Edge Function : `submit-loto-foot-grid`
-
-Cette fonction remplace la logique client actuelle et gere tout cote serveur :
-
-- **Verification anti-doublons** : compare la combinaison normalisee (cles et valeurs triees) avec toutes les grilles existantes pour le meme `draw_date` (tous joueurs confondus). Si doublon, retourne une erreur 409.
-- **Verification du solde** : verifie que le joueur a assez de SuerteCoins.
-- **Insertion de N lignes** : cree N enregistrements avec le meme `group_grid_id`, des `instance_index` de 1 a N, et un cout de 1 SC chacun.
-- **Deduction des coins** : deduit N coins du profil joueur.
-- Tout dans une transaction pour garantir la coherence.
-
-Parametres attendus (POST) :
 ```text
-{
-  "predictions": { "matchId1": ["1", "X"], "matchId2": ["2"], ... },
-  "draw_date": "2026-02-15"
-}
+Entree : { "m1": ["X","2"], "m2": ["X"], "m3": ["1"] }
+Sortie : [
+  { "m1": "X", "m2": "X", "m3": "1" },
+  { "m1": "2", "m2": "X", "m3": "1" }
+]
 ```
 
-Reponse succes :
-```text
-{
-  "success": true,
-  "grids_created": 3,
-  "group_grid_id": "uuid",
-  "cost": 3
-}
-```
+**Anti-doublons ameliore** : chaque combinaison generee est normalisee et comparee individuellement avec toutes les grilles existantes pour le meme tirage (tous joueurs confondus). Si **une seule** des combinaisons existe deja, la soumission entiere est bloquee.
 
-Reponse doublon :
-```text
-{
-  "error": "Cette combinaison existe deja. Veuillez modifier vos choix.",
-  "code": "DUPLICATE_GRID"
-}
-```
+**Insertion** : chaque combinaison est une ligne distincte avec :
+- `predictions` = objet a valeur simple (ex: `{"m1":"X", "m2":"X"}`) au lieu d'un tableau
+- `instance_index` = 1 a N
+- `group_grid_id` = UUID commun pour regrouper visuellement
+- `cost` = 1 SC par ligne
 
-### 3. Mise a jour du composant `LotoFootPlayGrid.tsx`
+### 2. Affichage joueur (PlayerStats.tsx)
 
-Remplacer l'appel direct a Supabase par un appel a l'Edge Function :
-```text
-const response = await supabase.functions.invoke('submit-loto-foot-grid', {
-  body: { predictions, draw_date: nextDrawDate }
-});
-```
+Adapter le rendu pour gerer les deux formats de predictions :
+- Ancien format (objet avec tableaux) : afficher les multi-choix "1/X"
+- Nouveau format (objet avec valeur simple) : afficher le choix unique
 
-Gerer le cas d'erreur doublon avec un message specifique pour le joueur.
+Le regroupement par `group_grid_id` reste inchange (fonctionne deja).
 
-### 4. Adaptation de l'affichage joueur (`PlayerStats.tsx`)
+### 3. Protection contre la suppression de grilles en cours
 
-Regrouper les grilles ayant le meme `group_grid_id` pour n'afficher qu'une seule entree visuelle avec le nombre d'instances (ex: "Grille x3").
+Dans `PlayerStats.tsx`, modifier la condition de suppression :
+- Aujourd'hui : suppression autorisee si `status !== 'pending'`
+- Correction : suppression autorisee **uniquement** si `status !== 'pending'` (les grilles "pending" ne peuvent pas etre supprimees car le tirage n'a pas encore eu lieu)
 
-### 5. Adaptation du calcul des resultats
+Note : la logique actuelle est **inversee** -- elle permet de supprimer les grilles terminees mais pas les grilles en attente. Il faut decider :
+- Option A : le joueur peut supprimer uniquement les grilles terminees (historique) -- c'est le comportement actuel
+- Option B : le joueur ne peut rien supprimer tant que le calcul n'est pas fait -- bloquer la suppression des grilles "pending"
 
-La fonction SQL `calculate_loto_foot_results` fonctionne deja ligne par ligne, donc chaque instance sera calculee independamment -- aucun changement necessaire.
+Le comportement actuel (option A) semble correct : on ne supprime que l'historique. La seule correction necessaire est d'empecher la suppression pendant un calcul en cours par l'admin (statut intermediaire).
 
-## Fichiers concernes
+### 4. Vues admin (deja fonctionnelles)
 
-| Fichier | Modification |
+Les composants `PlayerSlideView`, `ConsolidatedGrid` et `AllSelectionsView` utilisent deja `parsePredictions` qui gere les deux formats. Avec le nouveau format a valeur simple, chaque grille en base correspondra a un seul pronostic par match, ce qui simplifie l'affichage admin.
+
+L'admin verra desormais chaque combinaison individuelle dans les slides, ce qui est plus precis.
+
+### 5. Remontee des resultats
+
+La fonction SQL `calculate_loto_foot_results` fonctionne deja ligne par ligne et gere les deux formats (tableau et valeur simple). Avec le nouveau format a valeur simple, la comparaison avec le resultat gagnant sera plus directe et fiable.
+
+## Fichiers modifies
+
+| Fichier | Nature de la modification |
 |---|---|
-| Nouvelle migration SQL | Ajouter `instance_index` et `group_grid_id` |
-| `supabase/functions/submit-loto-foot-grid/index.ts` | Nouvelle Edge Function (logique metier complete) |
-| `src/components/loto-foot/LotoFootPlayGrid.tsx` | Appeler l'Edge Function au lieu de Supabase direct |
-| `src/pages/PlayerStats.tsx` | Regrouper visuellement par `group_grid_id` |
-| `src/integrations/supabase/types.ts` | Mise a jour auto des types |
+| `supabase/functions/submit-loto-foot-grid/index.ts` | Ajout du produit cartesien, anti-doublons par combinaison |
+| `src/pages/PlayerStats.tsx` | Adaptation de l'affichage pour le nouveau format de predictions |
 
-## Detection de doublons
+## Details techniques
 
-La verification se fait sur **tous les joueurs** pour le meme tirage : si un joueur A a deja joue la combinaison exacte, un joueur B ne peut pas la rejouer. La normalisation trie les cles (match IDs) et les valeurs (predictions) pour garantir une comparaison fiable.
+### Fonction expandCombinations (produit cartesien)
+
+```text
+function expandCombinations(predictions: Record<string, string[]>): Record<string, string>[] {
+  const matchIds = Object.keys(predictions).sort();
+  let combos: Record<string, string>[] = [{}];
+
+  for (const matchId of matchIds) {
+    const choices = predictions[matchId];
+    const newCombos: Record<string, string>[] = [];
+    for (const combo of combos) {
+      for (const choice of choices) {
+        newCombos.push({ ...combo, [matchId]: choice });
+      }
+    }
+    combos = newCombos;
+  }
+  return combos;
+}
+```
+
+### Anti-doublons par combinaison
+
+Chaque combinaison generee est normalisee en triant les cles, puis comparee en JSON avec les grilles existantes. La comparaison se fait contre les grilles de TOUS les joueurs pour le meme tirage.
+
+### Flux complet
+
+1. Le joueur soumet ses predictions (avec doubles/triples)
+2. L'Edge Function genere toutes les combinaisons (produit cartesien)
+3. Chaque combinaison est verifiee contre la base (anti-doublons)
+4. Si aucun doublon : insertion de N lignes + deduction de N SC
+5. Si doublon detecte : rejet total avec message d'erreur
 
