@@ -34,10 +34,10 @@ export const SuerteCoinsDisplay = ({
   };
 
   const variantClasses = {
-    default: 'text-accent bg-accent/10 border-accent/30',
-    success: 'text-success bg-success/10 border-success/30',
-    warning: 'text-accent bg-accent/10 border-accent/30',
-    error: 'text-destructive bg-destructive/10 border-destructive/30'
+    default: 'text-yellow-600 bg-yellow-50 border-yellow-200',
+    success: 'text-green-600 bg-green-50 border-green-200',
+    warning: 'text-orange-600 bg-orange-50 border-orange-200',
+    error: 'text-red-600 bg-red-50 border-red-200'
   };
 
   const Component = clickable ? 'button' : 'div';

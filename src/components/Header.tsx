@@ -29,18 +29,18 @@ export const Header = () => {
   };
 
   return (
-    <header className="bg-card/95 backdrop-blur-md border-b border-border sticky top-0 z-50">
+    <header className="bg-white/90 backdrop-blur-md border-b border-blue-100 sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div 
             className="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={handleLogoClick}
           >
-            <div className="bg-primary p-2 rounded-xl neon-glow">
-              <Dices className="h-6 w-6 text-primary-foreground" />
+            <div className="bg-gradient-to-r from-blue-600 to-yellow-500 p-2 rounded-xl">
+              <Dices className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-yellow-600 bg-clip-text text-transparent">
                 SUERTE+
               </h1>
               <p className="text-sm text-muted-foreground">Gagnez ensemble</p>
@@ -58,7 +58,7 @@ export const Header = () => {
                       variant="default" 
                       size="sm"
                       onClick={handleAuthClick}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
                     >
                       Connexion
                     </Button>
@@ -82,7 +82,7 @@ export const Header = () => {
             <div className="flex flex-col items-end space-y-2">
               <nav className="flex items-center space-x-4">
                 {userRole !== 'admin' && user && (
-                  <Link to="/jouer" className="text-foreground hover:text-primary transition-colors font-medium">
+                  <Link to="/jouer" className="text-foreground hover:text-blue-600 transition-colors font-medium">
                     Jouer
                   </Link>
                 )}
@@ -90,17 +90,17 @@ export const Header = () => {
                   <LotoFootCartBadge onClick={() => navigate('/panier-validation')} />
                 )}
                 {userRole !== 'admin' && (
-                  <Link to="/stats" className="text-foreground hover:text-primary transition-colors flex items-center gap-1">
+                  <Link to="/stats" className="text-foreground hover:text-blue-600 transition-colors flex items-center gap-1">
                     <BarChart3 className="h-4 w-4" />
                     Statistiques
                   </Link>
                 )}
                 {userRole === 'admin' && (
                   <>
-                    <Link to="/admin" className="text-accent hover:text-accent/80 transition-colors font-medium">
+                    <Link to="/admin" className="text-yellow-600 hover:text-yellow-700 transition-colors font-medium">
                       Administration
                     </Link>
-                    <Link to="/admin?tab=loto-foot" className="text-foreground hover:text-primary transition-colors">
+                    <Link to="/admin?tab=loto-foot" className="text-foreground hover:text-blue-600 transition-colors">
                       Loto Foot
                     </Link>
                   </>
@@ -111,7 +111,7 @@ export const Header = () => {
                   !loading && (
                     <Button 
                       onClick={handleAuthClick}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="bg-gradient-to-r from-blue-600 to-yellow-500 hover:from-blue-700 hover:to-yellow-600 text-white"
                     >
                       Se connecter
                     </Button>

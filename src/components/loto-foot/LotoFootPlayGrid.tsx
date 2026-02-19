@@ -163,7 +163,7 @@ export const LotoFootPlayGrid = () => {
     <div className="space-y-4">
       {/* Deadline countdown */}
       {publishedGrid?.play_deadline && (
-        <div className="p-3 bg-accent/10 border border-accent/30 rounded-lg">
+        <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
           <DeadlineCountdown 
             deadline={publishedGrid.play_deadline}
             variant="default"

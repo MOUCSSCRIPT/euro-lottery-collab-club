@@ -45,7 +45,7 @@ const Play = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 pb-24">
       <div className="hidden md:block">
         <Header />
       </div>
@@ -60,7 +60,7 @@ const Play = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-yellow-500 bg-clip-text text-transparent">
                 {publishedGrid?.name || 'Loto Foot 15'}
               </h1>
             </div>
