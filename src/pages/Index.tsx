@@ -48,7 +48,7 @@ const Index = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50">
+      <div className="min-h-screen bg-background">
         <Header />
         <HeroSection />
       </div>
@@ -56,7 +56,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 pb-20">
+    <div className="min-h-screen bg-background pb-20">
       <div className="hidden md:block">
         <Header />
       </div>
@@ -67,7 +67,7 @@ const Index = () => {
       <div className="py-8">
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-yellow-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Générer vos grilles
             </h1>
             <p className="text-muted-foreground">
