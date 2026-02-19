@@ -1,109 +1,88 @@
 
+# Refonte visuelle "Squid Game-Inspired" -- SuertePlus
 
-# Correction de la logique de generation et d'enregistrement des grilles
+## Direction artistique
 
-## Probleme principal
+L'identite visuelle s'inspire de l'**ambiance** Squid Game sans utiliser de contenus proteges : fond sombre, rose neon vif (le rose iconique), formes geometriques abstraites (cercle, triangle, carre), typographie industrielle/bold, et une tension visuelle entre le noir profond et les accents neon.
 
-Actuellement, la Edge Function `submit-loto-foot-grid` enregistre N copies **identiques** des predictions (le meme objet JSON avec doubles/triples) au lieu de **decomposer les combinaisons** en grilles individuelles avec un seul pronostic par match.
+### Palette de couleurs
 
-Exemple concret :
-- Le joueur choisit : match1=["X","2"], match2=["X"], match3=["1"]
-- Aujourd'hui : 2 lignes en base, toutes les deux avec `{"match1":["X","2"], "match2":["X"], "match3":["1"]}`
-- Attendu : 2 lignes distinctes :
-  - `{"match1":"X", "match2":"X", "match3":"1"}`
-  - `{"match1":"2", "match2":"X", "match3":"1"}`
+| Role | Actuel | Nouveau (HSL) | Rendu |
+|---|---|---|---|
+| Background | Blanc | Noir profond `220 20% 6%` | #0d1117 |
+| Foreground | Bleu fonce | Blanc casse `210 20% 92%` | #e6eaef |
+| Card | Blanc | Gris tres fonce `220 15% 10%` | #151a22 |
+| Primary | Bleu `240 100% 65%` | Rose neon `340 85% 55%` | #e6305a |
+| Primary glow | Violet | Rose clair `340 90% 65%` | #f05a7e |
+| Accent | Orange | Dore/jaune `45 90% 55%` | #e6b830 |
+| Secondary | Gris clair | Gris fonce `220 15% 15%` | #1f2630 |
+| Muted | Gris clair | Gris moyen fonce `220 12% 18%` | #272d36 |
+| Prediction 1 | Bleu | Cercle/Teal `175 70% 45%` | #22b8a0 |
+| Prediction X | Orange | Triangle/Rose `340 85% 55%` | #e6305a |
+| Prediction 2 | Vert | Carre/Dore `45 90% 55%` | #e6b830 |
+| Success | Vert | Teal vif `160 75% 45%` | #1db87a |
+| Destructive | Rouge | Rouge intense `0 75% 50%` | #df2020 |
+| Border | Gris clair | Gris subtil `220 15% 18%` | #272d38 |
 
-## Modifications prevues
+### Symboles geometriques abstraits
 
-### 1. Edge Function `submit-loto-foot-grid` -- Refonte complete
-
-**Produit cartesien** : ajouter une fonction `expandCombinations` qui genere toutes les combinaisons possibles a partir des predictions multi-choix du joueur.
-
-```text
-Entree : { "m1": ["X","2"], "m2": ["X"], "m3": ["1"] }
-Sortie : [
-  { "m1": "X", "m2": "X", "m3": "1" },
-  { "m1": "2", "m2": "X", "m3": "1" }
-]
-```
-
-**Anti-doublons ameliore** : chaque combinaison generee est normalisee et comparee individuellement avec toutes les grilles existantes pour le meme tirage (tous joueurs confondus). Si **une seule** des combinaisons existe deja, la soumission entiere est bloquee.
-
-**Insertion** : chaque combinaison est une ligne distincte avec :
-- `predictions` = objet a valeur simple (ex: `{"m1":"X", "m2":"X"}`) au lieu d'un tableau
-- `instance_index` = 1 a N
-- `group_grid_id` = UUID commun pour regrouper visuellement
-- `cost` = 1 SC par ligne
-
-### 2. Affichage joueur (PlayerStats.tsx)
-
-Adapter le rendu pour gerer les deux formats de predictions :
-- Ancien format (objet avec tableaux) : afficher les multi-choix "1/X"
-- Nouveau format (objet avec valeur simple) : afficher le choix unique
-
-Le regroupement par `group_grid_id` reste inchange (fonctionne deja).
-
-### 3. Protection contre la suppression de grilles en cours
-
-Dans `PlayerStats.tsx`, modifier la condition de suppression :
-- Aujourd'hui : suppression autorisee si `status !== 'pending'`
-- Correction : suppression autorisee **uniquement** si `status !== 'pending'` (les grilles "pending" ne peuvent pas etre supprimees car le tirage n'a pas encore eu lieu)
-
-Note : la logique actuelle est **inversee** -- elle permet de supprimer les grilles terminees mais pas les grilles en attente. Il faut decider :
-- Option A : le joueur peut supprimer uniquement les grilles terminees (historique) -- c'est le comportement actuel
-- Option B : le joueur ne peut rien supprimer tant que le calcul n'est pas fait -- bloquer la suppression des grilles "pending"
-
-Le comportement actuel (option A) semble correct : on ne supprime que l'historique. La seule correction necessaire est d'empecher la suppression pendant un calcul en cours par l'admin (statut intermediaire).
-
-### 4. Vues admin (deja fonctionnelles)
-
-Les composants `PlayerSlideView`, `ConsolidatedGrid` et `AllSelectionsView` utilisent deja `parsePredictions` qui gere les deux formats. Avec le nouveau format a valeur simple, chaque grille en base correspondra a un seul pronostic par match, ce qui simplifie l'affichage admin.
-
-L'admin verra desormais chaque combinaison individuelle dans les slides, ce qui est plus precis.
-
-### 5. Remontee des resultats
-
-La fonction SQL `calculate_loto_foot_results` fonctionne deja ligne par ligne et gere les deux formats (tableau et valeur simple). Avec le nouveau format a valeur simple, la comparaison avec le resultat gagnant sera plus directe et fiable.
+Les formes cercle, triangle et carre sont utilisees comme motifs decoratifs abstraits (inspirees des formes de jeux de societe classiques, pas de contenu protege). Elles apparaitront :
+- Dans le fond du Hero via CSS (formes flottantes en opacite faible)
+- Comme separateurs visuels
+- Dans les boutons de prediction (1 = cercle, X = triangle, 2 = carre)
 
 ## Fichiers modifies
 
-| Fichier | Nature de la modification |
+| Fichier | Modifications |
 |---|---|
-| `supabase/functions/submit-loto-foot-grid/index.ts` | Ajout du produit cartesien, anti-doublons par combinaison |
-| `src/pages/PlayerStats.tsx` | Adaptation de l'affichage pour le nouveau format de predictions |
+| `src/index.css` | Nouvelle palette dark-mode-only, formes geometriques CSS, police Google Fonts, classes utilitaires neon |
+| `tailwind.config.ts` | Nouvelles animations (glow neon, float), font-family etendue |
+| `src/components/Header.tsx` | Fond noir, logo rose neon, texte adapte |
+| `src/components/HeroSection.tsx` | Fond sombre, formes geometriques flottantes, gradient rose/dore, bouton neon |
+| `src/pages/Auth.tsx` | Fond sombre, card sombre, branding rose |
+| `src/pages/Play.tsx` | Fond sombre, titre gradient rose |
+| `src/pages/PlayerStats.tsx` | Fond sombre |
+| `src/pages/Index.tsx` | Fond sombre, gradient rose |
+| `src/components/loto-foot/MatchSlide.tsx` | Boutons 1/X/2 avec formes geometriques, couleurs prediction mises a jour |
+| `src/components/loto-foot/RecapSlide.tsx` | Adaptation couleurs sombres |
+| `src/components/loto-foot/LotoFootPlayGrid.tsx` | Barre de progression et footer en theme sombre |
+| `src/components/layout/MobileNavBar.tsx` | Fond noir, icones neon |
+| `src/components/layout/MobileHeader.tsx` | Fond sombre |
+| `src/components/ui/SuerteCoinsDisplay.tsx` | Variantes adaptees au theme sombre (fond dore/ambre sur noir) |
+| `src/components/grids/GridStatusBadge.tsx` | Badges en couleurs neon sur fond sombre |
+| `src/components/coins/CoinPurchaseModal.tsx` | Modal sombre, accents neon |
 
 ## Details techniques
 
-### Fonction expandCombinations (produit cartesien)
+### 1. `src/index.css` -- Design system complet
 
-```text
-function expandCombinations(predictions: Record<string, string[]>): Record<string, string>[] {
-  const matchIds = Object.keys(predictions).sort();
-  let combos: Record<string, string>[] = [{}];
+Remplacement de la palette `:root` par un theme dark-by-default :
+- Suppression du mode light (tout est sombre)
+- Ajout de classes utilitaires : `.neon-glow`, `.geometric-circle`, `.geometric-triangle`, `.geometric-square`
+- Import Google Font "Inter" ou "Space Grotesk" pour un aspect industriel
+- Fond global avec subtil motif de grille (grid pattern CSS)
 
-  for (const matchId of matchIds) {
-    const choices = predictions[matchId];
-    const newCombos: Record<string, string>[] = [];
-    for (const combo of combos) {
-      for (const choice of choices) {
-        newCombos.push({ ...combo, [matchId]: choice });
-      }
-    }
-    combos = newCombos;
-  }
-  return combos;
-}
-```
+### 2. `tailwind.config.ts` -- Animations
 
-### Anti-doublons par combinaison
+Ajout de keyframes :
+- `neon-pulse` : pulsation de l'ombre neon rose
+- `float` : mouvement lent vertical pour les formes decoratives
+- `glow-border` : bordure qui pulse en rose
 
-Chaque combinaison generee est normalisee en triant les cles, puis comparee en JSON avec les grilles existantes. La comparaison se fait contre les grilles de TOUS les joueurs pour le meme tirage.
+### 3. Composants principaux
 
-### Flux complet
+**Header** : fond `bg-card/95 backdrop-blur`, logo avec glow rose, liens en blanc/rose au hover.
 
-1. Le joueur soumet ses predictions (avec doubles/triples)
-2. L'Edge Function genere toutes les combinaisons (produit cartesien)
-3. Chaque combinaison est verifiee contre la base (anti-doublons)
-4. Si aucun doublon : insertion de N lignes + deduction de N SC
-5. Si doublon detecte : rejet total avec message d'erreur
+**HeroSection** : fond noir avec formes geometriques SVG animees en arriere-plan (cercle rose, triangle dore, carre teal en opacite 5-10%), titre en gradient rose-dore, bouton "JOUER" avec glow neon pulsant.
 
+**MatchSlide** : les boutons 1/X/2 gardent leur logique mais recoivent les nouvelles couleurs prediction (teal/rose/dore) avec un effet glow quand selectionnes.
+
+**MobileNavBar** : fond noir opaque, icone active en rose neon, texte inactif en gris moyen.
+
+**Auth page** : fond sombre uni, card avec bordure subtile, branding rose au lieu de bleu/jaune.
+
+**SuerteCoinsDisplay** : variante default en ambre/dore sur fond sombre transparent au lieu de jaune sur blanc.
+
+### 4. Approche globale
+
+La majorite du restyling passe par le fichier CSS central (`index.css`) grace aux variables CSS. Les composants qui utilisent des classes hardcodees (`bg-blue-600`, `from-blue-50`, `text-gray-600`, etc.) doivent etre mis a jour individuellement pour utiliser les tokens du design system (`bg-primary`, `bg-background`, `text-foreground`, etc.) ou les nouvelles couleurs du theme.
