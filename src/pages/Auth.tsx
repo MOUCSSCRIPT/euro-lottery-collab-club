@@ -22,26 +22,26 @@ const Auth = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 grid-pattern">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-yellow-500 p-3 rounded-xl inline-block mb-4">
-            <Dices className="h-8 w-8 text-white" />
+          <div className="bg-primary p-3 rounded-xl inline-block mb-4 neon-glow">
+            <Dices className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-yellow-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             SUERTE+
           </h1>
-          <p className="text-gray-600 mt-2">Rejoignez la communauté des passionnés de loterie</p>
+          <p className="text-muted-foreground mt-2">Rejoignez la communauté des passionnés de loterie</p>
         </div>
 
         <Card>

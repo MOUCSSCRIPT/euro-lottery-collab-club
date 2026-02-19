@@ -211,7 +211,7 @@ const PlayerStats = () => {
                                   </span>
                                   <span className="text-muted-foreground">Coût total: {instanceCount} SC</span>
                                   {grid.status === 'won' && (
-                                    <span className="text-green-600 font-bold">Gain: {grid.potential_winnings} SC</span>
+                                    <span className="text-success font-bold">Gain: {grid.potential_winnings} SC</span>
                                   )}
                                   {grid.status !== 'pending' && (
                                     <AlertDialog>
