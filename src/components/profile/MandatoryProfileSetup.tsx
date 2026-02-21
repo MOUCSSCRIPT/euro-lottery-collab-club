@@ -2,21 +2,32 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { ProfileModal } from './ProfileModal';
+import { ForcePasswordChange } from './ForcePasswordChange';
 
 export const MandatoryProfileSetup = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
   const { profile, isLoading: profileLoading } = useProfile();
   const [showMandatoryProfile, setShowMandatoryProfile] = useState(false);
+  const [showForcePassword, setShowForcePassword] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !profileLoading && user && !profile) {
-      // User is authenticated but has no profile - show mandatory profile creation
+    if (!authLoading && !profileLoading && user && profile) {
+      if (profile.must_change_password) {
+        setShowForcePassword(true);
+        setShowMandatoryProfile(false);
+      } else if (!profile.username || profile.username.trim() === '') {
+        setShowMandatoryProfile(true);
+        setShowForcePassword(false);
+      } else {
+        setShowMandatoryProfile(false);
+        setShowForcePassword(false);
+      }
+    } else if (!authLoading && !profileLoading && user && !profile) {
       setShowMandatoryProfile(true);
-    } else if (!authLoading && !profileLoading && user && profile && (!profile.username || profile.username.trim() === '')) {
-      // User has profile but no username - show mandatory profile completion
-      setShowMandatoryProfile(true);
+      setShowForcePassword(false);
     } else {
       setShowMandatoryProfile(false);
+      setShowForcePassword(false);
     }
   }, [user, profile, authLoading, profileLoading]);
 
@@ -31,9 +42,10 @@ export const MandatoryProfileSetup = ({ children }: { children: React.ReactNode 
   return (
     <>
       {children}
+      <ForcePasswordChange open={showForcePassword} />
       <ProfileModal
         open={showMandatoryProfile}
-        onOpenChange={() => {}} // Can't close mandatory modal
+        onOpenChange={() => {}}
         mandatory={true}
       />
     </>

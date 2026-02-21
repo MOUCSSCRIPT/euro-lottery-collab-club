@@ -14,6 +14,70 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { MobileHeader } from '@/components/layout/MobileHeader';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+
+const PasswordChangeButton = () => {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isValid = password.length >= 6 && password === confirmPassword;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValid) return;
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      toast({ title: 'Mot de passe modifié', description: 'Votre mot de passe a été mis à jour.' });
+      setOpen(false);
+      setPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
+        <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
+          <Lock className="h-6 w-6" />
+        </div>
+        <p className="text-foreground text-base leading-normal flex-1 truncate">Modifier le mot de passe</p>
+      </button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier le mot de passe</DialogTitle>
+            <DialogDescription>Choisissez un nouveau mot de passe pour votre compte.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="pwd-new">Nouveau mot de passe</Label>
+              <Input id="pwd-new" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 6 caractères" minLength={6} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pwd-confirm">Confirmer</Label>
+              <Input id="pwd-confirm" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Répétez le mot de passe" required />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-sm text-destructive">Les mots de passe ne correspondent pas</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={!isValid || isLoading}>
+              {isLoading ? 'Modification...' : 'Valider'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 const Profile = () => {
   const { user, signOut } = useAuth();
   const { profile, updateProfile, createProfile } = useProfile();
@@ -172,12 +236,7 @@ const Profile = () => {
         </div>
 
         <h3 className="text-foreground text-lg font-bold tracking-[-0.015em] px-4 pb-2 pt-4">Paramètres du compte</h3>
-        <button type="button" onClick={() => toast({ title: 'Bientôt disponible', description: 'La modification du mot de passe arrive bientôt.' })} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
-          <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
-            <Lock className="h-6 w-6" />
-          </div>
-          <p className="text-foreground text-base leading-normal flex-1 truncate">Modifier le mot de passe</p>
-        </button>
+        <PasswordChangeButton />
         <button type="button" onClick={() => toast({ title: 'Bientôt disponible', description: 'Les notifications seront bientôt configurables.' })} className="flex items-center gap-4 bg-background px-4 min-h-14 w-full text-left">
           <div className="text-foreground flex items-center justify-center rounded-lg bg-muted shrink-0 size-10">
             <Bell className="h-6 w-6" />

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+// ... keep existing code (useUserRole, useAllProfiles, useAddCoins, useSetCoins)
 export const useUserRole = () => {
   return useQuery({
     queryKey: ['user-role'],
@@ -89,6 +90,68 @@ export const useSetCoins = () => {
       toast({
         title: "Succès",
         description: "Solde modifié avec succès",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useCreatePlayer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ username, email, country }: { username: string; email?: string; country?: string }) => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-players', {
+        body: { action: 'create', username, email, country },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-profiles'] });
+      toast({
+        title: "Joueur créé",
+        description: "Le joueur a été ajouté avec succès.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeletePlayer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-players', {
+        body: { action: 'delete', user_id: userId },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-profiles'] });
+      toast({
+        title: "Joueur supprimé",
+        description: "Le joueur a été supprimé avec succès.",
       });
     },
     onError: (error: Error) => {
