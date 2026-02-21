@@ -1,109 +1,101 @@
 
 
-# Correction de la logique de generation et d'enregistrement des grilles
+# Gestion des joueurs par l'administrateur
 
-## Probleme principal
+## Vue d'ensemble
 
-Actuellement, la Edge Function `submit-loto-foot-grid` enregistre N copies **identiques** des predictions (le meme objet JSON avec doubles/triples) au lieu de **decomposer les combinaisons** en grilles individuelles avec un seul pronostic par match.
-
-Exemple concret :
-- Le joueur choisit : match1=["X","2"], match2=["X"], match3=["1"]
-- Aujourd'hui : 2 lignes en base, toutes les deux avec `{"match1":["X","2"], "match2":["X"], "match3":["1"]}`
-- Attendu : 2 lignes distinctes :
-  - `{"match1":"X", "match2":"X", "match3":"1"}`
-  - `{"match1":"2", "match2":"X", "match3":"1"}`
+L'administrateur pourra ajouter et supprimer des joueurs directement depuis l'onglet "Joueurs" du panneau admin. Les joueurs crees recevront un mot de passe provisoire (`Buenasuerte{Nom}`) et devront le changer a leur premiere connexion.
 
 ## Modifications prevues
 
-### 1. Edge Function `submit-loto-foot-grid` -- Refonte complete
+### 1. Migration base de donnees
 
-**Produit cartesien** : ajouter une fonction `expandCombinations` qui genere toutes les combinaisons possibles a partir des predictions multi-choix du joueur.
+Ajouter une colonne `must_change_password` (boolean, defaut `false`) a la table `profiles` pour suivre si le joueur doit changer son mot de passe.
 
 ```text
-Entree : { "m1": ["X","2"], "m2": ["X"], "m3": ["1"] }
-Sortie : [
-  { "m1": "X", "m2": "X", "m3": "1" },
-  { "m1": "2", "m2": "X", "m3": "1" }
-]
+ALTER TABLE profiles ADD COLUMN must_change_password boolean NOT NULL DEFAULT false;
 ```
 
-**Anti-doublons ameliore** : chaque combinaison generee est normalisee et comparee individuellement avec toutes les grilles existantes pour le meme tirage (tous joueurs confondus). Si **une seule** des combinaisons existe deja, la soumission entiere est bloquee.
+### 2. Edge Function `admin-manage-players`
 
-**Insertion** : chaque combinaison est une ligne distincte avec :
-- `predictions` = objet a valeur simple (ex: `{"m1":"X", "m2":"X"}`) au lieu d'un tableau
-- `instance_index` = 1 a N
-- `group_grid_id` = UUID commun pour regrouper visuellement
-- `cost` = 1 SC par ligne
+Nouvelle Edge Function securisee (admin only) avec deux actions :
 
-### 2. Affichage joueur (PlayerStats.tsx)
+**Action "create"** :
+- Recoit `username`, `email` (optionnel), `country` (optionnel)
+- Genere le mot de passe `Buenasuerte{username}` (premiere lettre en majuscule)
+- Cree l'utilisateur via `supabase.auth.admin.createUser()` avec `email_confirm: true`
+- Si pas d'email fourni, genere un email interne (ex: `{username}@suerte.local`)
+- Met a jour le profil cree par le trigger `handle_new_user` pour y ajouter `must_change_password = true` et le `country`
+- Retourne le mot de passe provisoire a l'admin pour qu'il le communique au joueur
 
-Adapter le rendu pour gerer les deux formats de predictions :
-- Ancien format (objet avec tableaux) : afficher les multi-choix "1/X"
-- Nouveau format (objet avec valeur simple) : afficher le choix unique
+**Action "delete"** :
+- Recoit `user_id`
+- Verifie qu'il n'y a pas de grilles en cours (`status = 'pending'`) pour ce joueur
+- Si grilles en cours : refuse la suppression avec un message explicatif
+- Sinon : supprime l'utilisateur via `supabase.auth.admin.deleteUser()` (cascade sur profiles grace a la FK)
 
-Le regroupement par `group_grid_id` reste inchange (fonctionne deja).
+**Securite** : verifie que l'appelant a le role `admin` via `has_role()`.
 
-### 3. Protection contre la suppression de grilles en cours
+### 3. Changement de mot de passe obligatoire
 
-Dans `PlayerStats.tsx`, modifier la condition de suppression :
-- Aujourd'hui : suppression autorisee si `status !== 'pending'`
-- Correction : suppression autorisee **uniquement** si `status !== 'pending'` (les grilles "pending" ne peuvent pas etre supprimees car le tirage n'a pas encore eu lieu)
+**Dans `MandatoryProfileSetup.tsx`** : ajouter une condition supplementaire. Si `profile.must_change_password === true`, afficher un modal de changement de mot de passe au lieu du ProfileModal.
 
-Note : la logique actuelle est **inversee** -- elle permet de supprimer les grilles terminees mais pas les grilles en attente. Il faut decider :
-- Option A : le joueur peut supprimer uniquement les grilles terminees (historique) -- c'est le comportement actuel
-- Option B : le joueur ne peut rien supprimer tant que le calcul n'est pas fait -- bloquer la suppression des grilles "pending"
+**Nouveau composant `ForcePasswordChange.tsx`** :
+- Modal non fermable (comme le profil obligatoire)
+- Deux champs : nouveau mot de passe + confirmation
+- Validation : minimum 6 caracteres, les deux champs identiques
+- Appelle `supabase.auth.updateUser({ password })` puis met a jour `must_change_password = false` dans profiles
+- Message d'accueil : "Bienvenue ! Pour la securite de votre compte, veuillez choisir un nouveau mot de passe."
 
-Le comportement actuel (option A) semble correct : on ne supprime que l'historique. La seule correction necessaire est d'empecher la suppression pendant un calcul en cours par l'admin (statut intermediaire).
+### 4. Interface admin (onglet Joueurs)
 
-### 4. Vues admin (deja fonctionnelles)
+**Bouton "Ajouter un joueur"** en haut de la liste :
+- Ouvre un modal avec les champs : Pseudo (obligatoire), Email (optionnel), Pays (optionnel)
+- Affiche le mot de passe provisoire genere apres creation (dans un champ copiable)
+- Rafraichit la liste des profils
 
-Les composants `PlayerSlideView`, `ConsolidatedGrid` et `AllSelectionsView` utilisent deja `parsePredictions` qui gere les deux formats. Avec le nouveau format a valeur simple, chaque grille en base correspondra a un seul pronostic par match, ce qui simplifie l'affichage admin.
+**Bouton "Supprimer"** sur chaque ligne joueur :
+- Confirmation avant suppression
+- Si grilles en cours : affiche un message d'erreur expliquant pourquoi la suppression est impossible
+- Si OK : supprime et rafraichit la liste
 
-L'admin verra desormais chaque combinaison individuelle dans les slides, ce qui est plus precis.
+### 5. Page Profil -- modification du mot de passe
 
-### 5. Remontee des resultats
+Remplacer le bouton "Modifier le mot de passe" (actuellement "Bientot disponible") par un vrai formulaire :
+- Champs : nouveau mot de passe + confirmation
+- Appelle `supabase.auth.updateUser({ password })`
+- Toast de confirmation
 
-La fonction SQL `calculate_loto_foot_results` fonctionne deja ligne par ligne et gere les deux formats (tableau et valeur simple). Avec le nouveau format a valeur simple, la comparaison avec le resultat gagnant sera plus directe et fiable.
+## Fichiers concernes
 
-## Fichiers modifies
-
-| Fichier | Nature de la modification |
+| Fichier | Modification |
 |---|---|
-| `supabase/functions/submit-loto-foot-grid/index.ts` | Ajout du produit cartesien, anti-doublons par combinaison |
-| `src/pages/PlayerStats.tsx` | Adaptation de l'affichage pour le nouveau format de predictions |
+| Migration SQL | Ajout colonne `must_change_password` |
+| `supabase/functions/admin-manage-players/index.ts` | Nouvelle Edge Function (create/delete) |
+| `supabase/config.toml` | Config de la nouvelle function (`verify_jwt = false`) |
+| `src/hooks/useAdminActions.ts` | Hooks `useCreatePlayer` et `useDeletePlayer` |
+| `src/components/admin/AdminPanel.tsx` | UI ajout/suppression joueurs |
+| `src/components/profile/ForcePasswordChange.tsx` | Nouveau modal changement MDP obligatoire |
+| `src/components/profile/MandatoryProfileSetup.tsx` | Detection `must_change_password` |
+| `src/pages/Profile.tsx` | Formulaire changement MDP fonctionnel |
+| `src/hooks/useProfile.ts` | Ajout champ `must_change_password` au type `Profile` |
 
-## Details techniques
-
-### Fonction expandCombinations (produit cartesien)
+## Flux utilisateur
 
 ```text
-function expandCombinations(predictions: Record<string, string[]>): Record<string, string>[] {
-  const matchIds = Object.keys(predictions).sort();
-  let combos: Record<string, string>[] = [{}];
+Admin cree joueur "Jean"
+  → Compte cree avec email + mot de passe "BuenasuerteJean"
+  → Admin communique les identifiants au joueur
 
-  for (const matchId of matchIds) {
-    const choices = predictions[matchId];
-    const newCombos: Record<string, string>[] = [];
-    for (const combo of combos) {
-      for (const choice of choices) {
-        newCombos.push({ ...combo, [matchId]: choice });
-      }
-    }
-    combos = newCombos;
-  }
-  return combos;
-}
+Jean se connecte
+  → Modal obligatoire : "Changez votre mot de passe"
+  → Jean saisit un nouveau mot de passe
+  → must_change_password passe a false
+  → Jean accede a l'application normalement
+
+Admin supprime un joueur
+  → Verification : pas de grilles pending
+  → Si OK : suppression complete (auth + profile en cascade)
+  → Si grilles en cours : message d'erreur
 ```
-
-### Anti-doublons par combinaison
-
-Chaque combinaison generee est normalisee en triant les cles, puis comparee en JSON avec les grilles existantes. La comparaison se fait contre les grilles de TOUS les joueurs pour le meme tirage.
-
-### Flux complet
-
-1. Le joueur soumet ses predictions (avec doubles/triples)
-2. L'Edge Function genere toutes les combinaisons (produit cartesien)
-3. Chaque combinaison est verifiee contre la base (anti-doublons)
-4. Si aucun doublon : insertion de N lignes + deduction de N SC
-5. Si doublon detecte : rejet total avec message d'erreur
 
