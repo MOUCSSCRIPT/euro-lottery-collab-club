@@ -81,9 +81,6 @@ export const LotoFootPlayGrid = () => {
       });
 
       if (error) throw error;
-      if (data?.code === 'DUPLICATE_GRID') {
-        throw new Error(data.error || 'Cette combinaison existe déjà.');
-      }
       if (data?.code === 'INSUFFICIENT_COINS') {
         throw new Error(data.error || 'SuerteCoins insuffisants.');
       }
