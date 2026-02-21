@@ -33,45 +33,6 @@ function expandCombinations(
   return combos;
 }
 
-/**
- * Normalize a single-choice prediction object for reliable comparison.
- * Keys are sorted alphabetically.
- */
-function normalizeSinglePrediction(pred: Record<string, string>): string {
-  const sorted = Object.keys(pred)
-    .sort()
-    .reduce((acc: Record<string, string>, key: string) => {
-      acc[key] = pred[key];
-      return acc;
-    }, {});
-  return JSON.stringify(sorted);
-}
-
-/**
- * Normalize an existing DB row's predictions to a single-choice string for comparison.
- * Handles both legacy format (values are arrays) and new format (values are strings).
- */
-function normalizeExistingPrediction(pred: Record<string, unknown>): string {
-  const sorted = Object.keys(pred)
-    .sort()
-    .reduce((acc: Record<string, string>, key: string) => {
-      const val = pred[key];
-      // New format: string value directly
-      if (typeof val === "string") {
-        acc[key] = val;
-      }
-      // Legacy format: array with single element
-      else if (Array.isArray(val) && val.length === 1) {
-        acc[key] = val[0];
-      }
-      // Legacy format with multiple choices — not a single combo, skip
-      else {
-        acc[key] = JSON.stringify(val);
-      }
-      return acc;
-    }, {});
-  return JSON.stringify(sorted);
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -119,41 +80,7 @@ Deno.serve(async (req) => {
     const expandedCombos = expandCombinations(predictions);
     const cost = expandedCombos.length;
 
-    // 2. Fetch ALL existing single-combo grids for this draw date (all players)
-    const { data: existingGrids, error: fetchError } = await supabaseAdmin
-      .from("user_loto_foot_grids")
-      .select("predictions")
-      .eq("draw_date", draw_date);
-
-    if (fetchError) throw fetchError;
-
-    // Build a Set of normalized existing predictions for fast lookup
-    const existingSet = new Set<string>();
-    if (existingGrids) {
-      for (const g of existingGrids) {
-        try {
-          existingSet.add(normalizeExistingPrediction(g.predictions as Record<string, unknown>));
-        } catch {
-          // Skip malformed rows
-        }
-      }
-    }
-
-    // 3. Check each expanded combo for duplicates
-    for (const combo of expandedCombos) {
-      const normalized = normalizeSinglePrediction(combo);
-      if (existingSet.has(normalized)) {
-        return new Response(
-          JSON.stringify({
-            error: "Une ou plusieurs combinaisons générées existent déjà. Veuillez modifier vos choix.",
-            code: "DUPLICATE_GRID",
-          }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-    }
-
-    // 4. Check user balance
+    // 2. Check user balance (no duplicate detection)
     const { data: profile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("coins")
