@@ -1,41 +1,55 @@
 
-# Appliquer le style "Grille commune" admin sur la grille joueur
+
+# Ajouter le calcul du cout de la grille commune consolidee
 
 ## Objectif
-Remplacer le layout `<table>` actuel de `LotoFootPlayGrid.tsx` par le layout CSS Grid utilise dans `ConsolidatedGrid.tsx`, pour un rendu visuel identique cote joueur et cote admin.
+La grille commune regroupe tous les choix de tous les joueurs. L'admin veut savoir combien couterait cette grille si on la validait comme une seule grille combinee (produit cartesien de toutes les cases cochees).
+
+## Logique de calcul
+
+Pour chaque match, on compte combien de choix distincts ont ete faits par l'ensemble des joueurs (1, 2 ou 3 parmi 1/N/2). Le cout total = produit du nombre de choix distincts par match.
+
+Exemple avec 15 matchs :
+- 10 matchs avec 1 seul choix (tous les joueurs d'accord) = 1 chacun
+- 3 matchs avec 2 choix differents = 2 chacun
+- 2 matchs avec les 3 choix = 3 chacun
+
+Cout = 1^10 x 2^3 x 3^2 = 1 x 8 x 9 = 72 SC (72 combinaisons)
 
 ## Changements prevus
 
-### Fichier : `src/components/loto-foot/LotoFootPlayGrid.tsx`
+### Fichier : `src/components/admin/ConsolidatedGrid.tsx`
 
-**Remplacement du `<table>` par un CSS Grid identique a la grille commune :**
+1. **Calculer les choix distincts par match** : pour chaque match, determiner combien de valeurs distinctes (1, N, 2) ont ete selectionnees par au moins un joueur (count1 > 0, countN > 0, count2 > 0).
 
-- Utiliser `grid grid-cols-[2rem_1fr_repeat(3,4rem)_1fr]` comme dans `ConsolidatedGrid.tsx`
-- Header avec les memes classes : `text-xs font-semibold text-muted-foreground pb-2 border-b`
-- Chaque ligne de match avec : `gap-1 items-center py-2 border-b last:border-0`
-- Noms d'equipes avec `text-sm truncate font-medium`
-- Numero de match avec `text-xs font-mono text-muted-foreground`
+2. **Calculer le nombre de combinaisons** : multiplier le nombre de choix distincts de chaque match entre eux (produit cartesien).
 
-**Adaptation des boutons de selection (specifique joueur) :**
+3. **Afficher dans le footer** : ajouter une ligne sous la mise totale actuelle, indiquant :
+   - Le nombre de combinaisons de la grille commune
+   - Le cout en SC (1 SC par combinaison)
 
-Les colonnes 1/N/2 contiendront des boutons cliquables au lieu des barres de progression admin. Les boutons garderont :
-- Les couleurs existantes : vert (1), jaune (N/X), bleu (2)
-- Le style `bg-green-500/20 text-green-700 border-green-500/40` etc.
-- La taille et le `touch-manipulation` pour le mobile
+   Exemple de rendu dans le footer :
 
-**Responsive mobile :**
-
-- Ajuster la grille pour mobile : `grid-cols-[1.5rem_1fr_repeat(3,2.5rem)_1fr]` sur petits ecrans via des classes `sm:`
-- Conserver la troncature des noms d'equipes
-
-**Le reste du composant ne change pas** : deadline countdown, carte recapitulative, bouton de soumission, logique de predictions et mutations.
+```text
+Mise totale : 45 SC                     12 joueurs
+Grille commune : 72 combinaisons = 72 SC
+```
 
 ## Details techniques
 
-Structure cible par ligne de match :
+Le calcul s'appuie sur les donnees deja presentes dans `consolidatedData` :
 
-```text
-[#] [Domicile________] [btn 1] [btn N] [btn 2] [________Exterieur]
+```typescript
+const distinctChoicesPerMatch = consolidatedData.map(row => {
+  let choices = 0;
+  if (row.count1 > 0) choices++;
+  if (row.countN > 0) choices++;
+  if (row.count2 > 0) choices++;
+  return Math.max(1, choices);
+});
+
+const totalCombinations = distinctChoicesPerMatch.reduce((acc, c) => acc * c, 1);
+const combinedCost = totalCombinations; // 1 SC par combinaison
 ```
 
-Avec CSS Grid au lieu de `<table>`, exactement comme la grille commune admin, mais avec des `<button>` interactifs dans les colonnes centrales.
+Pas de nouveau fichier, pas de modification de base de donnees. Uniquement un calcul et affichage supplementaire dans le footer de `ConsolidatedGrid.tsx`.
