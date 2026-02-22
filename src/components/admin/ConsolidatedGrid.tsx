@@ -49,6 +49,14 @@ export const ConsolidatedGrid = ({ grids, matches }: ConsolidatedGridProps) => {
 
   const totalStake = grids.reduce((sum, g) => sum + g.cost, 0);
 
+  const totalCombinations = consolidatedData.reduce((acc, row) => {
+    let choices = 0;
+    if (row.count1 > 0) choices++;
+    if (row.countN > 0) choices++;
+    if (row.count2 > 0) choices++;
+    return acc * Math.max(1, choices);
+  }, 1);
+
   return (
     <Card>
       <CardHeader>
@@ -99,9 +107,14 @@ export const ConsolidatedGrid = ({ grids, matches }: ConsolidatedGridProps) => {
         ))}
 
         {/* Footer */}
-        <div className="pt-4 flex items-center justify-between text-sm text-muted-foreground">
-          <span>Mise totale : <strong className="text-foreground">{totalStake} SC</strong></span>
-          <span>{grids.length} joueur{grids.length > 1 ? 's' : ''}</span>
+        <div className="pt-4 space-y-1">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Mise totale : <strong className="text-foreground">{totalStake} SC</strong></span>
+            <span>{grids.length} joueur{grids.length > 1 ? 's' : ''}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Grille commune : <strong className="text-foreground">{totalCombinations.toLocaleString()} combinaison{totalCombinations > 1 ? 's' : ''} = {totalCombinations.toLocaleString()} SC</strong></span>
+          </div>
         </div>
       </CardContent>
     </Card>
