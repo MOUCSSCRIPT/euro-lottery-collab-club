@@ -1,16 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLotoFootMatches } from '@/hooks/useLotoFootMatches';
 import { useProfile } from '@/hooks/useProfile';
 import { useNextPublishedGrid } from '@/hooks/useNextPublishedGrid';
-import { ChevronLeft, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { calculateCost, calculateCombinationsPreview, LOTO_FOOT_GRID_COST } from '@/utils/lotoFootCosts';
 import { DeadlineCountdown } from '@/components/ui/DeadlineCountdown';
 import { SuerteCoinsDisplay } from '@/components/ui/SuerteCoinsDisplay';
-import { MatchSlide } from './MatchSlide';
-import { RecapSlide } from './RecapSlide';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -20,7 +19,6 @@ export const LotoFootPlayGrid = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [predictions, setPredictions] = useState<Record<string, string[]>>({});
 
   const { data: publishedGrid, isLoading: publishedGridLoading } = useNextPublishedGrid();
@@ -28,16 +26,11 @@ export const LotoFootPlayGrid = () => {
   const { data: matches, isLoading: matchesLoading } = useLotoFootMatches(nextDrawDate);
   const { profile, isLoading: profileLoading } = useProfile();
 
-  // Check grid status
   const isPublished = publishedGrid?.status === 'published';
   const isDeadlinePassed = publishedGrid?.play_deadline 
     ? new Date(publishedGrid.play_deadline) < new Date()
     : false;
 
-  const totalSlides = matches ? matches.length + 1 : 0; // +1 for recap slide
-  const isOnRecapSlide = currentSlide === matches?.length;
-
-  // Dynamic cost calculation
   const minPredictions = matches ? Math.max(12, matches.length - 3) : 12;
   const { combinations, cost } = useMemo(() => {
     return calculateCost(predictions, minPredictions);
@@ -47,7 +40,11 @@ export const LotoFootPlayGrid = () => {
     return calculateCombinationsPreview(predictions);
   }, [predictions]);
 
-  // Toggle prediction for a match
+  const predictionCount = Object.keys(predictions).length;
+  const isValidPredictions = predictionCount >= minPredictions;
+  const hasEnoughCoins = (profile?.coins || 0) >= cost;
+  const canSubmit = isValidPredictions && hasEnoughCoins && combinations > 0;
+
   const togglePrediction = (matchId: string, value: '1' | 'X' | '2') => {
     setPredictions(prev => {
       const current = prev[matchId] || [];
@@ -64,16 +61,9 @@ export const LotoFootPlayGrid = () => {
     });
   };
 
-  // Navigation
-  const goToSlide = (index: number) => setCurrentSlide(index);
-  const goNext = () => setCurrentSlide(prev => Math.min(prev + 1, totalSlides - 1));
-  const goPrev = () => setCurrentSlide(prev => Math.max(prev - 1, 0));
-
-  // Submit mutation
   const submitMutation = useMutation({
     mutationFn: async () => {
       if (!user || !matches || !profile) throw new Error('Missing data');
-      
       if (profile.coins < cost) throw new Error('SuerteCoins insuffisants');
 
       const { data, error } = await supabase.functions.invoke('submit-loto-foot-grid', {
@@ -87,7 +77,6 @@ export const LotoFootPlayGrid = () => {
       if (!data?.success) {
         throw new Error(data?.error || 'Erreur inconnue');
       }
-
       return data;
     },
     onSuccess: (data) => {
@@ -98,7 +87,6 @@ export const LotoFootPlayGrid = () => {
         description: `${data.grids_created} grille${data.grids_created > 1 ? 's' : ''} enregistrée${data.grids_created > 1 ? 's' : ''} (${data.cost} SC)`,
       });
       setPredictions({});
-      setCurrentSlide(0);
     },
     onError: (error) => {
       console.error('Error submitting grid:', error);
@@ -110,7 +98,6 @@ export const LotoFootPlayGrid = () => {
     },
   });
 
-  // Loading state
   if (matchesLoading || publishedGridLoading || profileLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -119,26 +106,20 @@ export const LotoFootPlayGrid = () => {
     );
   }
 
-  // No published grid
   if (!isPublished) {
     return (
       <Alert>
         <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          Aucune grille disponible pour le moment. Revenez plus tard !
-        </AlertDescription>
+        <AlertDescription>Aucune grille disponible pour le moment. Revenez plus tard !</AlertDescription>
       </Alert>
     );
   }
 
-  // Deadline passed
   if (isDeadlinePassed) {
     return (
       <Alert variant="destructive">
         <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          La participation pour ce tirage est clôturée.
-        </AlertDescription>
+        <AlertDescription>La participation pour ce tirage est clôturée.</AlertDescription>
       </Alert>
     );
   }
@@ -147,120 +128,133 @@ export const LotoFootPlayGrid = () => {
     return (
       <Alert>
         <AlertTriangle className="h-4 w-4" />
-        <AlertDescription>
-          La grille est en cours de préparation. Les matchs seront bientôt disponibles.
-        </AlertDescription>
+        <AlertDescription>La grille est en cours de préparation. Les matchs seront bientôt disponibles.</AlertDescription>
       </Alert>
     );
   }
-
-  const currentMatch = matches[currentSlide];
 
   return (
     <div className="space-y-4">
       {/* Deadline countdown */}
       {publishedGrid?.play_deadline && (
         <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-          <DeadlineCountdown 
-            deadline={publishedGrid.play_deadline}
-            variant="default"
-          />
+          <DeadlineCountdown deadline={publishedGrid.play_deadline} variant="default" />
         </div>
       )}
 
-      {/* Progress dots */}
-      <div className="flex justify-center gap-1 flex-wrap max-w-sm mx-auto">
-        {matches.map((match, index) => {
-          const hasPrediction = predictions[match.id]?.length > 0;
-          const isCurrent = index === currentSlide;
-          
-          return (
-            <button
-              key={match.id}
-              onClick={() => goToSlide(index)}
-              className={cn(
-                "w-3 h-3 rounded-full transition-all duration-200",
-                isCurrent ? "bg-primary scale-125" : 
-                hasPrediction ? "bg-primary/60" : "bg-muted-foreground/30"
-              )}
-              aria-label={`Match ${index + 1}`}
-            />
-          );
-        })}
-        {/* Recap dot */}
-        <button
-          onClick={() => goToSlide(matches.length)}
-          className={cn(
-            "w-3 h-3 rounded-full transition-all duration-200 ml-2",
-            isOnRecapSlide ? "bg-primary scale-125" : "bg-muted-foreground/30"
-          )}
-          aria-label="Récapitulatif"
-        />
-      </div>
+      {/* Grid table */}
+      <Card>
+        <CardHeader className="pb-2 pt-3 px-3">
+          <CardTitle className="text-sm flex items-center justify-between">
+            <span>{publishedGrid?.name || 'Loto Foot 15'}</span>
+            <span className="text-xs text-muted-foreground font-normal">
+              {predictionCount}/{matches.length} matchs
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/50">
+                <th className="text-left py-2 px-2 font-medium text-muted-foreground w-6">#</th>
+                <th className="text-left py-2 px-1 font-medium text-muted-foreground">Domicile</th>
+                <th className="text-center py-2 px-1 font-medium text-muted-foreground w-10">1</th>
+                <th className="text-center py-2 px-1 font-medium text-muted-foreground w-10">N</th>
+                <th className="text-center py-2 px-1 font-medium text-muted-foreground w-10">2</th>
+                <th className="text-right py-2 px-2 font-medium text-muted-foreground">Extérieur</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matches.map((match) => {
+                const preds = predictions[match.id] || [];
+                return (
+                  <tr key={match.id} className="border-b last:border-0">
+                    <td className="py-2 px-2 text-muted-foreground font-mono text-xs">{match.match_position}</td>
+                    <td className="py-2 px-1 truncate max-w-[100px] text-xs">{match.home_team}</td>
+                    {(['1', 'X', '2'] as const).map((val) => {
+                      const displayVal = val === 'X' ? 'N' : val;
+                      const isSelected = preds.includes(val);
+                      return (
+                        <td key={val} className="py-1.5 px-1 text-center">
+                          <button
+                            onClick={() => togglePrediction(match.id, val)}
+                            className={cn(
+                              "w-8 h-8 rounded font-bold text-xs transition-all duration-150 border",
+                              isSelected && val === '1' && "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40",
+                              isSelected && val === 'X' && "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/40",
+                              isSelected && val === '2' && "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/40",
+                              !isSelected && "bg-transparent text-muted-foreground/40 border-transparent hover:bg-muted/50 hover:text-foreground/60"
+                            )}
+                          >
+                            {displayVal}
+                          </button>
+                        </td>
+                      );
+                    })}
+                    <td className="py-2 px-2 text-right truncate max-w-[100px] text-xs">{match.away_team}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
 
-      {/* Current slide */}
-      {isOnRecapSlide ? (
-        <RecapSlide
-          predictions={predictions}
-          matches={matches}
-          combinations={combinations}
-          cost={cost}
-          userCoins={profile?.coins || 0}
-          isSubmitting={submitMutation.isPending}
-          onConfirm={() => submitMutation.mutate()}
-          onGoToMatch={goToSlide}
-        />
-      ) : currentMatch ? (
-        <MatchSlide
-          matchNumber={currentSlide + 1}
-          totalMatches={matches.length}
-          homeTeam={currentMatch.home_team}
-          awayTeam={currentMatch.away_team}
-          selected={predictions[currentMatch.id] || []}
-          onToggle={(value) => togglePrediction(currentMatch.id, value)}
-        />
-      ) : null}
-
-      {/* Navigation buttons */}
-      <div className="flex justify-between gap-4">
-        <Button
-          variant="outline"
-          onClick={goPrev}
-          disabled={currentSlide === 0}
-          className="flex-1"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Précédent
-        </Button>
-        <Button
-          onClick={goNext}
-          disabled={currentSlide === totalSlides - 1}
-          className="flex-1"
-        >
-          {isOnRecapSlide ? 'Récap' : 'Suivant'}
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
-
-      {/* Live cost display */}
-      {!isOnRecapSlide && (
-        <div className="fixed bottom-20 left-0 right-0 bg-background/95 backdrop-blur border-t p-3 z-10">
-          <div className="flex justify-between items-center max-w-md mx-auto px-4">
-            <div className="text-sm">
-              <span className="text-muted-foreground">Matchs: </span>
-              <span className="font-medium">{Object.keys(predictions).length}/{matches.length}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-muted-foreground">Combinaisons: </span>
-              <span className="font-bold">{combinationsPreview || 1}</span>
-            </div>
-            <SuerteCoinsDisplay 
-              amount={combinationsPreview * LOTO_FOOT_GRID_COST || LOTO_FOOT_GRID_COST} 
-              size="sm" 
-            />
+      {/* Summary & submit */}
+      <Card>
+        <CardContent className="pt-4 space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Matchs pronostiqués</span>
+            <span className={cn("font-medium", isValidPredictions ? "text-primary" : "text-destructive")}>
+              {predictionCount}/{matches.length}
+            </span>
           </div>
-        </div>
-      )}
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Combinaisons</span>
+            <span className="font-bold">{combinationsPreview || 1}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Votre solde</span>
+            <SuerteCoinsDisplay amount={profile?.coins || 0} size="sm" />
+          </div>
+          <div className="flex justify-between text-base font-bold border-t pt-2">
+            <span>Total</span>
+            <SuerteCoinsDisplay amount={combinationsPreview * LOTO_FOOT_GRID_COST || LOTO_FOOT_GRID_COST} size="sm" />
+          </div>
+
+          {!isValidPredictions && predictionCount > 0 && (
+            <Alert variant="destructive">
+              <AlertDescription className="text-xs">
+                Minimum {minPredictions} pronostics requis ({minPredictions - predictionCount} manquants)
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {isValidPredictions && !hasEnoughCoins && (
+            <Alert variant="destructive">
+              <AlertDescription className="text-xs">
+                Solde insuffisant. Il vous manque {cost - (profile?.coins || 0)} SuerteCoins.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <Button
+            className="w-full"
+            size="lg"
+            disabled={!canSubmit || submitMutation.isPending}
+            onClick={() => submitMutation.mutate()}
+          >
+            {submitMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Validation...
+              </>
+            ) : (
+              <>Payer {cost} SC et valider</>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };
