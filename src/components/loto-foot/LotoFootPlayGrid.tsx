@@ -152,38 +152,40 @@ export const LotoFootPlayGrid = () => {
             </span>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-0">
-          <table className="w-full text-sm">
+        <CardContent className="p-0 overflow-x-auto">
+          <table className="w-full text-xs sm:text-sm min-w-0">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="text-left py-2 px-2 font-medium text-muted-foreground w-6">#</th>
-                <th className="text-left py-2 px-1 font-medium text-muted-foreground">Domicile</th>
-                <th className="text-center py-2 px-1 font-medium text-muted-foreground w-10">1</th>
-                <th className="text-center py-2 px-1 font-medium text-muted-foreground w-10">N</th>
-                <th className="text-center py-2 px-1 font-medium text-muted-foreground w-10">2</th>
-                <th className="text-right py-2 px-2 font-medium text-muted-foreground">Extérieur</th>
+                <th className="text-left py-1.5 sm:py-2 px-1 sm:px-2 font-medium text-muted-foreground w-5 sm:w-6">#</th>
+                <th className="text-left py-1.5 sm:py-2 px-1 font-medium text-muted-foreground">Dom.</th>
+                <th className="text-center py-1.5 sm:py-2 px-0.5 sm:px-1 font-medium text-muted-foreground w-8 sm:w-10">1</th>
+                <th className="text-center py-1.5 sm:py-2 px-0.5 sm:px-1 font-medium text-muted-foreground w-8 sm:w-10">N</th>
+                <th className="text-center py-1.5 sm:py-2 px-0.5 sm:px-1 font-medium text-muted-foreground w-8 sm:w-10">2</th>
+                <th className="text-right py-1.5 sm:py-2 px-1 sm:px-2 font-medium text-muted-foreground">Ext.</th>
               </tr>
             </thead>
             <tbody>
               {matches.map((match) => {
                 const preds = predictions[match.id] || [];
                 return (
-                  <tr key={match.id} className="border-b last:border-0">
-                    <td className="py-2 px-2 text-muted-foreground font-mono text-xs">{match.match_position}</td>
-                    <td className="py-2 px-1 truncate max-w-[100px] text-xs">{match.home_team}</td>
+                  <tr key={match.id} className="border-b last:border-0 active:bg-muted/30">
+                    <td className="py-1 sm:py-2 px-1 sm:px-2 text-muted-foreground font-mono text-[10px] sm:text-xs">{match.match_position}</td>
+                    <td className="py-1 sm:py-2 px-1 text-[11px] sm:text-xs">
+                      <span className="block truncate max-w-[70px] sm:max-w-[120px]">{match.home_team}</span>
+                    </td>
                     {(['1', 'X', '2'] as const).map((val) => {
                       const displayVal = val === 'X' ? 'N' : val;
                       const isSelected = preds.includes(val);
                       return (
-                        <td key={val} className="py-1.5 px-1 text-center">
+                        <td key={val} className="py-0.5 sm:py-1.5 px-0.5 sm:px-1 text-center">
                           <button
                             onClick={() => togglePrediction(match.id, val)}
                             className={cn(
-                              "w-8 h-8 rounded font-bold text-xs transition-all duration-150 border",
-                              isSelected && val === '1' && "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40",
-                              isSelected && val === 'X' && "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/40",
-                              isSelected && val === '2' && "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/40",
-                              !isSelected && "bg-transparent text-muted-foreground/40 border-transparent hover:bg-muted/50 hover:text-foreground/60"
+                              "w-7 h-7 sm:w-9 sm:h-9 rounded font-bold text-[11px] sm:text-sm transition-all duration-150 border touch-manipulation",
+                              isSelected && val === '1' && "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/40 scale-105",
+                              isSelected && val === 'X' && "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/40 scale-105",
+                              isSelected && val === '2' && "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/40 scale-105",
+                              !isSelected && "bg-transparent text-muted-foreground/40 border-transparent hover:bg-muted/50 hover:text-foreground/60 active:bg-muted"
                             )}
                           >
                             {displayVal}
@@ -191,7 +193,9 @@ export const LotoFootPlayGrid = () => {
                         </td>
                       );
                     })}
-                    <td className="py-2 px-2 text-right truncate max-w-[100px] text-xs">{match.away_team}</td>
+                    <td className="py-1 sm:py-2 px-1 sm:px-2 text-right text-[11px] sm:text-xs">
+                      <span className="block truncate max-w-[70px] sm:max-w-[120px] ml-auto">{match.away_team}</span>
+                    </td>
                   </tr>
                 );
               })}
