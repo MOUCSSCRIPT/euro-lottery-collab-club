@@ -1,10 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Users, Grid3X3, Eye, Percent, DollarSign, CalendarSearch } from 'lucide-react';
+import { Users, Grid3X3, Eye, Percent, DollarSign, CalendarSearch } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminLotoFootGrids, mergeGridsByGroup } from '@/hooks/useAdminLotoFootGrids';
@@ -34,7 +34,6 @@ const useLatestGridDate = () => {
 
 export const LotoFootAdminDashboard = () => {
   const [drawDate, setDrawDate] = useState(getNextDrawDate('loto_foot'));
-  const [currentSlide, setCurrentSlide] = useState(0);
   const { data: latestDate } = useLatestGridDate();
 
   const { data: rawGrids = [], isLoading: gridsLoading } = useAdminLotoFootGrids(drawDate);
@@ -46,8 +45,6 @@ export const LotoFootAdminDashboard = () => {
 
   const isLoading = gridsLoading || matchesLoading;
 
-  const handlePrev = useCallback(() => setCurrentSlide((p) => Math.max(0, p - 1)), []);
-  const handleNext = useCallback(() => setCurrentSlide((p) => Math.min(grids.length - 1, p + 1)), [grids.length]);
 
   return (
     <div className="space-y-4">
@@ -61,7 +58,7 @@ export const LotoFootAdminDashboard = () => {
                 id="admin-draw-date"
                 type="date"
                 value={drawDate}
-                onChange={(e) => { setDrawDate(e.target.value); setCurrentSlide(0); }}
+                onChange={(e) => { setDrawDate(e.target.value); }}
                 className="mt-1"
               />
             </div>
@@ -72,7 +69,7 @@ export const LotoFootAdminDashboard = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => { setDrawDate(latestDate); setCurrentSlide(0); }}
+                onClick={() => { setDrawDate(latestDate); }}
                 className="flex items-center gap-1"
               >
                 <CalendarSearch className="h-3 w-3" />
@@ -115,18 +112,9 @@ export const LotoFootAdminDashboard = () => {
             <div className="text-center py-8 text-muted-foreground">Aucune grille pour cette date</div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Button variant="outline" size="sm" onClick={handlePrev} disabled={currentSlide === 0}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <span className="text-sm text-muted-foreground">
-                  {currentSlide + 1} / {grids.length}
-                </span>
-                <Button variant="outline" size="sm" onClick={handleNext} disabled={currentSlide >= grids.length - 1}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <PlayerSlideView grid={grids[currentSlide]} matches={matches} />
+              {grids.map((grid) => (
+                <PlayerSlideView key={grid.id} grid={grid} matches={matches} />
+              ))}
             </div>
           )}
         </TabsContent>
